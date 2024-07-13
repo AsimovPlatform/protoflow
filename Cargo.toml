@@ -1,0 +1,25 @@
+# See: https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = ["lib/*"]
+default-members = ["lib/protoflow"]
+resolver = "2"
+
+[workspace.package]
+version = "0.0.0"
+authors = ["Arto Bendiken"]
+edition = "2021"
+rust-version = "1.70"
+description = "Protoflow"
+#documentation = "https://github.com/artob/protoflow/blob/master/README.md"
+readme = true
+homepage = "https://protoflow.rs"
+repository = "https://github.com/artob/protoflow"
+license = "Unlicense"
+keywords = ["protobuf", "flow", "fbp"]
+categories = ["concurrency", "network-programming"]
+publish = true
+
+[workspace.dependencies]
+prost = "0.13"
+protoflow = { path = "lib/protoflow" }

@@ -1,0 +1,4 @@
+# See: https://rust-lang.github.io/rustfmt/
+
+reorder_imports = true
+imports_granularity = "Crate"
