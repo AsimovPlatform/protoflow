@@ -21,5 +21,6 @@ categories = ["concurrency", "network-programming"]
 publish = true
 
 [workspace.dependencies]
+cfg_aliases = "0.2"
 prost = "0.13"
 protoflow = { path = "lib/protoflow" }
