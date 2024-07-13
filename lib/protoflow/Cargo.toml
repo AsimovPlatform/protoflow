@@ -19,5 +19,8 @@ default = ["std", "tracing"]
 std = []
 tracing = ["dep:tracing"]
 
+[build-dependencies]
+cfg_aliases.workspace = true
+
 [dependencies]
 tracing = { version = "0.1", optional = true }
