@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Environment variables
+.env
+
+# Jetbrains
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Editor backup files
+*~
+
+# Rust artifacts
+/Cargo.lock
+/rust-toolchain
+/target
