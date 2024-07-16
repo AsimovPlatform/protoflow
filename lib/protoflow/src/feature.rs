@@ -2,6 +2,10 @@
 
 #[allow(unused)]
 pub static FEATURES: &[&str] = &[
+    #[cfg(feature = "flume")]
+    "flume",
     #[cfg(feature = "tracing")]
     "tracing",
+    #[cfg(feature = "zeromq")]
+    "zeromq",
 ];
