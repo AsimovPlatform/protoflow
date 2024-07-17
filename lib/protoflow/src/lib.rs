@@ -11,8 +11,11 @@ pub use block::*;
 mod feature;
 pub use feature::*;
 
-mod port;
-pub use port::*;
+mod input_port;
+pub use input_port::*;
+
+mod output_port;
+pub use output_port::*;
 
 pub mod primitives;
 
