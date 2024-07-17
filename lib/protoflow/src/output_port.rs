@@ -30,6 +30,10 @@ impl<T: Message> OutputPort<T> {
             label: label.map(|s| s.into()),
         }
     }
+
+    pub fn send(_message: T) {
+        // TODO
+    }
 }
 
 impl<T: Message> Port for OutputPort<T> {

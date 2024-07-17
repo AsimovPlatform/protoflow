@@ -30,6 +30,10 @@ impl<T: Message> InputPort<T> {
             label: label.map(|s| s.into()),
         }
     }
+
+    pub fn receive(&self) -> Option<T> {
+        None // TODO
+    }
 }
 
 impl<T: Message> Port for InputPort<T> {
