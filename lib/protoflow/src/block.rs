@@ -1,7 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::Port;
-use std::rc::Rc;
+use crate::PortDescriptor;
 
 #[allow(unused)]
 pub trait Block: AsBlock {
@@ -9,9 +8,9 @@ pub trait Block: AsBlock {
         None
     }
 
-    fn inputs(&self) -> Vec<Rc<dyn Port>>;
+    fn inputs(&self) -> Vec<PortDescriptor>;
 
-    fn outputs(&self) -> Vec<Rc<dyn Port>>;
+    fn outputs(&self) -> Vec<PortDescriptor>;
 
     fn execute(&mut self);
 }
