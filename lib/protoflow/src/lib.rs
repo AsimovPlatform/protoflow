@@ -5,6 +5,8 @@ pub mod prelude;
 mod block;
 pub use block::*;
 
+pub mod blocks;
+
 //mod error;
 //pub use error::*;
 
@@ -20,7 +22,11 @@ pub use output_port::*;
 mod port;
 pub use port::*;
 
-pub mod primitives;
+mod port_descriptor;
+pub use port_descriptor::*;
+
+mod port_state;
+pub use port_state::*;
 
 mod system;
 pub use system::*;
