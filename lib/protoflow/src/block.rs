@@ -1,12 +1,18 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{InputPort, OutputPort};
-//use prost::Message;
+use crate::Port;
+use std::rc::Rc;
 
 #[allow(unused)]
 pub trait Block: AsBlock {
-    fn inputs(&self) -> Vec<InputPort>;
-    fn outputs(&self) -> Vec<OutputPort>;
+    fn name(&self) -> Option<String> {
+        None
+    }
+
+    fn inputs(&self) -> Vec<Rc<dyn Port>>;
+
+    fn outputs(&self) -> Vec<Rc<dyn Port>>;
+
     fn execute(&mut self);
 }
 

@@ -17,6 +17,9 @@ pub use input_port::*;
 mod output_port;
 pub use output_port::*;
 
+mod port;
+pub use port::*;
+
 pub mod primitives;
 
 mod system;
