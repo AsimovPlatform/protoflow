@@ -1,7 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{InputPort, OutputPort, Port, PortState};
-use prost::Message;
+use crate::{InputPort, Message, OutputPort, Port, PortState};
 
 pub struct PortDescriptor {
     state: PortState,

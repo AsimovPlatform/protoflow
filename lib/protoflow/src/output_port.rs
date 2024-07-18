@@ -1,7 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Port, PortState};
-use prost::Message;
+use crate::{Message, Port, PortState};
 use std::marker::PhantomData;
 
 #[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -31,7 +30,7 @@ impl<T: Message> OutputPort<T> {
         }
     }
 
-    pub fn send(_message: T) {
+    pub fn send(&self, _message: T) {
         // TODO
     }
 }
