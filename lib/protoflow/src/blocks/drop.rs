@@ -2,7 +2,7 @@
 
 use crate::{Block, InputPort, Message, PortDescriptor};
 
-/// A block that discards all messages it receives.
+/// A block that simply discards all messages it receives.
 pub struct Drop<T: Message>(InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
@@ -15,8 +15,8 @@ impl<T: Message> Block for Drop<T> {
     }
 
     fn execute(&mut self) {
-        loop {
-            drop(self.0.receive());
+        while let Some(message) = self.0.receive() {
+            drop(message);
         }
     }
 }
