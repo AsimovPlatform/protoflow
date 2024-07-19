@@ -26,6 +26,71 @@ $ cargo add protoflow
 use protoflow::*;
 ```
 
+### Authoring a simple DROP block
+
+```rust
+use protoflow::{Block, InputPort, Message, PortDescriptor};
+
+/// A block that simply discards all messages it receives.
+pub struct Drop<T: Message>(InputPort<T>);
+
+impl<T: Message> Block for Drop<T> {
+    fn inputs(&self) -> Vec<PortDescriptor> {
+        vec![PortDescriptor::from(&self.0)]
+    }
+
+    fn outputs(&self) -> Vec<PortDescriptor> {
+        vec![] // no output ports
+    }
+
+    fn execute(&mut self) {
+        while let Some(message) = self.0.receive() {
+            drop(message);
+        }
+    }
+}
+```
+
+### Authoring a simple DELAY block
+
+```rust
+use protoflow::{Block, InputPort, Message, OutputPort, Port, PortDescriptor};
+use std::time::Duration;
+
+/// A block that passes messages through while delaying them by a fixed
+/// duration.
+pub struct Delay<T: Message> {
+    /// The input message stream.
+    input: InputPort<T>,
+    /// The output target for the stream being passed through.
+    output: OutputPort<T>,
+    /// The configuration parameter for how much delay to add.
+    delay: Duration,
+}
+
+impl<T: Message> Block for Delay<T> {
+    fn inputs(&self) -> Vec<PortDescriptor> {
+        vec![PortDescriptor::from(&self.input)]
+    }
+
+    fn outputs(&self) -> Vec<PortDescriptor> {
+        vec![PortDescriptor::from(&self.output)]
+    }
+
+    fn execute(&mut self) {
+        while let Some(message) = self.input.receive() {
+            std::thread::sleep(self.delay);
+
+            if self.output.is_connected() {
+                self.output.send(message);
+            } else {
+                drop(message);
+            }
+        }
+    }
+}
+```
+
 ## 👨‍💻 Development
 
 ```console
