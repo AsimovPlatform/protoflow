@@ -1,15 +1,19 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Block, InputPort, Message, OutputPort, PortDescriptor};
+use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor};
 use std::{ops::Range, time::Duration};
 
 #[cfg(feature = "std")]
 use rand::Rng;
 
-/// A block that delays messages by a fixed duration.
+/// A block that passes messages through while delaying them by a fixed or
+/// random duration.
 pub struct Delay<T: Message> {
+    /// The input message stream.
     input: InputPort<T>,
+    /// The output target for the stream being passed through.
     output: OutputPort<T>,
+    /// The configuration parameter for which type of delay to add.
     delay: DelayType,
 }
 
@@ -44,9 +48,14 @@ impl<T: Message> Block for Delay<T> {
                     let mut _rng = todo!();
                 }
             };
+            #[cfg(feature = "std")]
             std::thread::sleep(duration);
 
-            self.output.send(message);
+            if self.output.is_connected() {
+                self.output.send(message);
+            } else {
+                drop(message);
+            }
         }
     }
 }
