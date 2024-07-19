@@ -15,9 +15,10 @@ categories = ["command-line-interface", "network-programming"]
 publish.workspace = true
 
 [features]
-default = ["flume", "std", "tracing", "zeromq"]
+default = ["flume", "rand", "std", "tracing", "zeromq"]
 flume = ["dep:flume"]
-std = []
+rand = ["dep:getrandom", "dep:rand"]
+std = ["futures/std", "getrandom/std", "rand/std"]
 tracing = ["dep:tracing"]
 zeromq = ["dep:zeromq"]
 
@@ -25,10 +26,12 @@ zeromq = ["dep:zeromq"]
 cfg_aliases.workspace = true
 
 [dependencies]
-flume = { version = "0.11", optional = true }
-futures = "0.3"
+flume = { version = "0.11", optional = true, default-features = false }
+futures = { version = "0.3", default-features = false }
+getrandom = { version = "0.2", optional = true, default-features = false }
 prost = "0.13"
 prost-types = "0.13"
+rand = { version = "0.4", optional = true, default-features = false }
 tokio = "1.38"
 tracing = { version = "0.1", optional = true }
 zeromq = { version = "0.4", optional = true }

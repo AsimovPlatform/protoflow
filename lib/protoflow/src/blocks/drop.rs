@@ -2,6 +2,7 @@
 
 use crate::{Block, InputPort, Message, PortDescriptor};
 
+/// A block that discards all messages it receives.
 pub struct Drop<T: Message>(InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
