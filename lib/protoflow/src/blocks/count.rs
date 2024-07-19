@@ -2,6 +2,7 @@
 
 use crate::{Block, InputPort, Message, OutputPort, PortDescriptor};
 
+/// A block that counts the number of messages it receives.
 pub struct Count<T: Message, C: Message> {
     input: InputPort<T>,
     output: OutputPort<T>,
