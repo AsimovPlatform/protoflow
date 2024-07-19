@@ -3,8 +3,11 @@
 use crate::{InputPort, Message, OutputPort, Port, PortState};
 
 pub struct PortDescriptor {
+    /// The current state of this port.
     state: PortState,
+    /// The machine-readable name of this port.
     name: String,
+    /// A human-readable label for this port.
     label: Option<String>,
 }
 
