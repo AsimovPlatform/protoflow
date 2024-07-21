@@ -13,7 +13,7 @@ pub struct Delay<T: Message> {
     input: InputPort<T>,
     /// The output target for the stream being passed through.
     output: OutputPort<T>,
-    /// The configuration parameter for which type of delay to add.
+    /// A configuration parameter for which type of delay to add.
     delay: DelayType,
 }
 
@@ -34,6 +34,11 @@ impl<T: Message> Block for Delay<T> {
 
     fn execute(&mut self) {
         while let Some(message) = self.input.receive() {
+            if !self.output.is_connected() {
+                drop(message);
+                continue;
+            }
+
             let duration = match self.delay {
                 DelayType::Fixed(duration) => duration,
                 DelayType::Random(ref range) => {
@@ -51,11 +56,7 @@ impl<T: Message> Block for Delay<T> {
             #[cfg(feature = "std")]
             std::thread::sleep(duration);
 
-            if self.output.is_connected() {
-                self.output.send(message);
-            } else {
-                drop(message);
-            }
+            self.output.send(message);
         }
     }
 }
