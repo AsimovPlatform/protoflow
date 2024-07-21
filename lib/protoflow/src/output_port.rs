@@ -30,6 +30,10 @@ impl<T: Message> OutputPort<T> {
         }
     }
 
+    pub fn close(&mut self) {
+        self.state = PortState::Closed;
+    }
+
     pub fn send(&self, _message: &T) -> Result<(), ()> {
         Ok(()) // TODO
     }
