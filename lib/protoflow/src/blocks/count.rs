@@ -4,18 +4,18 @@ use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor, Schedul
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
-pub struct Count<T: Message, C: Message> {
+pub struct Count<T: Message> {
     /// The input message stream.
     input: InputPort<T>,
     /// The (optional) output target for the stream being passed through.
     output: OutputPort<T>,
     /// The output port for the message count.
-    count: OutputPort<C>,
+    count: OutputPort<u64>,
     /// The internal state counting the number of messages received.
     counter: u64,
 }
 
-impl<T: Message, C: Message> Block for Count<T, C> {
+impl<T: Message> Block for Count<T> {
     fn inputs(&self) -> Vec<PortDescriptor> {
         vec![PortDescriptor::from(&self.input)]
     }
@@ -39,7 +39,8 @@ impl<T: Message, C: Message> Block for Count<T, C> {
         }
 
         scheduler.wait_for(&self.count)?;
-        //self.count.send(&self.counter)?;
+
+        self.count.send(&self.counter)?;
 
         Ok(())
     }
