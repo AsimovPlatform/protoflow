@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor};
+use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
@@ -27,12 +27,12 @@ impl<T: Message, C: Message> Block for Count<T, C> {
         ]
     }
 
-    fn execute(&mut self) {
+    fn execute(&mut self, scheduler: &dyn Scheduler) {
         while let Some(message) = self.input.receive() {
             self.counter += 1;
 
             if self.output.is_connected() {
-                self.output.send(message);
+                self.output.send(&message);
             } else {
                 drop(message);
             }

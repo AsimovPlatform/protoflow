@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Block, InputPort, Message, PortDescriptor};
+use crate::{Block, InputPort, Message, PortDescriptor, Scheduler};
 
 /// A block that simply discards all messages it receives.
 pub struct Drop<T: Message>(InputPort<T>);
@@ -14,7 +14,7 @@ impl<T: Message> Block for Drop<T> {
         vec![] // no output ports
     }
 
-    fn execute(&mut self) {
+    fn execute(&mut self, _scheduler: &dyn Scheduler) {
         while let Some(message) = self.0.receive() {
             drop(message);
         }
