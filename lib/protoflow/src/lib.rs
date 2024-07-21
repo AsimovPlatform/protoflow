@@ -2,6 +2,10 @@
 
 pub use prost::Message;
 
+pub mod types {
+    pub use prost_types::*;
+}
+
 pub mod prelude;
 
 mod block;
