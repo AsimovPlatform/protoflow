@@ -91,6 +91,33 @@ impl<T: Message> Block for Delay<T> {
 }
 ```
 
+## 📚 Reference
+
+### Features
+
+- [`flume`](lib/protoflow/Cargo.toml)
+- [`rand`](lib/protoflow/Cargo.toml)
+- [`std`](lib/protoflow/Cargo.toml)
+- [`tokio`](lib/protoflow/Cargo.toml)
+- [`tracing`](lib/protoflow/Cargo.toml)
+- [`web`](lib/protoflow/Cargo.toml)
+- [`zeromq`](lib/protoflow/Cargo.toml)
+
+### Runtimes
+
+- [`runtimes::StdThread`](lib/protoflow/src/runtimes/std_thread.rs)
+- [`runtimes::Tokio`](lib/protoflow/src/runtimes/tokio.rs)
+- [`runtimes::Web`](lib/protoflow/src/runtimes/web.rs)
+
+### Transports
+
+- [`transports::Flume`](lib/protoflow/src/transports/flume.rs)
+- [`transports::ZeroMQ`](lib/protoflow/src/transports/zeromq.rs)
+
+### Blocks
+
+TODO
+
 ## 👨‍💻 Development
 
 ```console
