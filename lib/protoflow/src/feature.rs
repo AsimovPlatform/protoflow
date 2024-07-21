@@ -10,6 +10,8 @@ pub static FEATURES: &[&str] = &[
     "tokio",
     #[cfg(feature = "tracing")]
     "tracing",
+    #[cfg(feature = "web")]
+    "web",
     #[cfg(feature = "zeromq")]
     "zeromq",
 ];
