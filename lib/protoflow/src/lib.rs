@@ -40,7 +40,7 @@ pub use runtime::*;
 pub mod runtimes;
 
 mod scheduler;
-pub use scheduler::*;
+pub use scheduler::Scheduler;
 
 mod system;
 pub use system::*;

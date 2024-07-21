@@ -30,8 +30,8 @@ impl<T: Message> OutputPort<T> {
         }
     }
 
-    pub fn send(&self, _message: &T) {
-        // TODO
+    pub fn send(&self, _message: &T) -> Result<(), ()> {
+        Ok(()) // TODO
     }
 }
 

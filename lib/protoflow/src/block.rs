@@ -28,10 +28,12 @@ pub trait Block: AsBlock {
     ///
     /// This is called once before the first call to `execute`.
     /// This is where to open ports and allocate resources.
-    fn prepare(&mut self, _scheduler: &dyn Scheduler) {}
+    fn prepare(&mut self, _scheduler: &dyn Scheduler) -> Result<(), ()> {
+        Ok(())
+    }
 
     /// Executes this block's computation.
-    fn execute(&mut self, scheduler: &dyn Scheduler);
+    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), ()>;
 }
 
 pub trait AsBlock {

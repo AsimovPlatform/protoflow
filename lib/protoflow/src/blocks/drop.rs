@@ -14,9 +14,10 @@ impl<T: Message> Block for Drop<T> {
         vec![] // no output ports
     }
 
-    fn execute(&mut self, _scheduler: &dyn Scheduler) {
-        while let Some(message) = self.0.receive() {
+    fn execute(&mut self, _scheduler: &dyn Scheduler) -> Result<(), ()> {
+        while let Some(message) = self.0.receive()? {
             drop(message);
         }
+        Ok(())
     }
 }
