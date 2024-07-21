@@ -30,6 +30,10 @@ impl<T: Message> InputPort<T> {
         }
     }
 
+    pub fn close(&mut self) {
+        self.state = PortState::Closed;
+    }
+
     pub fn receive(&self) -> Result<Option<T>, ()> {
         Ok(None) // TODO
     }
