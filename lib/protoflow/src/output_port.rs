@@ -30,7 +30,7 @@ impl<T: Message> OutputPort<T> {
         }
     }
 
-    pub fn send(&self, _message: T) {
+    pub fn send(&self, _message: &T) {
         // TODO
     }
 }

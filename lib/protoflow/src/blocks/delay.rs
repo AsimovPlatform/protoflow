@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor};
+use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
 use std::{ops::Range, time::Duration};
 
 #[cfg(feature = "std")]
@@ -32,7 +32,7 @@ impl<T: Message> Block for Delay<T> {
         vec![PortDescriptor::from(&self.output)]
     }
 
-    fn execute(&mut self) {
+    fn execute(&mut self, scheduler: &dyn Scheduler) {
         while let Some(message) = self.input.receive() {
             if !self.output.is_connected() {
                 drop(message);
@@ -53,10 +53,9 @@ impl<T: Message> Block for Delay<T> {
                     let mut _rng = todo!();
                 }
             };
-            #[cfg(feature = "std")]
-            std::thread::sleep(duration);
+            scheduler.sleep(duration);
 
-            self.output.send(message);
+            self.output.send(&message);
         }
     }
 }
