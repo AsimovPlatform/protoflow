@@ -21,6 +21,7 @@ rand = ["dep:getrandom", "dep:rand"]
 std = ["futures/std", "getrandom/std", "rand/std"]
 tokio = ["dep:tokio"]
 tracing = ["dep:tracing"]
+web = []
 zeromq = ["dep:zeromq"]
 
 [build-dependencies]

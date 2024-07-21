@@ -9,3 +9,8 @@ pub use std_thread::*;
 mod tokio;
 #[cfg(feature = "tokio")]
 pub use tokio::*;
+
+#[cfg(feature = "web")]
+mod web;
+#[cfg(feature = "web")]
+pub use web::*;

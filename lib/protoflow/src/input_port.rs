@@ -30,8 +30,8 @@ impl<T: Message> InputPort<T> {
         }
     }
 
-    pub fn receive(&self) -> Option<T> {
-        None // TODO
+    pub fn receive(&self) -> Result<Option<T>, ()> {
+        Ok(None) // TODO
     }
 }
 

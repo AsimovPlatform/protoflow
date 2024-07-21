@@ -5,15 +5,15 @@ use crate::{
     Port, Runtime, Scheduler, System,
 };
 
-pub struct Tokio {}
+pub struct Web {}
 
-impl Runtime for Tokio {
+impl Runtime for Web {
     fn new(_system: &System) -> Self {
         Self {} // TODO
     }
 }
 
-impl Scheduler for Tokio {
+impl Scheduler for Web {
     fn is_alive(&self) -> bool {
         false // TODO
     }

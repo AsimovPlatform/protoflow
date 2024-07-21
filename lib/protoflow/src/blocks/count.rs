@@ -27,19 +27,20 @@ impl<T: Message, C: Message> Block for Count<T, C> {
         ]
     }
 
-    fn execute(&mut self, scheduler: &dyn Scheduler) {
-        while let Some(message) = self.input.receive() {
+    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), ()> {
+        while let Some(message) = self.input.receive()? {
             self.counter += 1;
 
             if self.output.is_connected() {
-                self.output.send(&message);
+                self.output.send(&message)?;
             } else {
                 drop(message);
             }
         }
 
-        if self.count.is_connected() {
-            //self.count.send(C::from(self.counter)); // FIXME
-        }
+        scheduler.wait_for(&self.count)?;
+        //self.count.send(&self.counter)?;
+
+        Ok(())
     }
 }
