@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Block, InputPort, Message, PortDescriptor, Scheduler};
+use crate::{
+    prelude::{vec, Vec},
+    Block, InputPort, Message, PortDescriptor, Scheduler,
+};
 
 /// A block that simply discards all messages it receives.
 pub struct Drop<T: Message>(InputPort<T>);

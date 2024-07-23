@@ -10,15 +10,25 @@ readme.workspace = true
 homepage.workspace = true
 repository.workspace = true
 license.workspace = true
-keywords = ["protobuf", "rpc", "client", "server"]
-categories = ["command-line-interface", "network-programming"]
+keywords = ["protobuf", "flow", "fbp", "no_std"]
+categories = ["concurrency", "command-line-interface", "network-programming"]
 publish.workspace = true
 
 [features]
-default = ["flume", "rand", "std", "tokio", "tracing", "zeromq"]
+default = ["flume", "rand", "std", "tokio", "tracing"]
 flume = ["dep:flume"]
-rand = ["dep:getrandom", "dep:rand"]
-std = ["futures/std", "getrandom/std", "rand/std"]
+rand = ["dep:getrandom", "dep:rand"] #, "rand/getrandom"]
+std = [
+    "dep:zeromq",
+    "futures/std",
+    "getrandom?/std",
+    "prost/std",
+    "prost-types/std",
+    "rand?/std",
+    "tokio?/full",
+    "tracing?/std",
+    "zeromq?/default",
+]
 tokio = ["dep:tokio"]
 tracing = ["dep:tracing"]
 web = []
@@ -31,9 +41,9 @@ cfg_aliases.workspace = true
 flume = { version = "0.11", optional = true, default-features = false }
 futures = { version = "0.3", default-features = false }
 getrandom = { version = "0.2", optional = true, default-features = false }
-prost = "0.13"
-prost-types = "0.13"
+prost = { version = "0.13", default-features = false, features = ["derive"] }
+prost-types = { version = "0.13", default-features = false }
 rand = { version = "0.4", optional = true, default-features = false }
-tokio = { version = "1.38", optional = true }
-tracing = { version = "0.1", optional = true }
-zeromq = { version = "0.4", optional = true }
+tokio = { version = "1.38", optional = true, default-features = false }
+tracing = { version = "0.1", optional = true, default-features = false }
+zeromq = { version = "0.4", optional = true, default-features = false }

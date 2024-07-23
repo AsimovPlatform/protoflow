@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
+use crate::{
+    prelude::{vec, Vec},
+    Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
+};
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.

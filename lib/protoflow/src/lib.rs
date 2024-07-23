@@ -1,19 +1,17 @@
 // This is free and unencumbered software released into the public domain.
 
+#![no_std]
+
+mod prelude;
+
 pub use prost::Message;
-
-pub mod types {
-    pub use prost_types::*;
-}
-
-pub mod prelude;
 
 mod block;
 pub use block::*;
 
 pub mod blocks;
 
-//mod error;
+mod error;
 //pub use error::*;
 
 mod feature;
@@ -49,3 +47,7 @@ mod transport;
 //pub use transport::*;
 
 pub mod transports;
+
+pub mod types {
+    pub use prost_types::*;
+}

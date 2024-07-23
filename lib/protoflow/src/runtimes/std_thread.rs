@@ -1,11 +1,12 @@
 // This is free and unencumbered software released into the public domain.
 
-use std::sync::atomic::{AtomicBool, Ordering};
-
 use crate::{
-    scheduler::{Duration, Instant},
+    prelude::{AtomicBool, Duration, Instant, Ordering},
     Port, Runtime, Scheduler, System,
 };
+
+#[cfg(feature = "std")]
+extern crate std;
 
 pub struct StdThread {
     is_alive: AtomicBool,
@@ -25,7 +26,10 @@ impl Scheduler for StdThread {
     }
 
     fn sleep_for(&self, duration: Duration) -> Result<(), ()> {
+        #[cfg(feature = "std")]
         std::thread::sleep(duration);
+        #[cfg(not(feature = "std"))]
+        unimplemented!("std::thread::sleep requires the 'std' feature");
         Ok(())
     }
 
@@ -45,7 +49,10 @@ impl Scheduler for StdThread {
     }
 
     fn yield_now(&self) -> Result<(), ()> {
+        #[cfg(feature = "std")]
         std::thread::yield_now();
+        #[cfg(not(feature = "std"))]
+        unimplemented!("std::thread::yield_now requires the 'std' feature");
         Ok(())
     }
 }

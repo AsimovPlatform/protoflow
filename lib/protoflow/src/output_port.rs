@@ -1,7 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{Message, Port, PortState};
-use std::marker::PhantomData;
+use crate::{
+    prelude::{fmt, PhantomData, String},
+    Message, Port, PortState,
+};
 
 #[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct OutputPort<T: Message> {
@@ -53,8 +55,8 @@ impl<T: Message> Port for OutputPort<T> {
     }
 }
 
-impl<T: Message> std::fmt::Display for OutputPort<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl<T: Message> fmt::Display for OutputPort<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}→", self.name)
     }
 }

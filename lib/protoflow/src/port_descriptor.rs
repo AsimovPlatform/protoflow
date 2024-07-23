@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{InputPort, Message, OutputPort, Port, PortState};
+use crate::{
+    prelude::{String, ToString},
+    InputPort, Message, OutputPort, Port, PortState,
+};
 
 pub struct PortDescriptor {
     /// The current state of this port.

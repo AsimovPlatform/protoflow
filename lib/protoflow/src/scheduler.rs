@@ -1,10 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::Port;
-
-pub use std::time::Duration;
-
-pub type Instant = Duration;
+use crate::{
+    prelude::{Duration, Instant},
+    Port,
+};
 
 pub trait Scheduler {
     fn is_alive(&self) -> bool;
