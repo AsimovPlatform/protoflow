@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::Block;
+use crate::{
+    prelude::{vec, Box, Vec},
+    Block,
+};
 
 /// A machine-readable identifier for a block in a system.
 ///

@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{PortDescriptor, Scheduler};
+use crate::{
+    prelude::{vec, String, Vec},
+    PortDescriptor, Scheduler,
+};
 
 /// A block is an autonomous unit of computation in a system.
 pub trait Block: AsBlock {

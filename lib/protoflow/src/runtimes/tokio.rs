@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    scheduler::{Duration, Instant},
+    prelude::{Duration, Instant},
     Port, Runtime, Scheduler, System,
 };
 

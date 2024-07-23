@@ -1,9 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    scheduler::Duration, Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
+    prelude::{vec, Duration, Range, Vec},
+    Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
 };
-use std::ops::Range;
 
 #[cfg(feature = "std")]
 use rand::Rng;
@@ -43,6 +43,7 @@ impl<T: Message> Block for Delay<T> {
 
             let duration = match self.delay {
                 DelayType::Fixed(duration) => duration,
+                #[allow(unused_variables)]
                 DelayType::Random(ref range) => {
                     #[cfg(feature = "std")]
                     {
