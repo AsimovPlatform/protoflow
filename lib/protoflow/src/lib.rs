@@ -14,6 +14,14 @@ pub use block_error::*;
 
 pub mod blocks;
 
+/// The `Block` and `System` derive macros are available if the crate
+/// was built with a `features = ["derive"]` configuration.
+#[cfg(feature = "derive")]
+#[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
+pub mod derive {
+    pub use protoflow_derive::{Block, System};
+}
+
 mod feature;
 pub use feature::*;
 
