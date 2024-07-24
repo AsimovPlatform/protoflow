@@ -9,6 +9,9 @@ pub use prost::Message;
 mod block;
 pub use block::*;
 
+mod block_descriptor;
+pub use block_descriptor::*;
+
 mod block_error;
 pub use block_error::*;
 
