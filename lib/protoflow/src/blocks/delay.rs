@@ -2,7 +2,8 @@
 
 use crate::{
     prelude::{vec, Duration, Range, Vec},
-    Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
+    Block, BlockDescriptor, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor,
+    Scheduler,
 };
 
 #[cfg(feature = "rand")]
@@ -25,7 +26,7 @@ pub enum DelayType {
     Random(Range<Duration>),
 }
 
-impl<T: Message> Block for Delay<T> {
+impl<T: Message> BlockDescriptor for Delay<T> {
     fn inputs(&self) -> Vec<PortDescriptor> {
         vec![PortDescriptor::from(&self.input)]
     }
@@ -33,7 +34,9 @@ impl<T: Message> Block for Delay<T> {
     fn outputs(&self) -> Vec<PortDescriptor> {
         vec![PortDescriptor::from(&self.output)]
     }
+}
 
+impl<T: Message> Block for Delay<T> {
     fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             if !self.output.is_connected() {
