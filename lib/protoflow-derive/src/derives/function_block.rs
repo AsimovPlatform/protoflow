@@ -35,7 +35,7 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             unused_qualifications,
             clippy::redundant_locals,
         )]
-        impl #impl_generics ::protoflow::Block for #ident #ty_generics #where_clause {
+        impl #impl_generics ::protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
             fn inputs(&self) -> ::alloc::vec::Vec<::protoflow::PortDescriptor> {
                 ::alloc::vec![::protoflow::PortDescriptor::from(&self.0)]
             }
@@ -43,7 +43,14 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             fn outputs(&self) -> ::alloc::vec::Vec<::protoflow::PortDescriptor> {
                 ::alloc::vec![::protoflow::PortDescriptor::from(&self.1)]
             }
+        }
 
+        #[automatically_derived]
+        #[allow(
+            unused_qualifications,
+            clippy::redundant_locals,
+        )]
+        impl #impl_generics ::protoflow::Block for #ident #ty_generics #where_clause {
             fn execute(&mut self, scheduler: &dyn ::protoflow::Scheduler) -> core::result::Result<(), ::protoflow::BlockError> {
                 let input = &self.0;
                 let output = &self.1;
