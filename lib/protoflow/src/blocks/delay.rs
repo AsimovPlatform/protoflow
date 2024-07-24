@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{vec, Duration, Range, Vec},
-    Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
+    Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
 };
 
 #[cfg(feature = "std")]
@@ -34,7 +34,7 @@ impl<T: Message> Block for Delay<T> {
         vec![PortDescriptor::from(&self.output)]
     }
 
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), ()> {
+    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             if !self.output.is_connected() {
                 drop(message);

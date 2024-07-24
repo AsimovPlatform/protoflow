@@ -7,8 +7,8 @@ extern crate std;
 
 #[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PortError {
-    NotOpen,
-    NotConnected,
+    Closed,
+    Disconnected,
     RecvFailed,
     SendFailed,
     Other(String),
@@ -17,11 +17,11 @@ pub enum PortError {
 impl fmt::Debug for PortError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::NotOpen => write!(f, "PortError::NotOpen"),
-            Self::NotConnected => write!(f, "Error::NotConnected"),
-            Self::RecvFailed => write!(f, "Error::RecvFailed"),
-            Self::SendFailed => write!(f, "Error::SendFailed"),
-            Self::Other(message) => write!(f, "Error::Other(\"{}\")", message),
+            Self::Closed => write!(f, "PortError::Closed"),
+            Self::Disconnected => write!(f, "PortError::Disconnected"),
+            Self::RecvFailed => write!(f, "PortError::RecvFailed"),
+            Self::SendFailed => write!(f, "PortError::SendFailed"),
+            Self::Other(message) => write!(f, "PortError::Other(\"{}\")", message),
         }
     }
 }
@@ -29,8 +29,8 @@ impl fmt::Debug for PortError {
 impl fmt::Display for PortError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::NotOpen => write!(f, "Port is not open"),
-            Self::NotConnected => write!(f, "Port is not connected"),
+            Self::Closed => write!(f, "Port is closed"),
+            Self::Disconnected => write!(f, "Port is not connected"),
             Self::RecvFailed => write!(f, "Port receive failed"),
             Self::SendFailed => write!(f, "Port send failed"),
             Self::Other(message) => write!(f, "{}", message),

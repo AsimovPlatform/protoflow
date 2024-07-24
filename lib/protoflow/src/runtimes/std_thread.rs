@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{AtomicBool, Duration, Instant, Ordering},
-    Port, Runtime, Scheduler, System,
+    BlockError, Port, Runtime, Scheduler, System,
 };
 
 #[cfg(feature = "std")]
@@ -25,7 +25,7 @@ impl Scheduler for StdThread {
         self.is_alive.load(Ordering::SeqCst)
     }
 
-    fn sleep_for(&self, duration: Duration) -> Result<(), ()> {
+    fn sleep_for(&self, duration: Duration) -> Result<(), BlockError> {
         #[cfg(feature = "std")]
         std::thread::sleep(duration);
         #[cfg(not(feature = "std"))]
@@ -33,22 +33,22 @@ impl Scheduler for StdThread {
         Ok(())
     }
 
-    fn sleep_until(&self, _instant: Instant) -> Result<(), ()> {
+    fn sleep_until(&self, _instant: Instant) -> Result<(), BlockError> {
         todo!() // TODO
     }
 
-    fn wait_for(&self, port: &dyn Port) -> Result<(), ()> {
+    fn wait_for(&self, port: &dyn Port) -> Result<(), BlockError> {
         while self.is_alive() && !port.is_connected() {
             self.yield_now()?;
         }
         if self.is_alive() {
             Ok(())
         } else {
-            Err(())
+            Err(BlockError::Terminated)
         }
     }
 
-    fn yield_now(&self) -> Result<(), ()> {
+    fn yield_now(&self) -> Result<(), BlockError> {
         #[cfg(feature = "std")]
         std::thread::yield_now();
         #[cfg(not(feature = "std"))]

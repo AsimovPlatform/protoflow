@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{vec, String, Vec},
-    PortDescriptor, Scheduler,
+    BlockError, PortDescriptor, Scheduler,
 };
 
 /// A block is an autonomous unit of computation in a system.
@@ -36,7 +36,7 @@ pub trait Block: AsBlock {
     }
 
     /// Executes this block's computation.
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), ()>;
+    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError>;
 }
 
 pub trait AsBlock {
