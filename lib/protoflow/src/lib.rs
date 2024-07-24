@@ -29,6 +29,9 @@ pub use port::*;
 mod port_descriptor;
 pub use port_descriptor::*;
 
+mod port_error;
+pub use port_error::*;
+
 mod port_state;
 pub use port_state::*;
 
