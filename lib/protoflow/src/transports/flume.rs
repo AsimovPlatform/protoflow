@@ -1,14 +1,18 @@
 // This is free and unencumbered software released into the public domain.
 
-use prost::Message;
-
+use crate::Message;
 use crate::transport::{Receiver, Sender};
 
+#[derive(Debug, Default)]
 pub struct FlumeSender<M> {
     sender: Option<flume::Sender<M>>,
 }
 
 impl<M: Message> FlumeSender<M> {
+    pub fn new() -> Self {
+        Self { sender: None }
+    }
+
     pub fn open(sender: flume::Sender<M>) -> Self {
         Self {
             sender: Some(sender),
@@ -44,8 +48,21 @@ impl<M: Message> Sender<M> for FlumeSender<M> {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct FlumeReceiver<T> {
     receiver: Option<flume::Receiver<T>>,
+}
+
+impl<M: Message> FlumeReceiver<M> {
+    pub fn new() -> Self {
+        Self { receiver: None }
+    }
+
+    pub fn open(receiver: flume::Receiver<M>) -> Self {
+        Self {
+            receiver: Some(receiver),
+        }
+    }
 }
 
 impl<M: Message> Receiver<M> for FlumeReceiver<M> {

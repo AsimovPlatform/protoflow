@@ -1,17 +1,24 @@
+// This is free and unencumbered software released into the public domain.
+
 use futures::TryFutureExt;
-use prost::Message;
+#[cfg(feature = "tokio")]
 use tokio::{runtime::Handle, task};
 use zeromq::{PullSocket, PushSocket, Socket, SocketRecv, SocketSend};
 
-// This is free and unencumbered software released into the public domain.
+use crate::Message;
 use crate::transport::{Receiver, Sender};
 
+#[derive(Default)]
 pub struct ZmqSender {
     socket: Option<PushSocket>,
 }
 
 impl ZmqSender {
-    pub fn open(endpoint: &str) -> Result<Self, ()> {
+    pub fn new() -> Self {
+        Self { socket: None }
+    }
+
+    pub fn open(&mut self, endpoint: &str) -> Result<(), ()> {
         let mut socket = PushSocket::new();
         let socket = task::block_in_place(|| {
             Handle::current().block_on(async {
@@ -19,9 +26,8 @@ impl ZmqSender {
                 Ok(socket)
             })
         })?;
-        Ok(Self {
-            socket: Some(socket),
-        })
+        self.socket = Some(socket);
+        Ok(())
     }
 }
 
@@ -58,12 +64,17 @@ impl<M: Message> Sender<M> for ZmqSender {
     }
 }
 
+#[derive(Default)]
 pub struct ZmqReceiver {
     socket: Option<PullSocket>,
 }
 
 impl ZmqReceiver {
-    pub fn open(endpoint: &str) -> Result<Self, ()> {
+    pub fn new() -> Self {
+        Self { socket: None }
+    }
+
+    pub fn open(&mut self, endpoint: &str) -> Result<(), ()> {
         let mut socket = PullSocket::new();
         let socket = task::block_in_place(|| {
             Handle::current().block_on(async {
@@ -71,9 +82,8 @@ impl ZmqReceiver {
                 Ok(socket)
             })
         })?;
-        Ok(Self {
-            socket: Some(socket),
-        })
+        self.socket = Some(socket);
+        Ok(())
     }
 }
 
