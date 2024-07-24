@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{vec, Vec},
-    Block, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
+    Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
 };
 
 /// A block that counts the number of messages it receives, while optionally
@@ -30,7 +30,7 @@ impl<T: Message> Block for Count<T> {
         ]
     }
 
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), ()> {
+    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             self.counter += 1;
 

@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{vec, Vec},
-    Block, InputPort, Message, PortDescriptor, Scheduler,
+    Block, BlockError, InputPort, Message, PortDescriptor, Scheduler,
 };
 
 /// A block that simply discards all messages it receives.
@@ -17,7 +17,7 @@ impl<T: Message> Block for Drop<T> {
         vec![] // no output ports
     }
 
-    fn execute(&mut self, _scheduler: &dyn Scheduler) -> Result<(), ()> {
+    fn execute(&mut self, _scheduler: &dyn Scheduler) -> Result<(), BlockError> {
         while let Some(message) = self.0.receive()? {
             drop(message);
         }

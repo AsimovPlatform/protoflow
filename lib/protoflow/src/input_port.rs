@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{fmt, PhantomData, String},
-    Message, Port, PortState,
+    BlockError, Message, Port, PortState,
 };
 
 #[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -32,11 +32,12 @@ impl<T: Message> InputPort<T> {
         }
     }
 
-    pub fn close(&mut self) {
+    pub fn close(&mut self) -> Result<(), BlockError> {
         self.state = PortState::Closed;
+        Ok(())
     }
 
-    pub fn receive(&self) -> Result<Option<T>, ()> {
+    pub fn receive(&self) -> Result<Option<T>, BlockError> {
         Ok(None) // TODO
     }
 }

@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{Duration, Instant},
-    Port, Runtime, Scheduler, System,
+    BlockError, Port, Runtime, Scheduler, System,
 };
 
 pub struct Web {}
@@ -18,19 +18,19 @@ impl Scheduler for Web {
         false // TODO
     }
 
-    fn sleep_for(&self, _duration: Duration) -> Result<(), ()> {
+    fn sleep_for(&self, _duration: Duration) -> Result<(), BlockError> {
         todo!() // TODO
     }
 
-    fn sleep_until(&self, _instant: Instant) -> Result<(), ()> {
+    fn sleep_until(&self, _instant: Instant) -> Result<(), BlockError> {
         todo!() // TODO
     }
 
-    fn wait_for(&self, _port: &dyn Port) -> Result<(), ()> {
+    fn wait_for(&self, _port: &dyn Port) -> Result<(), BlockError> {
         todo!() // TODO
     }
 
-    fn yield_now(&self) -> Result<(), ()> {
+    fn yield_now(&self) -> Result<(), BlockError> {
         todo!() // TODO
     }
 }

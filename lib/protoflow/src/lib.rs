@@ -9,10 +9,10 @@ pub use prost::Message;
 mod block;
 pub use block::*;
 
-pub mod blocks;
+mod block_error;
+pub use block_error::*;
 
-mod error;
-//pub use error::*;
+pub mod blocks;
 
 mod feature;
 pub use feature::*;
