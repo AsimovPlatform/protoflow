@@ -29,8 +29,8 @@ use protoflow::*;
 ### Authoring a simple DROP block
 
 ```rust
-use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Scheduler};
 use protoflow::derive::Block;
+use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Scheduler};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block)]
@@ -49,8 +49,8 @@ impl<T: Message> Block for Drop<T> {
 ### Authoring a simple DELAY block
 
 ```rust
-use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
 use protoflow::derive::Block;
+use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
 use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
@@ -85,8 +85,8 @@ impl<T: Message> Block for Delay<T> {
 ### Authoring a trivial function block
 
 ```rust
-use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
 use protoflow::derive::FunctionBlock;
+use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
 
 /// A block that simply echoes inputs to outputs.
 #[derive(FunctionBlock)]

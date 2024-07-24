@@ -35,13 +35,13 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             unused_qualifications,
             clippy::redundant_locals,
         )]
-        impl #impl_generics ::protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
-            fn inputs(&self) -> ::alloc::vec::Vec<::protoflow::PortDescriptor> {
-                ::alloc::vec![::protoflow::PortDescriptor::from(&self.0)]
+        impl #impl_generics protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
+            fn inputs(&self) -> alloc::vec::Vec<protoflow::PortDescriptor> {
+                alloc::vec![protoflow::PortDescriptor::from(&self.0)]
             }
 
-            fn outputs(&self) -> ::alloc::vec::Vec<::protoflow::PortDescriptor> {
-                ::alloc::vec![::protoflow::PortDescriptor::from(&self.1)]
+            fn outputs(&self) -> alloc::vec::Vec<protoflow::PortDescriptor> {
+                alloc::vec![protoflow::PortDescriptor::from(&self.1)]
             }
         }
 
@@ -50,14 +50,14 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             unused_qualifications,
             clippy::redundant_locals,
         )]
-        impl #impl_generics ::protoflow::Block for #ident #ty_generics #where_clause {
-            fn execute(&mut self, scheduler: &dyn ::protoflow::Scheduler) -> core::result::Result<(), ::protoflow::BlockError> {
+        impl #impl_generics protoflow::Block for #ident #ty_generics #where_clause {
+            fn execute(&mut self, scheduler: &dyn protoflow::Scheduler) -> core::result::Result<(), protoflow::BlockError> {
                 let input = &self.0;
                 let output = &self.1;
-                while let Some(message) = ::protoflow::InputPort::receive(input)? {
-                    if ::protoflow::Port::is_connected(output) {
-                        let result = ::protoflow::FunctionBlock::compute(self, message)?;
-                        ::protoflow::OutputPort::send(output, &result)?;
+                while let Some(message) = protoflow::InputPort::receive(input)? {
+                    if protoflow::Port::is_connected(output) {
+                        let result = protoflow::FunctionBlock::compute(self, message)?;
+                        protoflow::OutputPort::send(output, &result)?;
                     }
                 }
                 Ok(())

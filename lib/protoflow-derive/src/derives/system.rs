@@ -33,6 +33,6 @@ pub(crate) fn expand_derive_system(input: &DeriveInput) -> Result<TokenStream, s
             unused_qualifications,
             clippy::redundant_locals,
         )]
-        impl #impl_generics ::protoflow::System for #ident #ty_generics #where_clause {}
+        impl #impl_generics protoflow::System for #ident #ty_generics #where_clause {}
     })
 }

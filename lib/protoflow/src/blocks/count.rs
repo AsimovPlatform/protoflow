@@ -1,35 +1,26 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{
-    prelude::{vec, Vec},
-    Block, BlockDescriptor, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor,
-    Scheduler,
-};
+use crate as protoflow;
+
+use protoflow::derive::Block;
+use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, Scheduler};
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
+#[derive(Block)]
 pub struct Count<T: Message> {
     /// The input message stream.
+    #[input]
     input: InputPort<T>,
     /// The (optional) output target for the stream being passed through.
+    #[output]
     output: OutputPort<T>,
     /// The output port for the message count.
+    #[output]
     count: OutputPort<u64>,
     /// The internal state counting the number of messages received.
+    #[state]
     counter: u64,
-}
-
-impl<T: Message> BlockDescriptor for Count<T> {
-    fn inputs(&self) -> Vec<PortDescriptor> {
-        vec![PortDescriptor::from(&self.input)]
-    }
-
-    fn outputs(&self) -> Vec<PortDescriptor> {
-        vec![
-            PortDescriptor::from(&self.output),
-            PortDescriptor::from(&self.count),
-        ]
-    }
 }
 
 impl<T: Message> Block for Count<T> {
