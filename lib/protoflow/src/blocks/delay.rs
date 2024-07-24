@@ -5,7 +5,7 @@ use crate::{
     Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler,
 };
 
-#[cfg(feature = "std")]
+#[cfg(feature = "rand")]
 use rand::Rng;
 
 /// A block that passes messages through while delaying them by a fixed or
@@ -45,14 +45,14 @@ impl<T: Message> Block for Delay<T> {
                 DelayType::Fixed(duration) => duration,
                 #[allow(unused_variables)]
                 DelayType::Random(ref range) => {
-                    #[cfg(feature = "std")]
+                    #[cfg(feature = "rand")]
                     {
                         let mut rng = rand::thread_rng();
                         let low = range.start.as_nanos() as u64;
                         let high = range.end.as_nanos() as u64;
                         Duration::from_nanos(rng.gen_range(low, high))
                     }
-                    #[cfg(not(feature = "std"))]
+                    #[cfg(not(feature = "rand"))]
                     let mut _rng = todo!();
                 }
             };

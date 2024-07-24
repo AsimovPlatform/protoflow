@@ -1,7 +1,5 @@
 # See: https://doc.rust-lang.org/cargo/reference/config.html
 # See: https://docs.shipyard.rs/configuration/git-fetch-with-cli.html
 
-paths = ["lib/protoflow"]
-
 [net]
 git-fetch-with-cli = true
