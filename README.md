@@ -91,6 +91,23 @@ impl<T: Message> Block for Delay<T> {
 }
 ```
 
+### Authoring a trivial function block
+
+```rust
+use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
+use protoflow::derive::FunctionBlock;
+
+/// A block that simply echoes inputs to outputs.
+#[derive(FunctionBlock)]
+pub struct Echo(InputPort<i64>, OutputPort<i64>);
+
+impl FunctionBlock<i64, i64> for Echo {
+    fn compute(&self, input: i64) -> Result<i64, BlockError> {
+        Ok(input)
+    }
+}
+```
+
 ## 📚 Reference
 
 ### Features
