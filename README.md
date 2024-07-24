@@ -24,6 +24,7 @@ $ cargo add protoflow
 
 ```rust
 use protoflow::*;
+use protoflow::derive::*;
 ```
 
 ### Authoring a simple DROP block
@@ -101,8 +102,28 @@ impl FunctionBlock<i64, i64> for Echo {
 
 ## 📚 Reference
 
+### Blocks
+
+- [`Const`](lib/protoflow/src/blocks/const.rs)
+- [`Count`](lib/protoflow/src/blocks/count.rs)
+- [`Delay`](lib/protoflow/src/blocks/delay.rs)
+- [`Drop`](lib/protoflow/src/blocks/drop.rs)
+- [`Random`](lib/protoflow/src/blocks/random.rs)
+
+### Transports
+
+- [`Flume`](lib/protoflow/src/transports/flume.rs)
+- [`ZeroMQ`](lib/protoflow/src/transports/zeromq.rs)
+
+### Runtimes
+
+- [`StdThread`](lib/protoflow/src/runtimes/std_thread.rs)
+- [`Tokio`](lib/protoflow/src/runtimes/tokio.rs)
+- [`Web`](lib/protoflow/src/runtimes/web.rs)
+
 ### Features
 
+- [`derive`](lib/protoflow/Cargo.toml)
 - [`flume`](lib/protoflow/Cargo.toml)
 - [`rand`](lib/protoflow/Cargo.toml)
 - [`std`](lib/protoflow/Cargo.toml)
@@ -110,21 +131,6 @@ impl FunctionBlock<i64, i64> for Echo {
 - [`tracing`](lib/protoflow/Cargo.toml)
 - [`web`](lib/protoflow/Cargo.toml)
 - [`zeromq`](lib/protoflow/Cargo.toml)
-
-### Runtimes
-
-- [`runtimes::StdThread`](lib/protoflow/src/runtimes/std_thread.rs)
-- [`runtimes::Tokio`](lib/protoflow/src/runtimes/tokio.rs)
-- [`runtimes::Web`](lib/protoflow/src/runtimes/web.rs)
-
-### Transports
-
-- [`transports::Flume`](lib/protoflow/src/transports/flume.rs)
-- [`transports::ZeroMQ`](lib/protoflow/src/transports/zeromq.rs)
-
-### Blocks
-
-TODO
 
 ## 👨‍💻 Development
 

@@ -49,7 +49,7 @@ impl<T: Message> Block for Delay<T> {
                         let mut rng = rand::thread_rng();
                         let low = range.start.as_nanos() as u64;
                         let high = range.end.as_nanos() as u64;
-                        Duration::from_nanos(rng.gen_range(low, high))
+                        Duration::from_nanos(rng.gen_range(low..high))
                     }
                     #[cfg(not(feature = "rand"))]
                     let mut _rng = todo!();
