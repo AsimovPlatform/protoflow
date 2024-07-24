@@ -27,3 +27,4 @@ protoflow-derive = { path = "lib/protoflow-derive" }
 
 [patch.crates-io]
 protoflow = { path = "lib/protoflow" }
+protoflow-derive = { path = "lib/protoflow-derive" }
