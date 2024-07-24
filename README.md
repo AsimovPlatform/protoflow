@@ -30,19 +30,13 @@ use protoflow::*;
 
 ```rust
 use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Scheduler};
+use protoflow::derive::Block;
 
 /// A block that simply discards all messages it receives.
-pub struct Drop<T: Message>(InputPort<T>);
+#[derive(Block)]
+pub struct Drop<T: Message>(#[input] InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
-    fn inputs(&self) -> Vec<PortDescriptor> {
-        vec![PortDescriptor::from(&self.0)]
-    }
-
-    fn outputs(&self) -> Vec<PortDescriptor> {
-        vec![] // no output ports
-    }
-
     fn execute(&mut self, _scheduler: &dyn Scheduler) -> Result<(), BlockError> {
         while let Some(message) = self.0.receive()? {
             drop(message);
@@ -56,28 +50,25 @@ impl<T: Message> Block for Drop<T> {
 
 ```rust
 use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
+use protoflow::derive::Block;
 use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
 /// duration.
+#[derive(Block)]
 pub struct Delay<T: Message> {
     /// The input message stream.
+    #[input]
     input: InputPort<T>,
     /// The output target for the stream being passed through.
+    #[output]
     output: OutputPort<T>,
-    /// The configuration parameter for how much delay to add.
+    /// A configuration parameter for how much delay to add.
+    #[parameter]
     delay: Duration,
 }
 
 impl<T: Message> Block for Delay<T> {
-    fn inputs(&self) -> Vec<PortDescriptor> {
-        vec![PortDescriptor::from(&self.input)]
-    }
-
-    fn outputs(&self) -> Vec<PortDescriptor> {
-        vec![PortDescriptor::from(&self.output)]
-    }
-
     fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             scheduler.sleep_for(self.delay)?;
