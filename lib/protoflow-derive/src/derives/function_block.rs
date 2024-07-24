@@ -28,20 +28,18 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
     };
 
     Ok(quote! {
-        extern crate alloc;
-
         #[automatically_derived]
         #[allow(
             unused_qualifications,
             clippy::redundant_locals,
         )]
         impl #impl_generics protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
-            fn inputs(&self) -> alloc::vec::Vec<protoflow::PortDescriptor> {
-                alloc::vec![protoflow::PortDescriptor::from(&self.0)]
+            fn inputs(&self) -> protoflow::prelude::Vec<protoflow::PortDescriptor> {
+                protoflow::prelude::vec![protoflow::PortDescriptor::from(&self.0)]
             }
 
-            fn outputs(&self) -> alloc::vec::Vec<protoflow::PortDescriptor> {
-                alloc::vec![protoflow::PortDescriptor::from(&self.1)]
+            fn outputs(&self) -> protoflow::prelude::Vec<protoflow::PortDescriptor> {
+                protoflow::prelude::vec![protoflow::PortDescriptor::from(&self.1)]
             }
         }
 
@@ -51,7 +49,7 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             clippy::redundant_locals,
         )]
         impl #impl_generics protoflow::Block for #ident #ty_generics #where_clause {
-            fn execute(&mut self, scheduler: &dyn protoflow::Scheduler) -> core::result::Result<(), protoflow::BlockError> {
+            fn execute(&mut self, scheduler: &dyn protoflow::Scheduler) -> protoflow::prelude::Result<(), protoflow::BlockError> {
                 let input = &self.0;
                 let output = &self.1;
                 while let Some(message) = protoflow::InputPort::receive(input)? {
