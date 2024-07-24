@@ -2,7 +2,7 @@
 
 #![no_std]
 
-mod prelude;
+pub mod prelude; // FIXME
 
 pub use prost::Message;
 

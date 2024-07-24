@@ -28,20 +28,18 @@ pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, sy
     };
 
     Ok(quote! {
-        extern crate alloc;
-
         #[automatically_derived]
         #[allow(
             unused_qualifications,
             clippy::redundant_locals,
         )]
         impl #impl_generics protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
-            fn inputs(&self) -> alloc::vec::Vec<protoflow::PortDescriptor> {
-                alloc::vec![] // TODO
+            fn inputs(&self) -> protoflow::prelude::Vec<protoflow::PortDescriptor> {
+                protoflow::prelude::vec![] // TODO
             }
 
-            fn outputs(&self) -> alloc::vec::Vec<protoflow::PortDescriptor> {
-                alloc::vec![] // TODO
+            fn outputs(&self) -> protoflow::prelude::Vec<protoflow::PortDescriptor> {
+                protoflow::prelude::vec![] // TODO
             }
         }
     })
