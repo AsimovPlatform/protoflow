@@ -1,0 +1,29 @@
+[package]
+name = "protoflow-derive"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+#documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords = ["protoflow", "derive", "macro"]
+categories = ["development-tools::procedural-macro-helpers"]
+publish.workspace = true
+
+[lib]
+proc-macro = true
+
+[features]
+default = []
+
+[dependencies]
+proc-macro2 = { version = "1", default-features = false }
+quote = { version = "1", default-features = false }
+syn = { version = "2", default-features = false }
+
+[dev-dependencies]
+protoflow = { version = "0", path = "../protoflow" }

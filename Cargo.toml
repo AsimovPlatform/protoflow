@@ -2,7 +2,7 @@
 
 [workspace]
 members = ["lib/*"]
-default-members = ["lib/protoflow"]
+default-members = ["lib/protoflow", "lib/protoflow-derive"]
 resolver = "2"
 
 [workspace.package]
@@ -16,10 +16,14 @@ readme = true
 homepage = "https://protoflow.rs"
 repository = "https://github.com/artob/protoflow"
 license = "Unlicense"
-keywords = ["protobuf", "flow", "fbp"]
-categories = ["concurrency", "network-programming"]
+keywords = ["protoflow", "protobuf", "flow", "fbp"]
+categories = ["concurrency", "network-programming", "no-std"]
 publish = true
 
 [workspace.dependencies]
 cfg_aliases = "0.2"
+protoflow = { path = "lib/protoflow" }
+protoflow-derive = { path = "lib/protoflow-derive" }
+
+[patch.crates-io]
 protoflow = { path = "lib/protoflow" }
