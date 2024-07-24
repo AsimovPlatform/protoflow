@@ -13,7 +13,7 @@ mod derives;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
-#[proc_macro_derive(Block, attributes(input, output, parameter))]
+#[proc_macro_derive(Block, attributes(input, output, parameter, state))]
 pub fn derive_block(input: TokenStream) -> TokenStream {
     let mut input: DeriveInput = parse_macro_input!(input);
     derives::expand_derive_block(&mut input)

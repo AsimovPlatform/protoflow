@@ -1,9 +1,11 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{
-    prelude::{vec, Duration, Range, Vec},
-    Block, BlockDescriptor, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor,
-    Scheduler,
+use crate as protoflow;
+
+use protoflow::derive::Block;
+use protoflow::{
+    prelude::{Duration, Range},
+    Block, BlockError, InputPort, Message, OutputPort, Port, Scheduler,
 };
 
 #[cfg(feature = "rand")]
@@ -11,12 +13,16 @@ use rand::Rng;
 
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
+#[derive(Block)]
 pub struct Delay<T: Message> {
     /// The input message stream.
+    #[input]
     input: InputPort<T>,
     /// The output target for the stream being passed through.
+    #[output]
     output: OutputPort<T>,
     /// A configuration parameter for which type of delay to add.
+    #[parameter]
     delay: DelayType,
 }
 
@@ -24,16 +30,6 @@ pub struct Delay<T: Message> {
 pub enum DelayType {
     Fixed(Duration),
     Random(Range<Duration>),
-}
-
-impl<T: Message> BlockDescriptor for Delay<T> {
-    fn inputs(&self) -> Vec<PortDescriptor> {
-        vec![PortDescriptor::from(&self.input)]
-    }
-
-    fn outputs(&self) -> Vec<PortDescriptor> {
-        vec![PortDescriptor::from(&self.output)]
-    }
 }
 
 impl<T: Message> Block for Delay<T> {
