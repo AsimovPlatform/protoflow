@@ -13,11 +13,11 @@ use protoflow::{Block, BlockError, Message, OutputPort, Scheduler};
 pub struct Random<T: Message> {
     /// The port to send the value on.
     #[output]
-    output: OutputPort<T>,
+    pub output: OutputPort<T>,
     /// A parameter for the random seed to use.
     #[parameter]
     #[allow(unused)]
-    seed: Option<T>,
+    pub seed: Option<T>,
 }
 
 impl<T: Message> Block for Random<T> {

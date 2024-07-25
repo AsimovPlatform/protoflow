@@ -10,10 +10,10 @@ use protoflow::{Block, BlockError, Message, OutputPort, Scheduler};
 pub struct Const<T: Message> {
     /// The port to send the value on.
     #[output]
-    output: OutputPort<T>,
+    pub output: OutputPort<T>,
     /// A parameter for the value to send.
     #[parameter]
-    value: T,
+    pub value: T,
 }
 
 impl<T: Message> Block for Const<T> {
