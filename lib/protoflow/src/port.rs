@@ -2,8 +2,13 @@
 
 use crate::PortState;
 
+pub type PortID = usize;
+
 /// The common interface for ports, whether for input or output.
 pub trait Port {
+    /// A unique identifier for this port.
+    fn id(&self) -> Option<PortID>;
+
     /// The current state of this port.
     fn state(&self) -> PortState;
 

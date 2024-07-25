@@ -1,8 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{vec, Rc, Vec},
-    Block, InputPort, Message, OutputPort,
+    prelude::{vec, BTreeSet, Rc, Vec},
+    Block, InputPort, Message, OutputPort, Port, PortID,
 };
 
 /// A machine-readable identifier for a block in a system.
@@ -14,7 +14,8 @@ pub type BlockID = usize;
 #[derive(Default)]
 pub struct System {
     /// The registered blocks in the system.
-    blocks: Vec<Rc<dyn Block>>,
+    pub blocks: Vec<Rc<dyn Block>>,
+    pub connections: BTreeSet<(PortID, PortID)>,
 }
 
 pub type Subsystem = System;
@@ -22,7 +23,14 @@ pub type Subsystem = System;
 impl System {
     /// Instantiates a new system.
     pub fn new() -> Self {
-        Self { blocks: vec![] }
+        Self {
+            blocks: vec![],
+            connections: BTreeSet::new(),
+        }
+    }
+
+    pub fn blocks(&self) -> &[Rc<dyn Block>] {
+        &self.blocks
     }
 
     /// Instantiates a block in the system.
@@ -37,10 +45,16 @@ impl System {
     /// Both ports must be of the same message type.
     pub fn connect<T: Message>(
         &mut self,
-        _source: &OutputPort<T>,
-        _target: &InputPort<T>,
-    ) -> Result<(), ()> {
-        Ok(()) // TODO
+        source: &OutputPort<T>,
+        target: &InputPort<T>,
+    ) -> Result<bool, ()> {
+        // TODO: assign port IDs
+        match (source.id(), target.id()) {
+            (Some(source_id), Some(target_id)) => {
+                Ok(self.connections.insert((source_id, target_id)))
+            }
+            _ => Err(()),
+        }
     }
 }
 

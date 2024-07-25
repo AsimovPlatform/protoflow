@@ -12,6 +12,7 @@ use std as alloc;
 #[allow(unused)]
 pub use alloc::{
     boxed::Box,
+    collections::BTreeSet,
     rc::Rc,
     string::{String, ToString},
     vec,

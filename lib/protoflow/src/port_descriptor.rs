@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{String, ToString},
-    InputPort, Message, OutputPort, Port, PortState,
+    InputPort, Message, OutputPort, Port, PortID, PortState,
 };
 
 pub struct PortDescriptor {
@@ -15,6 +15,10 @@ pub struct PortDescriptor {
 }
 
 impl Port for PortDescriptor {
+    fn id(&self) -> Option<PortID> {
+        None
+    }
+
     fn state(&self) -> PortState {
         self.state
     }
