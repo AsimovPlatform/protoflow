@@ -2,7 +2,7 @@
 
 use crate::PortState;
 
-pub type PortID = usize;
+pub type PortID = isize;
 
 /// The common interface for ports, whether for input or output.
 pub trait Port {
