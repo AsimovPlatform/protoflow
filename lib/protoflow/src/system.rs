@@ -1,8 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{vec, Box, Vec},
-    Block,
+    prelude::{vec, Rc, Vec},
+    Block, InputPort, Message, OutputPort,
 };
 
 /// A machine-readable identifier for a block in a system.
@@ -14,7 +14,7 @@ pub type BlockID = usize;
 #[derive(Default)]
 pub struct System {
     /// The registered blocks in the system.
-    blocks: Vec<Box<dyn Block>>,
+    blocks: Vec<Rc<dyn Block>>,
 }
 
 pub type Subsystem = System;
@@ -26,19 +26,41 @@ impl System {
     }
 
     /// Instantiates a block in the system.
-    pub fn block(&mut self, block: Box<dyn Block>) -> BlockID {
-        self.blocks.push(block);
-        self.blocks.len()
+    pub fn block<T: Block + 'static>(&mut self, block: T) -> Rc<T> {
+        let result = Rc::new(block);
+        self.blocks.push(result.clone() as Rc<dyn Block>);
+        result
     }
 
     /// Connects two ports of two blocks in the system.
-    pub fn connect(
+    ///
+    /// Both ports must be of the same message type.
+    pub fn connect<T: Message>(
         &mut self,
-        _source_block: BlockID,
-        _source_port: &str,
-        _target_block: BlockID,
-        _target_port: &str,
-    ) {
-        // TODO
+        _source: &OutputPort<T>,
+        _target: &InputPort<T>,
+    ) -> Result<(), ()> {
+        Ok(()) // TODO
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::blocks::{Const, Drop};
+    use crate::{InputPort, OutputPort, System};
+
+    #[test]
+    fn define_system() -> Result<(), ()> {
+        let mut system = System::new();
+
+        let constant = system.block(Const {
+            output: OutputPort::<i64>::default(),
+            value: 42,
+        });
+        let blackhole = system.block(Drop(InputPort::<i64>::default()));
+
+        system.connect(&constant.output, &blackhole.0)?;
+
+        Ok(())
     }
 }

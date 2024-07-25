@@ -100,6 +100,24 @@ impl FunctionBlock<i64, i64> for Echo {
 }
 ```
 
+### Wiring up a system or subsystem
+
+```rust
+use protoflow::blocks::{Const, Drop};
+use protoflow::{InputPort, OutputPort, System};
+
+let mut system = System::new();
+
+let constant = system.block(Const {
+    output: OutputPort::<i64>::default(),
+    value: 42,
+});
+
+let blackhole = system.block(Drop(InputPort::<i64>::default()));
+
+system.connect(&constant.output, &blackhole.0)?;
+```
+
 ## 📚 Reference
 
 ### Blocks
