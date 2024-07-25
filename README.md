@@ -35,7 +35,7 @@ use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Scheduler
 
 /// A block that simply discards all messages it receives.
 #[derive(Block)]
-pub struct Drop<T: Message>(#[input] InputPort<T>);
+pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
     fn execute(&mut self, _scheduler: &dyn Scheduler) -> Result<(), BlockError> {
@@ -60,13 +60,13 @@ use std::time::Duration;
 pub struct Delay<T: Message> {
     /// The input message stream.
     #[input]
-    input: InputPort<T>,
+    pub input: InputPort<T>,
     /// The output target for the stream being passed through.
     #[output]
-    output: OutputPort<T>,
+    pub output: OutputPort<T>,
     /// A configuration parameter for how much delay to add.
     #[parameter]
-    delay: Duration,
+    pub delay: Duration,
 }
 
 impl<T: Message> Block for Delay<T> {
@@ -91,7 +91,7 @@ use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
 
 /// A block that simply echoes inputs to outputs.
 #[derive(FunctionBlock)]
-pub struct Echo(InputPort<i64>, OutputPort<i64>);
+pub struct Echo(pub InputPort<i64>, pub OutputPort<i64>);
 
 impl FunctionBlock<i64, i64> for Echo {
     fn compute(&self, input: i64) -> Result<i64, BlockError> {

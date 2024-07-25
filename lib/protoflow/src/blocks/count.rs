@@ -11,13 +11,13 @@ use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, Schedul
 pub struct Count<T: Message> {
     /// The input message stream.
     #[input]
-    input: InputPort<T>,
+    pub input: InputPort<T>,
     /// The (optional) output target for the stream being passed through.
     #[output]
-    output: OutputPort<T>,
+    pub output: OutputPort<T>,
     /// The output port for the message count.
     #[output]
-    count: OutputPort<u64>,
+    pub count: OutputPort<u64>,
     /// The internal state counting the number of messages received.
     #[state]
     counter: u64,
