@@ -5,7 +5,7 @@ use crate::{
     BlockError, Message, Port, PortState,
 };
 
-#[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct InputPort<T: Message> {
     _phantom: PhantomData<T>,
     state: PortState,
