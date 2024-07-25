@@ -3,6 +3,7 @@
 use crate::Message;
 
 /// A trait for sending messages.
+#[allow(unused)]
 pub trait Sender<M: Message> {
     /// Sends a message.
     fn send(&mut self, message: M) -> Result<(), ()>;
@@ -15,6 +16,7 @@ pub trait Sender<M: Message> {
 }
 
 /// A trait for receiving messages.
+#[allow(unused)]
 pub trait Receiver<M: Message> {
     /// Receives a message.
     fn recv(&mut self) -> Result<M, ()>;
