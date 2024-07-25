@@ -2,12 +2,13 @@
 
 use crate::{
     prelude::{fmt, PhantomData, String},
-    BlockError, Message, Port, PortState,
+    BlockError, Message, Port, PortID, PortState,
 };
 
 #[derive(Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct OutputPort<T: Message> {
     _phantom: PhantomData<T>,
+    id: Option<PortID>,
     state: PortState,
     name: String,
     label: Option<String>,
@@ -17,6 +18,7 @@ impl<T: Message> OutputPort<T> {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             _phantom: PhantomData,
+            id: None,
             state: PortState::default(),
             name: name.into(),
             label: None,
@@ -26,6 +28,7 @@ impl<T: Message> OutputPort<T> {
     pub fn new_with_label(name: impl Into<String>, label: Option<impl Into<String>>) -> Self {
         Self {
             _phantom: PhantomData,
+            id: None,
             state: PortState::default(),
             name: name.into(),
             label: label.map(|s| s.into()),
@@ -43,6 +46,10 @@ impl<T: Message> OutputPort<T> {
 }
 
 impl<T: Message> Port for OutputPort<T> {
+    fn id(&self) -> Option<PortID> {
+        self.id
+    }
+
     fn state(&self) -> PortState {
         self.state
     }
