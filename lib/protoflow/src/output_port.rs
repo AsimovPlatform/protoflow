@@ -1,14 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, PhantomData, String},
+    prelude::{fmt, PhantomData, RefCell, String},
     BlockError, Message, Port, PortID, PortState,
 };
 
-#[derive(Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct OutputPort<T: Message> {
     _phantom: PhantomData<T>,
-    id: Option<PortID>,
+    pub id: RefCell<Option<PortID>>,
     state: PortState,
     name: String,
     label: Option<String>,
@@ -18,7 +18,7 @@ impl<T: Message> OutputPort<T> {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             _phantom: PhantomData,
-            id: None,
+            id: RefCell::new(None),
             state: PortState::default(),
             name: name.into(),
             label: None,
@@ -28,7 +28,7 @@ impl<T: Message> OutputPort<T> {
     pub fn new_with_label(name: impl Into<String>, label: Option<impl Into<String>>) -> Self {
         Self {
             _phantom: PhantomData,
-            id: None,
+            id: RefCell::new(None),
             state: PortState::default(),
             name: name.into(),
             label: label.map(|s| s.into()),
@@ -47,7 +47,7 @@ impl<T: Message> OutputPort<T> {
 
 impl<T: Message> Port for OutputPort<T> {
     fn id(&self) -> Option<PortID> {
-        self.id
+        self.id.borrow().clone()
     }
 
     fn state(&self) -> PortState {

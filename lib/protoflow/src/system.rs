@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{vec, BTreeSet, Rc, Vec},
+    prelude::{slice, vec, BTreeSet, BTreeSetIter, Rc, Vec},
     Block, InputPort, Message, OutputPort, Port, PortID,
 };
 
@@ -16,6 +16,8 @@ pub struct System {
     /// The registered blocks in the system.
     pub blocks: Vec<Rc<dyn Block>>,
     pub connections: BTreeSet<(PortID, PortID)>,
+    pub source_id: PortID,
+    pub target_id: PortID,
 }
 
 pub type Subsystem = System;
@@ -26,11 +28,16 @@ impl System {
         Self {
             blocks: vec![],
             connections: BTreeSet::new(),
+            ..Default::default()
         }
     }
 
-    pub fn blocks(&self) -> &[Rc<dyn Block>] {
-        &self.blocks
+    pub fn blocks(&self) -> slice::Iter<Rc<dyn Block>> {
+        self.blocks.iter()
+    }
+
+    pub fn connections(&self) -> BTreeSetIter<(PortID, PortID)> {
+        self.connections.iter()
     }
 
     /// Instantiates a block in the system.
@@ -48,13 +55,17 @@ impl System {
         source: &OutputPort<T>,
         target: &InputPort<T>,
     ) -> Result<bool, ()> {
-        // TODO: assign port IDs
-        match (source.id(), target.id()) {
-            (Some(source_id), Some(target_id)) => {
-                Ok(self.connections.insert((source_id, target_id)))
-            }
-            _ => Err(()),
+        if source.id().is_none() {
+            self.source_id -= 1;
+            source.id.replace(Some(self.source_id));
         }
+        if target.id().is_none() {
+            self.target_id += 1;
+            target.id.replace(Some(self.target_id));
+        }
+        Ok(self
+            .connections
+            .insert((source.id().unwrap(), target.id().unwrap())))
     }
 }
 
@@ -68,10 +79,10 @@ mod test {
         let mut system = System::new();
 
         let constant = system.block(Const {
-            output: OutputPort::<i64>::default(),
+            output: OutputPort::default(),
             value: 42,
         });
-        let blackhole = system.block(Drop(InputPort::<i64>::default()));
+        let blackhole = system.block(Drop(InputPort::default()));
 
         system.connect(&constant.output, &blackhole.0)?;
 

@@ -109,11 +109,11 @@ use protoflow::{InputPort, OutputPort, System};
 let mut system = System::new();
 
 let constant = system.block(Const {
-    output: OutputPort::<i64>::default(),
+    output: OutputPort::default(),
     value: 42,
 });
 
-let blackhole = system.block(Drop(InputPort::<i64>::default()));
+let blackhole = system.block(Drop(InputPort::default()));
 
 system.connect(&constant.output, &blackhole.0)?;
 ```
