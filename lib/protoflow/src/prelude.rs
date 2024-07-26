@@ -12,7 +12,6 @@ use std as alloc;
 #[allow(unused)]
 pub use alloc::{
     boxed::Box,
-    cell::RefCell,
     collections::btree_set::Iter as BTreeSetIter,
     collections::BTreeSet,
     rc::Rc,
@@ -24,6 +23,7 @@ pub use alloc::{
 
 #[allow(unused)]
 pub use core::{
+    cell::RefCell,
     fmt,
     marker::PhantomData,
     ops::Range,
