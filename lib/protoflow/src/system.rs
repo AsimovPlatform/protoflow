@@ -70,7 +70,7 @@ impl System {
 mod test {
     extern crate std;
     use crate::blocks::{Const, Drop};
-    use crate::{InputPort, OutputPort, System};
+    use crate::{runtimes, InputPort, OutputPort, Runtime, System};
 
     #[test]
     fn define_system() -> Result<(), ()> {
@@ -83,6 +83,10 @@ mod test {
         let blackhole = system.block(Drop(InputPort::new(&system)));
 
         system.connect(&constant.output, &blackhole.0)?;
+
+        let mut runtime = runtimes::StdThread::new().unwrap();
+        //runtime.execute_block(constant).unwrap();
+        runtime.execute_system(system).unwrap();
 
         Ok(())
     }

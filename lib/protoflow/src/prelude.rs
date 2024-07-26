@@ -29,7 +29,7 @@ pub use core::{
     ops::Range,
     result::Result,
     slice,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, AtomicUsize, Ordering},
     time::Duration,
 };
 
