@@ -6,7 +6,7 @@ default-members = ["lib/protoflow", "lib/protoflow-derive"]
 resolver = "2"
 
 [workspace.package]
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Arto Bendiken"]
 edition = "2021"
 rust-version = "1.70"
