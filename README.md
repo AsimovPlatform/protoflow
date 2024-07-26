@@ -31,14 +31,14 @@ use protoflow::derive::*;
 
 ```rust
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Runtime};
+use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, PortDescriptor};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
-    fn execute(&mut self, _runtime: &dyn Runtime) -> Result<(), BlockError> {
+    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         while let Some(message) = self.0.receive()? {
             drop(message);
         }
@@ -51,7 +51,7 @@ impl<T: Message> Block for Drop<T> {
 
 ```rust
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Runtime};
+use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, OutputPort, Port, PortDescriptor};
 use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
@@ -61,16 +61,18 @@ pub struct Delay<T: Message> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
+
     /// The output target for the stream being passed through.
     #[output]
     pub output: OutputPort<T>,
+
     /// A configuration parameter for how much delay to add.
     #[parameter]
     pub delay: Duration,
 }
 
 impl<T: Message> Block for Delay<T> {
-    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             runtime.sleep_for(self.delay)?;
 
@@ -106,14 +108,13 @@ impl FunctionBlock<i64, i64> for Echo {
 use protoflow::blocks::{Const, Drop};
 use protoflow::{InputPort, OutputPort, System};
 
-let mut system = System::new();
+let system = System::new();
 
 let constant = system.block(Const {
-    output: OutputPort::default(),
+    output: OutputPort::new(&system),
     value: 42,
 });
-
-let blackhole = system.block(Drop(InputPort::default()));
+let blackhole = system.block(Drop(InputPort::new(&system)));
 
 system.connect(&constant.output, &blackhole.0)?;
 ```
