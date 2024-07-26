@@ -7,9 +7,22 @@ use crate::{
 
 pub struct Web {}
 
+#[allow(unused)]
+impl Web {
+    fn new(_system: System) -> Result<Box<Self>, BlockError> {
+        Ok(Box::new(Self {}))
+    }
+}
+
 impl Runtime for Web {
-    fn new(_system: &System) -> Self {
-        Self {} // TODO
+    fn start(&mut self) -> Result<(), BlockError> {
+        // TODO
+        Ok(())
+    }
+
+    fn stop(&mut self) -> Result<(), BlockError> {
+        // TODO
+        Ok(())
     }
 }
 

@@ -1,22 +1,38 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{AtomicBool, Duration, Instant, Ordering},
+    prelude::{AtomicBool, Box, Duration, Instant, Ordering},
     BlockError, Port, Runtime, Scheduler, System,
 };
 
 #[cfg(feature = "std")]
 extern crate std;
 
+#[allow(unused)]
 pub struct StdThread {
+    system: System,
     is_alive: AtomicBool,
 }
 
-impl Runtime for StdThread {
-    fn new(_system: &System) -> Self {
-        Self {
+#[allow(unused)]
+impl StdThread {
+    fn new(system: System) -> Result<Box<Self>, BlockError> {
+        Ok(Box::new(Self {
+            system,
             is_alive: AtomicBool::new(true),
-        }
+        }))
+    }
+}
+
+impl Runtime for StdThread {
+    fn start(&mut self) -> Result<(), BlockError> {
+        // TODO
+        Ok(())
+    }
+
+    fn stop(&mut self) -> Result<(), BlockError> {
+        // TODO
+        Ok(())
     }
 }
 

@@ -3,7 +3,7 @@
 use crate as protoflow;
 
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, Scheduler};
+use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, Runtime};
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
@@ -24,7 +24,7 @@ pub struct Count<T: Message> {
 }
 
 impl<T: Message> Block for Count<T> {
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             self.counter += 1;
 
@@ -35,7 +35,7 @@ impl<T: Message> Block for Count<T> {
             }
         }
 
-        scheduler.wait_for(&self.count)?;
+        runtime.wait_for(&self.count)?;
 
         self.count.send(&self.counter)?;
 

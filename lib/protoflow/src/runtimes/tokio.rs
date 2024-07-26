@@ -1,15 +1,28 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Duration, Instant},
+    prelude::{Box, Duration, Instant},
     BlockError, Port, Runtime, Scheduler, System,
 };
 
 pub struct Tokio {}
 
+#[allow(unused)]
+impl Tokio {
+    fn new(_system: System) -> Result<Box<Self>, BlockError> {
+        Ok(Box::new(Self {}))
+    }
+}
+
 impl Runtime for Tokio {
-    fn new(_system: &System) -> Self {
-        Self {} // TODO
+    fn start(&mut self) -> Result<(), BlockError> {
+        // TODO
+        Ok(())
+    }
+
+    fn stop(&mut self) -> Result<(), BlockError> {
+        // TODO
+        Ok(())
     }
 }
 

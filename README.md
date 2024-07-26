@@ -31,14 +31,14 @@ use protoflow::derive::*;
 
 ```rust
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Scheduler};
+use protoflow::{Block, BlockError, InputPort, Message, PortDescriptor, Runtime};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
-    fn execute(&mut self, _scheduler: &dyn Scheduler) -> Result<(), BlockError> {
+    fn execute(&mut self, _runtime: &dyn Runtime) -> Result<(), BlockError> {
         while let Some(message) = self.0.receive()? {
             drop(message);
         }
@@ -51,7 +51,7 @@ impl<T: Message> Block for Drop<T> {
 
 ```rust
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Scheduler};
+use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, PortDescriptor, Runtime};
 use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
@@ -70,9 +70,9 @@ pub struct Delay<T: Message> {
 }
 
 impl<T: Message> Block for Delay<T> {
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
-            scheduler.sleep_for(self.delay)?;
+            runtime.sleep_for(self.delay)?;
 
             if self.output.is_connected() {
                 self.output.send(&message)?;
