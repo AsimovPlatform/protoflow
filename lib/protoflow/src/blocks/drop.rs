@@ -3,14 +3,14 @@
 use crate as protoflow;
 
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, Runtime};
+use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
-    fn execute(&mut self, _runtime: &dyn Runtime) -> Result<(), BlockError> {
+    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         while let Some(message) = self.0.receive()? {
             drop(message);
         }

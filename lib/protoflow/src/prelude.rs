@@ -17,6 +17,7 @@ pub use alloc::{
     collections::BTreeSet,
     rc::Rc,
     string::{String, ToString},
+    sync::Arc,
     vec,
     vec::Vec,
 };

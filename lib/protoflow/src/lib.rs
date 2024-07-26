@@ -2,9 +2,7 @@
 
 #![no_std]
 
-pub mod prelude; // FIXME
-
-pub use prost::Message;
+pub mod prelude;
 
 mod block;
 pub use block::*;
@@ -14,6 +12,9 @@ pub use block_descriptor::*;
 
 mod block_error;
 pub use block_error::*;
+
+mod block_runtime;
+pub use block_runtime::*;
 
 pub mod blocks;
 
@@ -49,13 +50,13 @@ pub use port_error::*;
 mod port_state;
 pub use port_state::*;
 
+mod process;
+pub use process::*;
+
 mod runtime;
 pub use runtime::*;
 
 pub mod runtimes;
-
-mod scheduler;
-pub use scheduler::Scheduler;
 
 mod system;
 pub use system::*;
@@ -68,3 +69,5 @@ pub mod transports;
 pub mod types {
     pub use prost_types::*;
 }
+
+pub use prost::Message;
