@@ -5,7 +5,7 @@ use crate::{
     BlockError, Port,
 };
 
-pub trait Scheduler {
+pub trait BlockRuntime: Send + Sync {
     fn is_alive(&self) -> bool;
     fn sleep_for(&self, duration: Duration) -> Result<(), BlockError>;
     fn sleep_until(&self, instant: Instant) -> Result<(), BlockError>; // TODO

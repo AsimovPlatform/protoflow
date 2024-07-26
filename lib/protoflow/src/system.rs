@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{slice, vec, BTreeSet, BTreeSetIter, Rc, Vec},
+    prelude::{slice, vec, Arc, BTreeSet, BTreeSetIter, Rc, RefCell, Vec},
     Block, InputPort, Message, OutputPort, Port, PortID,
 };
 
@@ -14,36 +14,40 @@ pub type BlockID = usize;
 #[derive(Default)]
 pub struct System {
     /// The registered blocks in the system.
-    pub(crate) blocks: Vec<Rc<dyn Block>>,
-    pub(crate) connections: BTreeSet<(PortID, PortID)>,
-    pub(crate) source_id: PortID,
-    pub(crate) target_id: PortID,
+    pub(crate) blocks: RefCell<Vec<Arc<dyn Block>>>,
+    pub(crate) connections: RefCell<BTreeSet<(PortID, PortID)>>,
+    pub(crate) source_id: RefCell<PortID>,
+    pub(crate) target_id: RefCell<PortID>,
 }
 
 pub type Subsystem = System;
 
 impl System {
     /// Instantiates a new system.
-    pub fn new() -> Self {
-        Self {
-            blocks: vec![],
-            connections: BTreeSet::new(),
+    pub fn new() -> Rc<Self> {
+        Rc::new(Self {
+            blocks: RefCell::new(vec![]),
+            connections: RefCell::new(BTreeSet::new()),
+            source_id: RefCell::new(-1),
+            target_id: RefCell::new(1),
             ..Default::default()
-        }
+        })
     }
 
-    pub fn blocks(&self) -> slice::Iter<Rc<dyn Block>> {
-        self.blocks.iter()
+    pub fn blocks(&self) -> slice::Iter<Arc<dyn Block>> {
+        todo!() // self.blocks.iter()
     }
 
     pub fn connections(&self) -> BTreeSetIter<(PortID, PortID)> {
-        self.connections.iter()
+        todo!() //self.connections.iter()
     }
 
     /// Instantiates a block in the system.
-    pub fn block<T: Block + 'static>(&mut self, block: T) -> Rc<T> {
-        let result = Rc::new(block);
-        self.blocks.push(result.clone() as Rc<dyn Block>);
+    pub fn block<T: Block + 'static>(&self, block: T) -> Arc<T> {
+        let result = Arc::new(block);
+        self.blocks
+            .borrow_mut()
+            .push(result.clone() as Arc<dyn Block>);
         result
     }
 
@@ -51,38 +55,32 @@ impl System {
     ///
     /// Both ports must be of the same message type.
     pub fn connect<T: Message>(
-        &mut self,
+        &self,
         source: &OutputPort<T>,
         target: &InputPort<T>,
     ) -> Result<bool, ()> {
-        if source.id().is_none() {
-            self.source_id -= 1;
-            source.id.replace(Some(self.source_id));
-        }
-        if target.id().is_none() {
-            self.target_id += 1;
-            target.id.replace(Some(self.target_id));
-        }
         Ok(self
             .connections
+            .borrow_mut()
             .insert((source.id().unwrap(), target.id().unwrap())))
     }
 }
 
 #[cfg(test)]
 mod test {
+    extern crate std;
     use crate::blocks::{Const, Drop};
     use crate::{InputPort, OutputPort, System};
 
     #[test]
     fn define_system() -> Result<(), ()> {
-        let mut system = System::new();
+        let system = System::new();
 
         let constant = system.block(Const {
-            output: OutputPort::default(),
+            output: OutputPort::new(&system),
             value: 42,
         });
-        let blackhole = system.block(Drop(InputPort::default()));
+        let blackhole = system.block(Drop(InputPort::new(&system)));
 
         system.connect(&constant.output, &blackhole.0)?;
 

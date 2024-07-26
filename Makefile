@@ -4,7 +4,7 @@ all: Cargo.toml
 	$(CARGO) build
 
 check: Cargo.toml
-	$(CARGO) test
+	$(CARGO) test -- --nocapture
 
 clean: Cargo.toml
 	@rm -rf *~ target

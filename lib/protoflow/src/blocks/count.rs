@@ -3,7 +3,7 @@
 use crate as protoflow;
 
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, InputPort, Message, OutputPort, Port, Runtime};
+use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, OutputPort, Port};
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
@@ -12,19 +12,22 @@ pub struct Count<T: Message> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
+
     /// The (optional) output target for the stream being passed through.
     #[output]
     pub output: OutputPort<T>,
+
     /// The output port for the message count.
     #[output]
     pub count: OutputPort<u64>,
+
     /// The internal state counting the number of messages received.
     #[state]
     counter: u64,
 }
 
 impl<T: Message> Block for Count<T> {
-    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             self.counter += 1;
 
