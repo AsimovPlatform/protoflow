@@ -3,7 +3,7 @@
 use crate as protoflow;
 
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, Message, OutputPort, Scheduler};
+use protoflow::{Block, BlockError, Message, OutputPort, Runtime};
 
 /// A block for sending a constant value.
 #[derive(Block)]
@@ -17,8 +17,8 @@ pub struct Const<T: Message> {
 }
 
 impl<T: Message> Block for Const<T> {
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
-        scheduler.wait_for(&self.output)?;
+    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError> {
+        runtime.wait_for(&self.output)?;
 
         self.output.send(&self.value)?;
 

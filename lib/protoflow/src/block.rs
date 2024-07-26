@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{BlockDescriptor, BlockError, Scheduler};
+use crate::{BlockDescriptor, BlockError, Runtime};
 
 /// A block is an autonomous unit of computation in a system.
 pub trait Block: BlockDescriptor + AsBlock {
@@ -8,12 +8,12 @@ pub trait Block: BlockDescriptor + AsBlock {
     ///
     /// This is called once before the first call to `execute`.
     /// This is where to open ports and allocate resources.
-    fn prepare(&mut self, _scheduler: &dyn Scheduler) -> Result<(), ()> {
+    fn prepare(&mut self, _runtime: &dyn Runtime) -> Result<(), BlockError> {
         Ok(())
     }
 
     /// Executes this block's computation.
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError>;
+    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError>;
 }
 
 pub trait AsBlock {

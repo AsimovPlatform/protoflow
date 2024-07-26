@@ -5,7 +5,7 @@ use crate as protoflow;
 use protoflow::derive::Block;
 use protoflow::{
     prelude::{Duration, Range},
-    Block, BlockError, InputPort, Message, OutputPort, Port, Scheduler,
+    Block, BlockError, InputPort, Message, OutputPort, Port, Runtime,
 };
 
 #[cfg(feature = "rand")]
@@ -33,7 +33,7 @@ pub enum DelayType {
 }
 
 impl<T: Message> Block for Delay<T> {
-    fn execute(&mut self, scheduler: &dyn Scheduler) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn Runtime) -> Result<(), BlockError> {
         while let Some(message) = self.input.receive()? {
             if !self.output.is_connected() {
                 drop(message);
@@ -55,7 +55,7 @@ impl<T: Message> Block for Delay<T> {
                     let mut _rng = todo!();
                 }
             };
-            scheduler.sleep_for(duration)?;
+            runtime.sleep_for(duration)?;
 
             self.output.send(&message)?;
         }

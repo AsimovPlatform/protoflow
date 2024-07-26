@@ -14,10 +14,10 @@ pub type BlockID = usize;
 #[derive(Default)]
 pub struct System {
     /// The registered blocks in the system.
-    pub blocks: Vec<Rc<dyn Block>>,
-    pub connections: BTreeSet<(PortID, PortID)>,
-    pub source_id: PortID,
-    pub target_id: PortID,
+    pub(crate) blocks: Vec<Rc<dyn Block>>,
+    pub(crate) connections: BTreeSet<(PortID, PortID)>,
+    pub(crate) source_id: PortID,
+    pub(crate) target_id: PortID,
 }
 
 pub type Subsystem = System;
