@@ -13,7 +13,7 @@ use rand::Rng;
 
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Delay<T: Message> {
     /// The input message stream.
     #[input]
@@ -29,6 +29,7 @@ pub struct Delay<T: Message> {
 }
 
 /// The type of delay (fixed or random) to apply to message relay.
+#[derive(Clone, Debug)]
 pub enum DelayType {
     Fixed(Duration),
     Random(Range<Duration>),

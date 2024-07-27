@@ -1,18 +1,18 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, PhantomData, Rc},
+    prelude::{fmt, PhantomData},
     BlockError, Message, Port, PortID, PortState, System,
 };
 
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct InputPort<T: Message> {
     _phantom: PhantomData<T>,
     id: PortID,
 }
 
 impl<T: Message> InputPort<T> {
-    pub fn new(system: &Rc<System>) -> Self {
+    pub fn new(system: &System) -> Self {
         Self {
             _phantom: PhantomData,
             id: system.target_id.replace_with(|&mut id| id + 1),

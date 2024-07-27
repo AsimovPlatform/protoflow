@@ -6,7 +6,7 @@ use protoflow::derive::Block;
 use protoflow::{Block, BlockError, BlockRuntime, Message, OutputPort};
 
 /// A block for sending a constant value.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Const<T: Message> {
     /// The port to send the value on.
     #[output]

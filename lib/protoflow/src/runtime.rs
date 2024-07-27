@@ -1,17 +1,16 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Arc, Rc},
-    Block, BlockError, Process, System,
+    prelude::{Box, Rc},
+    Block, BlockResult, Process, System,
 };
 
 pub trait Runtime {
-    fn execute<T: Block + 'static>(
-        &mut self,
-        block: Arc<T>,
-    ) -> Result<Arc<dyn Process>, BlockError>;
+    fn execute<T: Block + 'static>(&mut self, block: T) -> BlockResult<Rc<dyn Process>> {
+        self.execute_block(Box::new(block))
+    }
 
-    fn execute_block(&mut self, block: Arc<dyn Block>) -> Result<Arc<dyn Process>, BlockError>;
+    fn execute_block(&mut self, block: Box<dyn Block>) -> BlockResult<Rc<dyn Process>>;
 
-    fn execute_system(&mut self, system: Rc<System>) -> Result<Arc<dyn Process>, BlockError>;
+    fn execute_system(&mut self, system: System) -> BlockResult<Rc<dyn Process>>;
 }

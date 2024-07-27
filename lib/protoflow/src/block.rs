@@ -3,7 +3,7 @@
 use crate::{BlockDescriptor, BlockError, BlockRuntime};
 
 /// A block is an autonomous unit of computation in a system.
-pub trait Block: BlockDescriptor + Send + Sync + AsBlock {
+pub trait Block: AsBlock + BlockDescriptor + Send + Sync {
     /// Prepares this block for execution.
     ///
     /// This is called once before the first call to `execute`.
@@ -20,7 +20,7 @@ pub trait AsBlock {
     fn as_block(&self) -> &dyn Block;
 }
 
-impl<T: Sized + Block> AsBlock for T {
+impl<T: Block + Sized> AsBlock for T {
     fn as_block(&self) -> &dyn Block {
         self
     }
