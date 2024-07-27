@@ -47,7 +47,11 @@ system.connect(&constant.output, &blackhole.0)?;
 ### Executing a system or subsystem
 
 ```rust
-let mut runtime = protoflow::runtimes::StdThread::new().unwrap();
+use protoflow::runtimes::StdRuntime;
+use protoflow::transports::MockTransport;
+
+let transport = MockTransport::new();
+let mut runtime = StdRuntime::new(transport).unwrap();
 let running_system = runtime.execute_system(system).unwrap();
 ```
 
@@ -138,14 +142,13 @@ impl<T: Message> Block for Delay<T> {
 
 ### Transports
 
-- [`Flume`](lib/protoflow/src/transports/flume.rs)
-- [`ZeroMQ`](lib/protoflow/src/transports/zeromq.rs)
+- [`FlumeTransport`](lib/protoflow/src/transports/flume.rs)
+- [`MockTransport`](lib/protoflow/src/transports/mock.rs)
+- [`ZeromqTransport`](lib/protoflow/src/transports/zeromq.rs)
 
 ### Runtimes
 
-- [`StdThread`](lib/protoflow/src/runtimes/std_thread.rs)
-- [`Tokio`](lib/protoflow/src/runtimes/tokio.rs)
-- [`Web`](lib/protoflow/src/runtimes/web.rs)
+- [`StdRuntime`](lib/protoflow/src/runtimes/std.rs)
 
 ### Features
 

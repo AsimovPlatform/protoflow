@@ -1,12 +1,18 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{
+    transport::{Receiver, Sender, Transport},
+    Message,
+};
 use futures::TryFutureExt;
 #[cfg(feature = "tokio")]
 use tokio::{runtime::Handle, task};
 use zeromq::{PullSocket, PushSocket, Socket, SocketRecv, SocketSend};
 
-use crate::Message;
-use crate::transport::{Receiver, Sender};
+#[derive(Debug, Default)]
+pub struct ZeromqTransport;
+
+impl Transport for ZeromqTransport {}
 
 #[derive(Default)]
 pub struct ZmqSender {

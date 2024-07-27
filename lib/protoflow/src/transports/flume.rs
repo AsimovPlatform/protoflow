@@ -1,7 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::Message;
-use crate::transport::{Receiver, Sender};
+use crate::{
+    transport::{Receiver, Sender, Transport},
+    Message,
+};
+
+#[derive(Debug, Default)]
+pub struct FlumeTransport;
+
+impl Transport for FlumeTransport {}
 
 #[derive(Debug, Default)]
 pub struct FlumeSender<M> {

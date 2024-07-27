@@ -1,10 +1,21 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::Vec,
-    transport::{Receiver, Sender},
+    prelude::{Box, Vec},
+    transport::{Receiver, Sender, Transport},
     Message,
 };
+
+#[derive(Debug, Default)]
+pub struct MockTransport;
+
+impl MockTransport {
+    pub fn new() -> Box<Self> {
+        Box::new(Self {})
+    }
+}
+
+impl Transport for MockTransport {}
 
 #[derive(Debug, Default)]
 pub struct MockSender<T> {
