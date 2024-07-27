@@ -1,8 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Arc, AtomicBool, AtomicUsize, Duration, Instant, Ordering, Rc, ToString},
-    Block, BlockError, BlockRuntime, Port, Process, ProcessID, Runtime, System,
+    prelude::{
+        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Rc, RefCell, ToString, Vec,
+    },
+    Block, BlockError, BlockResult, BlockRuntime, Port, Process, ProcessID, Runtime, System,
 };
 
 #[cfg(feature = "std")]
@@ -25,41 +27,44 @@ impl StdThread {
 }
 
 impl Runtime for Arc<StdThread> {
-    fn execute<T: Block + Sized + 'static>(
-        &mut self,
-        block: Arc<T>,
-    ) -> Result<Arc<dyn Process>, BlockError> {
-        self.execute_block(block)
-    }
-
-    fn execute_block(&mut self, block: Arc<dyn Block>) -> Result<Arc<dyn Process>, BlockError> {
+    fn execute_block(&mut self, block: Box<dyn Block>) -> BlockResult<Rc<dyn Process>> {
         let block_runtime = Arc::new((*self).clone()) as Arc<dyn BlockRuntime>;
-        let block_process = Arc::new(RunningBlock {
+        let block_process = Rc::new(RunningBlock {
             id: self.process_id.fetch_add(1, Ordering::SeqCst),
             runtime: self.clone(),
-            handle: Some(
+            handle: RefCell::new(Some(
                 std::thread::Builder::new()
                     .name(block.name().unwrap_or_else(|| "<unnamed>".to_string()))
                     .spawn(move || {
                         let mut block = block;
-                        let block = Arc::get_mut(&mut block).unwrap(); // FIXME
                         std::thread::park();
-                        Block::prepare(block, block_runtime.as_ref()).unwrap();
-                        Block::execute(block, block_runtime.as_ref()).unwrap();
+                        Block::prepare(block.as_mut(), block_runtime.as_ref()).unwrap();
+                        Block::execute(block.as_mut(), block_runtime.as_ref()).unwrap();
                         ()
                     })
                     .unwrap(),
-            ),
+            )),
         });
-        block_process.handle.as_ref().unwrap().thread().unpark();
+        block_process
+            .handle
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .thread()
+            .unpark();
         Ok(block_process)
     }
 
-    fn execute_system(&mut self, system: Rc<System>) -> Result<Arc<dyn Process>, BlockError> {
-        for block in system.blocks.borrow().iter() {
-            let _block_process = self.execute_block(block.clone())?; // FIXME
+    fn execute_system(&mut self, system: System) -> BlockResult<Rc<dyn Process>> {
+        let mut system_process = RunningSystem {
+            id: self.process_id.fetch_add(1, Ordering::SeqCst),
+            runtime: self.clone(),
+            blocks: Vec::new(),
+        };
+        while let Some(block) = system.blocks.borrow_mut().pop_front() {
+            system_process.blocks.push(self.execute_block(block)?);
         }
-        todo!() // TODO
+        Ok(Rc::new(system_process))
     }
 }
 
@@ -105,7 +110,14 @@ impl BlockRuntime for Arc<StdThread> {
 struct RunningBlock {
     id: ProcessID,
     runtime: Arc<StdThread>,
-    handle: Option<std::thread::JoinHandle<()>>,
+    handle: RefCell<Option<std::thread::JoinHandle<()>>>,
+}
+
+#[allow(unused)]
+impl RunningBlock {
+    //fn thread(&self) -> Option<&std::thread::Thread> {
+    //    self.handle.borrow().as_ref().map(|handle| handle.thread())
+    //}
 }
 
 impl Process for RunningBlock {
@@ -115,12 +127,13 @@ impl Process for RunningBlock {
 
     fn is_alive(&self) -> bool {
         self.handle
+            .borrow()
             .as_ref()
             .map(|handle| !handle.is_finished())
             .unwrap_or(false)
     }
 
-    fn join(&mut self) -> Result<(), ()> {
+    fn join(&self) -> Result<(), ()> {
         self.handle.take().unwrap().join().map_err(|_| ())
     }
 }
@@ -129,6 +142,7 @@ impl Process for RunningBlock {
 struct RunningSystem {
     id: ProcessID,
     runtime: Arc<StdThread>,
+    blocks: Vec<Rc<dyn Process>>,
 }
 
 impl Process for RunningSystem {
@@ -137,10 +151,13 @@ impl Process for RunningSystem {
     }
 
     fn is_alive(&self) -> bool {
-        self.runtime.is_alive()
+        self.blocks.iter().any(|block| block.is_alive())
     }
 
-    fn join(&mut self) -> Result<(), ()> {
-        Err(()) // TODO
+    fn join(&self) -> Result<(), ()> {
+        for block in self.blocks.iter() {
+            block.join()?;
+        }
+        Ok(())
     }
 }

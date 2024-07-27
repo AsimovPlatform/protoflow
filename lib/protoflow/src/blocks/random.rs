@@ -9,7 +9,7 @@ use protoflow::{Block, BlockError, BlockRuntime, Message, OutputPort};
 //use rand::{distributions::Distribution, Rng};
 
 /// A block for sending a random value.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Random<T: Message> {
     /// The port to send the value on.
     #[output]

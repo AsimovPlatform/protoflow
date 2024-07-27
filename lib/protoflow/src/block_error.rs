@@ -1,12 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, String, ToString},
+    prelude::{fmt, Result, String, ToString},
     PortError,
 };
 
 #[cfg(feature = "std")]
 extern crate std;
+
+pub type BlockResult<T> = Result<T, BlockError>;
 
 #[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum BlockError {

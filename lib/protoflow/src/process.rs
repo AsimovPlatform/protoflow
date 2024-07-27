@@ -5,5 +5,5 @@ pub type ProcessID = usize;
 pub trait Process {
     fn id(&self) -> ProcessID;
     fn is_alive(&self) -> bool;
-    fn join(&mut self) -> Result<(), ()>;
+    fn join(&self) -> Result<(), ()>;
 }

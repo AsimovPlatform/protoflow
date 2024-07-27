@@ -27,6 +27,47 @@ use protoflow::*;
 use protoflow::derive::*;
 ```
 
+### Wiring up a system or subsystem
+
+```rust
+use protoflow::blocks::{Const, Drop};
+use protoflow::{InputPort, OutputPort, System};
+
+let system = System::new();
+
+let constant = system.block(Const {
+    output: OutputPort::new(&system),
+    value: 42,
+});
+let blackhole = system.block(Drop(InputPort::new(&system)));
+
+system.connect(&constant.output, &blackhole.0)?;
+```
+
+### Executing a system or subsystem
+
+```rust
+let mut runtime = protoflow::runtimes::StdThread::new().unwrap();
+let running_system = runtime.execute_system(system).unwrap();
+```
+
+### Authoring a trivial function block
+
+```rust
+use protoflow::derive::FunctionBlock;
+use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
+
+/// A block that simply echoes inputs to outputs.
+#[derive(FunctionBlock, Clone)]
+pub struct Echo(pub InputPort<i64>, pub OutputPort<i64>);
+
+impl FunctionBlock<i64, i64> for Echo {
+    fn compute(&self, input: i64) -> Result<i64, BlockError> {
+        Ok(input)
+    }
+}
+```
+
 ### Authoring a simple DROP block
 
 ```rust
@@ -34,7 +75,7 @@ use protoflow::derive::Block;
 use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, PortDescriptor};
 
 /// A block that simply discards all messages it receives.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
@@ -56,7 +97,7 @@ use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
 /// duration.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Delay<T: Message> {
     /// The input message stream.
     #[input]
@@ -83,40 +124,6 @@ impl<T: Message> Block for Delay<T> {
         Ok(())
     }
 }
-```
-
-### Authoring a trivial function block
-
-```rust
-use protoflow::derive::FunctionBlock;
-use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
-
-/// A block that simply echoes inputs to outputs.
-#[derive(FunctionBlock)]
-pub struct Echo(pub InputPort<i64>, pub OutputPort<i64>);
-
-impl FunctionBlock<i64, i64> for Echo {
-    fn compute(&self, input: i64) -> Result<i64, BlockError> {
-        Ok(input)
-    }
-}
-```
-
-### Wiring up a system or subsystem
-
-```rust
-use protoflow::blocks::{Const, Drop};
-use protoflow::{InputPort, OutputPort, System};
-
-let system = System::new();
-
-let constant = system.block(Const {
-    output: OutputPort::new(&system),
-    value: 42,
-});
-let blackhole = system.block(Drop(InputPort::new(&system)));
-
-system.connect(&constant.output, &blackhole.0)?;
 ```
 
 ## 📚 Reference

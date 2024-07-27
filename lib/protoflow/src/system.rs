@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{slice, vec, Arc, BTreeSet, BTreeSetIter, Rc, RefCell, Vec},
+    prelude::{slice, Arc, BTreeSet, BTreeSetIter, Box, RefCell, VecDeque},
     Block, InputPort, Message, OutputPort, Port, PortID,
 };
 
@@ -14,7 +14,7 @@ pub type BlockID = usize;
 #[derive(Default)]
 pub struct System {
     /// The registered blocks in the system.
-    pub(crate) blocks: RefCell<Vec<Arc<dyn Block>>>,
+    pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
     pub(crate) connections: RefCell<BTreeSet<(PortID, PortID)>>,
     pub(crate) source_id: RefCell<PortID>,
     pub(crate) target_id: RefCell<PortID>,
@@ -24,14 +24,14 @@ pub type Subsystem = System;
 
 impl System {
     /// Instantiates a new system.
-    pub fn new() -> Rc<Self> {
-        Rc::new(Self {
-            blocks: RefCell::new(vec![]),
+    pub fn new() -> Self {
+        Self {
+            blocks: RefCell::new(VecDeque::new()),
             connections: RefCell::new(BTreeSet::new()),
             source_id: RefCell::new(-1),
             target_id: RefCell::new(1),
             ..Default::default()
-        })
+        }
     }
 
     pub fn blocks(&self) -> slice::Iter<Arc<dyn Block>> {
@@ -43,12 +43,9 @@ impl System {
     }
 
     /// Instantiates a block in the system.
-    pub fn block<T: Block + 'static>(&self, block: T) -> Arc<T> {
-        let result = Arc::new(block);
-        self.blocks
-            .borrow_mut()
-            .push(result.clone() as Arc<dyn Block>);
-        result
+    pub fn block<T: Block + Clone + 'static>(&self, block: T) -> T {
+        self.blocks.borrow_mut().push_back(Box::new(block.clone()));
+        block
     }
 
     /// Connects two ports of two blocks in the system.
@@ -85,8 +82,7 @@ mod test {
         system.connect(&constant.output, &blackhole.0)?;
 
         let mut runtime = runtimes::StdThread::new().unwrap();
-        //runtime.execute_block(constant).unwrap();
-        runtime.execute_system(system).unwrap();
+        let _ = runtime.execute_system(system).unwrap();
 
         Ok(())
     }

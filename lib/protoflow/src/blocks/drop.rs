@@ -6,7 +6,7 @@ use protoflow::derive::Block;
 use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message};
 
 /// A block that simply discards all messages it receives.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {

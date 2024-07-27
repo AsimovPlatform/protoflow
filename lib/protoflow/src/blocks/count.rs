@@ -7,7 +7,7 @@ use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, OutputPort,
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
-#[derive(Block)]
+#[derive(Block, Clone)]
 pub struct Count<T: Message> {
     /// The input message stream.
     #[input]
