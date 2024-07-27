@@ -4,6 +4,7 @@ use crate::{
     prelude::{
         Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Rc, RefCell, ToString, Vec,
     },
+    transport::Transport,
     Block, BlockError, BlockResult, BlockRuntime, Port, Process, ProcessID, Runtime, System,
 };
 
@@ -11,22 +12,24 @@ use crate::{
 extern crate std;
 
 #[allow(unused)]
-pub struct StdThread {
+pub struct StdRuntime {
+    transport: Box<dyn Transport>,
     is_alive: AtomicBool,
     process_id: AtomicUsize,
 }
 
 #[allow(unused)]
-impl StdThread {
-    pub fn new() -> Result<Arc<Self>, BlockError> {
+impl StdRuntime {
+    pub fn new(transport: Box<dyn Transport>) -> Result<Arc<Self>, BlockError> {
         Ok(Arc::new(Self {
+            transport,
             is_alive: AtomicBool::new(true),
             process_id: AtomicUsize::new(1),
         }))
     }
 }
 
-impl Runtime for Arc<StdThread> {
+impl Runtime for Arc<StdRuntime> {
     fn execute_block(&mut self, block: Box<dyn Block>) -> BlockResult<Rc<dyn Process>> {
         let block_runtime = Arc::new((*self).clone()) as Arc<dyn BlockRuntime>;
         let block_process = Rc::new(RunningBlock {
@@ -68,7 +71,7 @@ impl Runtime for Arc<StdThread> {
     }
 }
 
-impl BlockRuntime for Arc<StdThread> {
+impl BlockRuntime for Arc<StdRuntime> {
     fn is_alive(&self) -> bool {
         self.is_alive.load(Ordering::SeqCst)
     }
@@ -109,7 +112,7 @@ impl BlockRuntime for Arc<StdThread> {
 #[allow(unused)]
 struct RunningBlock {
     id: ProcessID,
-    runtime: Arc<StdThread>,
+    runtime: Arc<StdRuntime>,
     handle: RefCell<Option<std::thread::JoinHandle<()>>>,
 }
 
@@ -141,7 +144,7 @@ impl Process for RunningBlock {
 #[allow(unused)]
 struct RunningSystem {
     id: ProcessID,
-    runtime: Arc<StdThread>,
+    runtime: Arc<StdRuntime>,
     blocks: Vec<Rc<dyn Process>>,
 }
 

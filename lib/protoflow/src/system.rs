@@ -67,7 +67,9 @@ impl System {
 mod test {
     extern crate std;
     use crate::blocks::{Const, Drop};
-    use crate::{runtimes, InputPort, OutputPort, Runtime, System};
+    use crate::runtimes::StdRuntime;
+    use crate::transports::MockTransport;
+    use crate::{InputPort, OutputPort, Runtime, System};
 
     #[test]
     fn define_system() -> Result<(), ()> {
@@ -81,7 +83,8 @@ mod test {
 
         system.connect(&constant.output, &blackhole.0)?;
 
-        let mut runtime = runtimes::StdThread::new().unwrap();
+        let transport = MockTransport::new();
+        let mut runtime = StdRuntime::new(transport).unwrap();
         let _ = runtime.execute_system(system).unwrap();
 
         Ok(())

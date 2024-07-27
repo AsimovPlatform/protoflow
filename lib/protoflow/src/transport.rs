@@ -2,6 +2,8 @@
 
 use crate::Message;
 
+pub trait Transport: Send + Sync {}
+
 /// A trait for sending messages.
 #[allow(unused)]
 pub trait Sender<M: Message> {
