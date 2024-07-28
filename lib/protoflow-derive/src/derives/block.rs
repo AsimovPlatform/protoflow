@@ -1,10 +1,12 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::util::protoflow_crate;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{self, Data, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
 
 pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, syn::Error> {
+    let protoflow = protoflow_crate();
     let ident = &input.ident;
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
@@ -33,13 +35,13 @@ pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, sy
             unused_qualifications,
             clippy::redundant_locals,
         )]
-        impl #impl_generics protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
-            fn inputs(&self) -> protoflow::prelude::Vec<protoflow::PortDescriptor> {
-                protoflow::prelude::vec![] // TODO
+        impl #impl_generics #protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
+            fn inputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
+                #protoflow::prelude::vec![] // TODO
             }
 
-            fn outputs(&self) -> protoflow::prelude::Vec<protoflow::PortDescriptor> {
-                protoflow::prelude::vec![] // TODO
+            fn outputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
+                #protoflow::prelude::vec![] // TODO
             }
         }
     })

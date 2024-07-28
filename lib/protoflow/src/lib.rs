@@ -2,6 +2,7 @@
 
 #![no_std]
 
+#[doc(hidden)]
 pub mod prelude;
 
 mod block;
