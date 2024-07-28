@@ -2,7 +2,8 @@
 
 use crate::{
     prelude::{
-        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Rc, RefCell, ToString, Vec,
+        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Range, Rc, RefCell,
+        ToString, Vec,
     },
     transport::Transport,
     Block, BlockError, BlockResult, BlockRuntime, Port, Process, ProcessID, Runtime, System,
@@ -106,6 +107,19 @@ impl BlockRuntime for Arc<StdRuntime> {
         #[cfg(not(feature = "std"))]
         unimplemented!("std::thread::yield_now requires the 'std' feature");
         Ok(())
+    }
+
+    fn random_duration(&self, range: Range<Duration>) -> Duration {
+        #[cfg(all(feature = "std", feature = "rand"))]
+        {
+            use rand::Rng;
+            let mut rng = rand::thread_rng();
+            let low = range.start.as_nanos() as u64;
+            let high = range.end.as_nanos() as u64;
+            Duration::from_nanos(rng.gen_range(low..high))
+        }
+        #[cfg(not(all(feature = "std", feature = "rand")))]
+        let mut _rng = todo!();
     }
 }
 
