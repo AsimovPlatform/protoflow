@@ -2,6 +2,8 @@
 
 #![no_std]
 
+extern crate self as protoflow;
+
 #[doc(hidden)]
 pub mod prelude;
 

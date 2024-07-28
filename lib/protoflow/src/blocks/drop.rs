@@ -1,7 +1,5 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate as protoflow;
-
 use protoflow::derive::Block;
 use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message};
 
