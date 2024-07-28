@@ -8,9 +8,6 @@ use protoflow::{
     Block, BlockError, BlockRuntime, InputPort, Message, OutputPort, Port,
 };
 
-#[cfg(all(feature = "std", feature = "rand"))]
-use rand::Rng;
-
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
 #[derive(Block, Clone)]
@@ -45,18 +42,7 @@ impl<T: Message> Block for Delay<T> {
 
             let duration = match self.delay {
                 DelayType::Fixed(duration) => duration,
-                #[allow(unused_variables)]
-                DelayType::Random(ref range) => {
-                    #[cfg(all(feature = "std", feature = "rand"))]
-                    {
-                        let mut rng = rand::thread_rng();
-                        let low = range.start.as_nanos() as u64;
-                        let high = range.end.as_nanos() as u64;
-                        Duration::from_nanos(rng.gen_range(low..high))
-                    }
-                    #[cfg(not(all(feature = "std", feature = "rand")))]
-                    let mut _rng = todo!();
-                }
+                DelayType::Random(ref range) => runtime.random_duration(range.clone()),
             };
             runtime.sleep_for(duration)?;
 
