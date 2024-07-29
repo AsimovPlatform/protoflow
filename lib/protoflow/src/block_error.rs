@@ -36,3 +36,9 @@ impl From<std::io::Error> for BlockError {
         Self::Other(error.to_string())
     }
 }
+
+impl From<PortError> for BlockError {
+    fn from(error: PortError) -> Self {
+        Self::PortError(error)
+    }
+}
