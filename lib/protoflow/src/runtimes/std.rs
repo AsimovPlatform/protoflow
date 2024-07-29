@@ -2,10 +2,11 @@
 
 use crate::{
     prelude::{
-        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Range, Rc, RefCell,
-        ToString, Vec,
+        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, PhantomData, Range, Rc,
+        RefCell, ToString, Vec,
     },
     transport::Transport,
+    transports::MockTransport,
     Block, BlockError, BlockResult, BlockRuntime, Port, Process, ProcessID, Runtime, System,
 };
 
@@ -13,24 +14,24 @@ use crate::{
 extern crate std;
 
 #[allow(unused)]
-pub struct StdRuntime {
-    transport: Box<dyn Transport>,
+pub struct StdRuntime<T: Transport = MockTransport> {
+    _phantom: PhantomData<T>,
     is_alive: AtomicBool,
     process_id: AtomicUsize,
 }
 
 #[allow(unused)]
-impl StdRuntime {
-    pub fn new(transport: Box<dyn Transport>) -> Result<Arc<Self>, BlockError> {
+impl<T: Transport> StdRuntime<T> {
+    pub fn new() -> Result<Arc<Self>, BlockError> {
         Ok(Arc::new(Self {
-            transport,
+            _phantom: PhantomData,
             is_alive: AtomicBool::new(true),
             process_id: AtomicUsize::new(1),
         }))
     }
 }
 
-impl Runtime for Arc<StdRuntime> {
+impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
     fn execute_block(&mut self, block: Box<dyn Block>) -> BlockResult<Rc<dyn Process>> {
         let block_runtime = Arc::new((*self).clone()) as Arc<dyn BlockRuntime>;
         let block_process = Rc::new(RunningBlock {
@@ -60,15 +61,22 @@ impl Runtime for Arc<StdRuntime> {
     }
 
     fn execute_system(&mut self, system: System) -> BlockResult<Rc<dyn Process>> {
+        // FIXME:
+        let transport = MockTransport::with_ports(
+            system.source_id.borrow().abs() as usize,
+            system.target_id.borrow().abs() as usize,
+        );
+
+        for (source_id, target_id) in system.connections.borrow().iter() {
+            transport.connect(*source_id, *target_id).unwrap();
+        }
+
         let mut system_process = RunningSystem {
             id: self.process_id.fetch_add(1, Ordering::SeqCst),
             runtime: self.clone(),
+            transport,
             blocks: Vec::new(),
         };
-
-        for (source_id, target_id) in system.connections.borrow().iter() {
-            self.transport.connect(*source_id, *target_id).unwrap();
-        }
 
         while let Some(block) = system.blocks.borrow_mut().pop_front() {
             system_process.blocks.push(self.execute_block(block)?);
@@ -78,7 +86,7 @@ impl Runtime for Arc<StdRuntime> {
     }
 }
 
-impl BlockRuntime for Arc<StdRuntime> {
+impl<T: Transport> BlockRuntime for Arc<StdRuntime<T>> {
     fn is_alive(&self) -> bool {
         self.is_alive.load(Ordering::SeqCst)
     }
@@ -130,20 +138,20 @@ impl BlockRuntime for Arc<StdRuntime> {
 }
 
 #[allow(unused)]
-struct RunningBlock {
+struct RunningBlock<T: Transport> {
     id: ProcessID,
-    runtime: Arc<StdRuntime>,
+    runtime: Arc<StdRuntime<T>>,
     handle: RefCell<Option<std::thread::JoinHandle<()>>>,
 }
 
 #[allow(unused)]
-impl RunningBlock {
+impl<T: Transport> RunningBlock<T> {
     //fn thread(&self) -> Option<&std::thread::Thread> {
     //    self.handle.borrow().as_ref().map(|handle| handle.thread())
     //}
 }
 
-impl Process for RunningBlock {
+impl<T: Transport> Process for RunningBlock<T> {
     fn id(&self) -> ProcessID {
         self.id
     }
@@ -162,13 +170,14 @@ impl Process for RunningBlock {
 }
 
 #[allow(unused)]
-struct RunningSystem {
+struct RunningSystem<T: Transport> {
     id: ProcessID,
-    runtime: Arc<StdRuntime>,
+    runtime: Arc<StdRuntime<T>>,
+    transport: Box<dyn Transport>,
     blocks: Vec<Rc<dyn Process>>,
 }
 
-impl Process for RunningSystem {
+impl<T: Transport> Process for RunningSystem<T> {
     fn id(&self) -> ProcessID {
         self.id
     }

@@ -15,8 +15,7 @@ impl<T: Message> InputPort<T> {
     pub fn new(system: &System) -> Self {
         Self {
             _phantom: PhantomData,
-            //id: system.target_id.replace_with(|&mut id| id + 1),
-            id: InputPortID::try_from(0).unwrap(), // FIXME
+            id: InputPortID::try_from(system.target_id.replace_with(|&mut id| id - 1)).unwrap(),
         }
     }
 

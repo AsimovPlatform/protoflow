@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Box, ToString, Vec},
+    prelude::{vec, Box, ToString, Vec},
     transport::Transport,
     InputPortID, Message, MessageBuffer, OutputPortID, PortError, PortID, PortResult, PortState,
 };
@@ -30,18 +30,31 @@ impl MockTransport {
             state: RwLock::new(MockTransportState::default()),
         })
     }
+
+    pub fn with_ports(input: usize, output: usize) -> Box<Self> {
+        let mut inboxes = Vec::with_capacity(input);
+        inboxes.resize_with(input, || MessageBuffer::new());
+        let state = MockTransportState {
+            outputs: vec![PortState::Open; output],
+            inputs: vec![PortState::Open; input],
+            inboxes,
+        };
+        Box::new(Self {
+            state: RwLock::new(state),
+        })
+    }
 }
 
 impl Transport for MockTransport {
     fn state(&self, port: PortID) -> PortResult<PortState> {
         let state = self.state.read().unwrap();
         match port {
-            PortID::Input(port) => match state.inputs.get(port.index()) {
-                None => Err(PortError::Invalid),
+            PortID::Input(inport) => match state.inputs.get(inport.index()) {
+                None => Err(PortError::Invalid(port)),
                 Some(state) => Ok(*state),
             },
-            PortID::Output(port) => match state.outputs.get(port.index()) {
-                None => Err(PortError::Invalid),
+            PortID::Output(outport) => match state.outputs.get(outport.index()) {
+                None => Err(PortError::Invalid(port)),
                 Some(state) => Ok(*state),
             },
         }
@@ -50,8 +63,8 @@ impl Transport for MockTransport {
     fn close(&self, port: PortID) -> PortResult<bool> {
         let mut state = self.state.write().unwrap();
         match port {
-            PortID::Input(port) => match state.inputs.get_mut(port.index()) {
-                None => Err(PortError::Invalid),
+            PortID::Input(inport) => match state.inputs.get_mut(inport.index()) {
+                None => Err(PortError::Invalid(port)),
                 Some(port_state) => match port_state {
                     PortState::Closed => Ok(false), // already closed
                     PortState::Open => {
@@ -61,13 +74,13 @@ impl Transport for MockTransport {
                     PortState::Connected(_) => {
                         // TODO: close the connected output port as well
                         *port_state = PortState::Closed;
-                        state.inboxes[port.index()].clear();
+                        state.inboxes[inport.index()].clear();
                         Ok(true)
                     }
                 },
             },
-            PortID::Output(port) => match state.outputs.get_mut(port.index()) {
-                None => Err(PortError::Invalid),
+            PortID::Output(outport) => match state.outputs.get_mut(outport.index()) {
+                None => Err(PortError::Invalid(port)),
                 Some(port_state) => match port_state {
                     PortState::Closed => Ok(false), // already closed
                     PortState::Open => {
@@ -110,14 +123,14 @@ impl Transport for MockTransport {
                 state.inputs[target.index()] = PortState::Connected(PortID::Output(source));
                 Ok(true)
             }
-            _ => Err(PortError::Invalid), // TODO: better errors
+            _ => Err(PortError::Invalid(PortID::Output(source))), // TODO: better errors
         }
     }
 
     fn send(&self, output: OutputPortID, message: Box<dyn Message>) -> PortResult<()> {
         let state = self.state.read().unwrap();
         let input = match state.outputs.get(output.index()) {
-            None => return Err(PortError::Invalid),
+            None => return Err(PortError::Invalid(PortID::Output(output))),
             Some(PortState::Closed) => return Err(PortError::Closed),
             Some(PortState::Open) => return Err(PortError::Disconnected),
             Some(PortState::Connected(PortID::Output(_))) => unreachable!(),
@@ -132,7 +145,7 @@ impl Transport for MockTransport {
     fn recv(&self, input: InputPortID) -> PortResult<Box<dyn Message>> {
         let state = self.state.read().unwrap();
         match state.inputs.get(input.index()) {
-            None => return Err(PortError::Invalid),
+            None => return Err(PortError::Invalid(PortID::Input(input))),
             Some(PortState::Closed) => return Err(PortError::Closed),
             Some(PortState::Open) => return Err(PortError::Disconnected), // TODO?
             Some(PortState::Connected(PortID::Input(_))) => unreachable!(),

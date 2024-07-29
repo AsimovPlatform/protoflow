@@ -11,11 +11,12 @@ use crate::{
 pub type BlockID = usize;
 
 /// A system is a collection of blocks that are connected together.
-#[derive(Default)]
 pub struct System {
     /// The registered blocks in the system.
     pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
     pub(crate) connections: RefCell<BTreeSet<(OutputPortID, InputPortID)>>,
+    pub(crate) source_id: RefCell<isize>,
+    pub(crate) target_id: RefCell<isize>,
 }
 
 pub type Subsystem = System;
@@ -26,7 +27,8 @@ impl System {
         Self {
             blocks: RefCell::new(VecDeque::new()),
             connections: RefCell::new(BTreeSet::new()),
-            ..Default::default()
+            source_id: RefCell::new(1),
+            target_id: RefCell::new(-1),
         }
     }
 
@@ -66,6 +68,8 @@ mod test {
 
     #[test]
     fn define_system() -> Result<(), ()> {
+        let mut runtime = StdRuntime::<MockTransport>::new().unwrap();
+
         let system = System::new();
 
         let constant = system.block(Const {
@@ -76,8 +80,6 @@ mod test {
 
         system.connect(&constant.output, &blackhole.0)?;
 
-        let transport = MockTransport::new();
-        let mut runtime = StdRuntime::new(transport).unwrap();
         let _ = runtime.execute_system(system).unwrap();
 
         Ok(())

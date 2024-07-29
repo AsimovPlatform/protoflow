@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::prelude::{fmt, String, ToString};
+use crate::{
+    prelude::{fmt, String, ToString},
+    PortID,
+};
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -9,7 +12,7 @@ pub type PortResult<T> = Result<T, PortError>;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PortError {
-    Invalid,
+    Invalid(PortID),
     Closed,
     Disconnected,
     RecvFailed,
@@ -20,7 +23,7 @@ pub enum PortError {
 impl fmt::Display for PortError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Invalid => write!(f, "Port is invalid"),
+            Self::Invalid(port) => write!(f, "Port #{} is invalid", port),
             Self::Closed => write!(f, "Port is closed"),
             Self::Disconnected => write!(f, "Port is not connected"),
             Self::RecvFailed => write!(f, "Port receive failed"),
