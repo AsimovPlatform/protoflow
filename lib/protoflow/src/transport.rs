@@ -1,31 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::Message;
+use crate::{prelude::Box, InputPortID, Message, OutputPortID, PortID, PortResult, PortState};
 
-pub trait Transport: Send + Sync {}
-
-/// A trait for sending messages.
 #[allow(unused)]
-pub trait Sender<M: Message> {
-    /// Sends a message.
-    fn send(&mut self, message: M) -> Result<(), ()>;
-
-    /// Closes the sender.
-    fn close(&mut self) -> Result<(), ()>;
-
-    /// Returns whether the sender is closed.
-    fn is_closed(&self) -> bool;
-}
-
-/// A trait for receiving messages.
-#[allow(unused)]
-pub trait Receiver<M: Message> {
-    /// Receives a message.
-    fn recv(&mut self) -> Result<M, ()>;
-
-    /// Closes the receiver.
-    fn close(&mut self) -> Result<(), ()>;
-
-    /// Returns whether the receiver is closed.
-    fn is_closed(&self) -> bool;
+pub trait Transport: Send + Sync {
+    fn state(&self, port: PortID) -> PortResult<PortState>;
+    fn close(&self, port: PortID) -> PortResult<bool>;
+    fn open_input(&self) -> PortResult<InputPortID>;
+    fn open_output(&self) -> PortResult<OutputPortID>;
+    fn connect(&self, source: OutputPortID, target: InputPortID) -> PortResult<bool>;
+    fn send(&self, output: OutputPortID, message: Box<dyn Message>) -> PortResult<()>;
+    fn recv(&self, input: InputPortID) -> PortResult<Box<dyn Message>>;
 }

@@ -8,7 +8,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct InputPort<T: Message> {
     _phantom: PhantomData<T>,
-    id: InputPortID,
+    pub(crate) id: InputPortID,
 }
 
 impl<T: Message> InputPort<T> {
