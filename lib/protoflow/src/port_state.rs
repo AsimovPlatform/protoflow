@@ -1,13 +1,13 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::OutputPortID;
+use crate::PortID;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PortState {
     #[default]
     Closed,
     Open,
-    Connected(OutputPortID),
+    Connected(PortID),
 }
 
 impl PortState {
