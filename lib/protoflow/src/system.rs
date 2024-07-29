@@ -16,8 +16,6 @@ pub struct System {
     /// The registered blocks in the system.
     pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
     pub(crate) connections: RefCell<BTreeSet<(PortID, PortID)>>,
-    pub(crate) source_id: RefCell<PortID>,
-    pub(crate) target_id: RefCell<PortID>,
 }
 
 pub type Subsystem = System;
@@ -28,8 +26,6 @@ impl System {
         Self {
             blocks: RefCell::new(VecDeque::new()),
             connections: RefCell::new(BTreeSet::new()),
-            source_id: RefCell::new(-1),
-            target_id: RefCell::new(1),
             ..Default::default()
         }
     }

@@ -5,8 +5,11 @@ use crate::prelude::{fmt, String, ToString};
 #[cfg(feature = "std")]
 extern crate std;
 
-#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub type PortResult<T> = Result<T, PortError>;
+
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PortError {
+    Invalid,
     Closed,
     Disconnected,
     RecvFailed,
@@ -14,21 +17,10 @@ pub enum PortError {
     Other(String),
 }
 
-impl fmt::Debug for PortError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Closed => write!(f, "PortError::Closed"),
-            Self::Disconnected => write!(f, "PortError::Disconnected"),
-            Self::RecvFailed => write!(f, "PortError::RecvFailed"),
-            Self::SendFailed => write!(f, "PortError::SendFailed"),
-            Self::Other(message) => write!(f, "PortError::Other(\"{}\")", message),
-        }
-    }
-}
-
 impl fmt::Display for PortError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::Invalid => write!(f, "Port is invalid"),
             Self::Closed => write!(f, "Port is closed"),
             Self::Disconnected => write!(f, "Port is not connected"),
             Self::RecvFailed => write!(f, "Port receive failed"),

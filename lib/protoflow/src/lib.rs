@@ -50,6 +50,9 @@ pub use port_descriptor::*;
 mod port_error;
 pub use port_error::*;
 
+mod port_id;
+pub use port_id::*;
+
 mod port_state;
 pub use port_state::*;
 

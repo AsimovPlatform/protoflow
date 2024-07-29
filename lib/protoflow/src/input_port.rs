@@ -2,20 +2,21 @@
 
 use crate::{
     prelude::{fmt, PhantomData},
-    BlockError, Message, Port, PortID, PortState, System,
+    BlockError, InputPortID, Message, Port, PortID, PortState, System,
 };
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct InputPort<T: Message> {
     _phantom: PhantomData<T>,
-    id: PortID,
+    id: InputPortID,
 }
 
 impl<T: Message> InputPort<T> {
     pub fn new(system: &System) -> Self {
         Self {
             _phantom: PhantomData,
-            id: system.target_id.replace_with(|&mut id| id + 1),
+            //id: system.target_id.replace_with(|&mut id| id + 1),
+            id: InputPortID::try_from(0).unwrap(), // FIXME
         }
     }
 
@@ -30,7 +31,7 @@ impl<T: Message> InputPort<T> {
 
 impl<T: Message> Port for InputPort<T> {
     fn id(&self) -> Option<PortID> {
-        Some(self.id)
+        Some(PortID::Input(self.id))
     }
 
     fn state(&self) -> PortState {

@@ -10,21 +10,11 @@ extern crate std;
 
 pub type BlockResult<T> = Result<T, BlockError>;
 
-#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum BlockError {
     Terminated,
     PortError(PortError),
     Other(String),
-}
-
-impl fmt::Debug for BlockError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Terminated => write!(f, "BlockError::Terminated"),
-            Self::PortError(e) => write!(f, "BlockError::PortError({})", e),
-            Self::Other(message) => write!(f, "BlockError::Other(\"{}\")", message),
-        }
-    }
 }
 
 impl fmt::Display for BlockError {

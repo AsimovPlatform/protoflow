@@ -1,8 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::PortState;
-
-pub type PortID = isize;
+use crate::{PortID, PortState};
 
 /// The common interface for ports, whether for input or output.
 pub trait Port {
@@ -20,16 +18,16 @@ pub trait Port {
 
     /// Checks whether this port is currently closed.
     fn is_closed(&self) -> bool {
-        self.state() == PortState::Closed
+        self.state().is_closed()
     }
 
     /// Checks whether this port is currently open.
     fn is_open(&self) -> bool {
-        self.state() == PortState::Open
+        self.state().is_open()
     }
 
     /// Checks whether this port is currently connected.
     fn is_connected(&self) -> bool {
-        self.state() == PortState::Connected
+        self.state().is_connected()
     }
 }
