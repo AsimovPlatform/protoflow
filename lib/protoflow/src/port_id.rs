@@ -8,15 +8,6 @@ pub enum PortID {
     Output(OutputPortID),
 }
 
-impl PortID {
-    pub fn index(&self) -> usize {
-        match self {
-            PortID::Input(id) => id.index(),
-            PortID::Output(id) => id.index(),
-        }
-    }
-}
-
 impl TryFrom<isize> for PortID {
     type Error = &'static str;
 
@@ -74,7 +65,7 @@ impl fmt::Display for PortID {
 pub struct InputPortID(isize);
 
 impl InputPortID {
-    pub fn index(&self) -> usize {
+    pub(crate) fn index(&self) -> usize {
         (self.0.abs() as usize) - 1
     }
 }
@@ -113,7 +104,7 @@ impl fmt::Display for InputPortID {
 pub struct OutputPortID(isize);
 
 impl OutputPortID {
-    pub fn index(&self) -> usize {
+    pub(crate) fn index(&self) -> usize {
         (self.0 as usize) - 1
     }
 }

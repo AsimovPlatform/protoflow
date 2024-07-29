@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{slice, Arc, BTreeSet, BTreeSetIter, Box, RefCell, VecDeque},
-    Block, InputPort, Message, OutputPort, Port, PortID,
+    Block, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
 };
 
 /// A machine-readable identifier for a block in a system.
@@ -15,7 +15,7 @@ pub type BlockID = usize;
 pub struct System {
     /// The registered blocks in the system.
     pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
-    pub(crate) connections: RefCell<BTreeSet<(PortID, PortID)>>,
+    pub(crate) connections: RefCell<BTreeSet<(OutputPortID, InputPortID)>>,
 }
 
 pub type Subsystem = System;
@@ -52,10 +52,7 @@ impl System {
         source: &OutputPort<T>,
         target: &InputPort<T>,
     ) -> Result<bool, ()> {
-        Ok(self
-            .connections
-            .borrow_mut()
-            .insert((source.id().unwrap(), target.id().unwrap())))
+        Ok(self.connections.borrow_mut().insert((source.id, target.id)))
     }
 }
 

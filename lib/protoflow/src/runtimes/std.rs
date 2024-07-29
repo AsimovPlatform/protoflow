@@ -65,9 +65,15 @@ impl Runtime for Arc<StdRuntime> {
             runtime: self.clone(),
             blocks: Vec::new(),
         };
+
+        for (source_id, target_id) in system.connections.borrow().iter() {
+            self.transport.connect(*source_id, *target_id).unwrap();
+        }
+
         while let Some(block) = system.blocks.borrow_mut().pop_front() {
             system_process.blocks.push(self.execute_block(block)?);
         }
+
         Ok(Rc::new(system_process))
     }
 }
