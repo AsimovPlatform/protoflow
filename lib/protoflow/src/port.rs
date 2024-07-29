@@ -11,10 +11,14 @@ pub trait Port {
     fn state(&self) -> PortState;
 
     /// The machine-readable name of this port.
-    fn name(&self) -> &str;
+    fn name(&self) -> Option<&str> {
+        None
+    }
 
     /// A human-readable label for this port.
-    fn label(&self) -> Option<&str>;
+    fn label(&self) -> Option<&str> {
+        None
+    }
 
     /// Checks whether this port is currently closed.
     fn is_closed(&self) -> bool {
