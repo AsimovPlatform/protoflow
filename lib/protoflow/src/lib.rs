@@ -38,6 +38,9 @@ pub use function_block::*;
 mod input_port;
 pub use input_port::*;
 
+mod message_buffer;
+pub use message_buffer::*;
+
 mod output_port;
 pub use output_port::*;
 
