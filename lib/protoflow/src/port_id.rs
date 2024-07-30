@@ -66,7 +66,7 @@ pub struct InputPortID(isize);
 
 impl InputPortID {
     pub(crate) fn index(&self) -> usize {
-        (self.0.abs() as usize) - 1
+        self.0.unsigned_abs() - 1
     }
 }
 
@@ -90,7 +90,7 @@ impl From<InputPortID> for isize {
 
 impl From<InputPortID> for usize {
     fn from(id: InputPortID) -> usize {
-        id.0.abs() as usize
+        id.0.unsigned_abs()
     }
 }
 
