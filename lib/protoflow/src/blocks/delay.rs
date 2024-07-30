@@ -32,7 +32,7 @@ pub enum DelayType {
 
 impl<T: Message> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
-        while let Some(message) = self.input.receive()? {
+        while let Some(message) = self.input.recv()? {
             if !self.output.is_connected() {
                 drop(message);
                 continue;

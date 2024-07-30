@@ -9,7 +9,7 @@ pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
-        while let Some(message) = self.0.receive()? {
+        while let Some(message) = self.0.recv()? {
             drop(message);
         }
         Ok(())

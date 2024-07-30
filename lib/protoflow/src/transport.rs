@@ -10,7 +10,8 @@ pub trait Transport: AsTransport + Send + Sync {
     fn open_output(&self) -> PortResult<OutputPortID>;
     fn connect(&self, source: OutputPortID, target: InputPortID) -> PortResult<bool>;
     fn send(&self, output: OutputPortID, message: Box<dyn Message>) -> PortResult<()>;
-    fn recv(&self, input: InputPortID) -> PortResult<Box<dyn Message>>;
+    fn recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>>;
+    fn try_recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>>;
 }
 
 pub trait AsTransport {

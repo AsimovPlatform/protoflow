@@ -5,6 +5,7 @@ use crate::{
     transport::Transport,
     InputPortID, Message, MessageBuffer, OutputPortID, PortError, PortID, PortResult, PortState,
 };
+use parking_lot::{Condvar, Mutex};
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -21,27 +22,32 @@ pub struct MockTransport {
 pub struct MockTransportState {
     outputs: Vec<PortState>,
     inputs: Vec<PortState>,
+    inwaits: Vec<(Mutex<bool>, Condvar)>,
     inboxes: Vec<MessageBuffer>,
 }
 
 impl MockTransport {
-    pub fn new() -> Box<Self> {
-        Box::new(Self {
+    pub fn new() -> Self {
+        Self {
             state: RwLock::new(MockTransportState::default()),
-        })
+        }
     }
 
-    pub fn with_ports(input: usize, output: usize) -> Box<Self> {
+    pub fn with_ports(input: usize, output: usize) -> Self {
+        let mut invars = Vec::with_capacity(input);
+        invars.resize_with(input, || (Mutex::new(false), Condvar::new()));
+
         let mut inboxes = Vec::with_capacity(input);
-        inboxes.resize_with(input, || MessageBuffer::new());
-        let state = MockTransportState {
-            outputs: vec![PortState::Open; output],
-            inputs: vec![PortState::Open; input],
-            inboxes,
-        };
-        Box::new(Self {
-            state: RwLock::new(state),
-        })
+        inboxes.resize_with(input, MessageBuffer::new);
+
+        Self {
+            state: RwLock::new(MockTransportState {
+                outputs: vec![PortState::Open; output],
+                inputs: vec![PortState::Open; input],
+                inwaits: invars,
+                inboxes,
+            }),
+        }
     }
 }
 
@@ -99,15 +105,19 @@ impl Transport for MockTransport {
 
     fn open_input(&self) -> PortResult<InputPortID> {
         let mut state = self.state.write().unwrap();
+
         state.inputs.push(PortState::Open);
         state.inboxes.push(MessageBuffer::new());
+
         InputPortID::try_from(state.inputs.len() as isize)
             .map_err(|s| PortError::Other(s.to_string()))
     }
 
     fn open_output(&self) -> PortResult<OutputPortID> {
         let mut state = self.state.write().unwrap();
+
         state.outputs.push(PortState::Open);
+
         OutputPortID::try_from(state.outputs.len() as isize)
             .map_err(|s| PortError::Other(s.to_string()))
     }
@@ -137,22 +147,61 @@ impl Transport for MockTransport {
             Some(PortState::Connected(PortID::Input(input))) => *input,
         };
 
-        let mut state = self.state.write().unwrap();
+        let mut state = self.state.write().unwrap(); // upgrade lock
         state.inboxes[input.index()].push(message);
+        {
+            let (ref recv_lock, ref recv_cvar) = state.inwaits[input.index()];
+            let mut _recv_guard = recv_lock.lock();
+            recv_cvar.notify_one();
+        }
         Ok(())
     }
 
-    fn recv(&self, input: InputPortID) -> PortResult<Box<dyn Message>> {
+    fn recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>> {
         let state = self.state.read().unwrap();
-        match state.inputs.get(input.index()) {
-            None => return Err(PortError::Invalid(PortID::Input(input))),
-            Some(PortState::Closed) => return Err(PortError::Closed),
-            Some(PortState::Open) => return Err(PortError::Disconnected), // TODO?
-            Some(PortState::Connected(PortID::Input(_))) => unreachable!(),
-            Some(PortState::Connected(PortID::Output(_))) => (),
-        };
+        if state.inputs.get(input.index()).is_none() {
+            return Err(PortError::Invalid(PortID::Input(input)));
+        }
+        if state.inboxes[input.index()].is_empty()
+            && state.inputs[input.index()] == PortState::Closed
+        {
+            return Ok(None); // EOS
+        }
 
-        let mut state = self.state.write().unwrap();
-        state.inboxes[input.index()].pop().ok_or(PortError::Closed) // FIXME
+        let mut state = self.state.write().unwrap(); // upgrade lock
+        if state.inputs.get(input.index()).is_none() {
+            return Err(PortError::Invalid(PortID::Input(input)));
+        }
+        if state.inboxes[input.index()].is_empty() {
+            match &state.inputs[input.index()] {
+                PortState::Closed => return Ok(None), // EOS
+                PortState::Open => (),
+                PortState::Connected(PortID::Input(_)) => unreachable!(),
+                PortState::Connected(PortID::Output(_)) => (),
+            };
+
+            let (ref recv_lock, ref recv_cvar) = state.inwaits[input.index()];
+            let mut recv_guard = recv_lock.lock();
+            if !*recv_guard {
+                recv_cvar.wait(&mut recv_guard);
+            }
+        }
+        Ok(state.inboxes[input.index()].pop())
+    }
+
+    fn try_recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>> {
+        let state = self.state.read().unwrap();
+        if state.inputs.get(input.index()).is_none() {
+            return Err(PortError::Invalid(PortID::Input(input)));
+        }
+        if state.inboxes[input.index()].is_empty() {
+            return Ok(None); // no message immediately available
+        }
+
+        let mut state = self.state.write().unwrap(); // upgrade lock
+        if state.inputs.get(input.index()).is_none() {
+            return Err(PortError::Invalid(PortID::Input(input)));
+        }
+        Ok(state.inboxes[input.index()].pop())
     }
 }

@@ -26,7 +26,7 @@ pub struct Count<T: Message> {
 
 impl<T: Message> Block for Count<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
-        while let Some(message) = self.input.receive()? {
+        while let Some(message) = self.input.recv()? {
             self.counter += 1;
 
             if self.output.is_connected() {
