@@ -54,7 +54,7 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             fn execute(&mut self, runtime: &dyn #protoflow::Runtime) -> #protoflow::BlockResult<()> {
                 let input = &self.0;
                 let output = &self.1;
-                while let Some(message) = #protoflow::InputPort::receive(input)? {
+                while let Some(message) = #protoflow::InputPort::recv(input)? {
                     if #protoflow::Port::is_connected(output) {
                         let result = #protoflow::FunctionBlock::compute(self, message)?;
                         #protoflow::OutputPort::send(output, &result)?;

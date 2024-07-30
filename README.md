@@ -84,7 +84,7 @@ pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
-        while let Some(message) = self.0.receive()? {
+        while let Some(message) = self.0.recv()? {
             drop(message);
         }
         Ok(())
@@ -118,7 +118,7 @@ pub struct Delay<T: Message> {
 
 impl<T: Message> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
-        while let Some(message) = self.input.receive()? {
+        while let Some(message) = self.input.recv()? {
             runtime.sleep_for(self.delay)?;
 
             if self.output.is_connected() {
@@ -131,6 +131,8 @@ impl<T: Message> Block for Delay<T> {
 ```
 
 ## 📚 Reference
+
+### Glossary
 
 ### Blocks
 
