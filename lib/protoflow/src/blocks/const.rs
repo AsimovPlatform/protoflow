@@ -25,3 +25,25 @@ impl<T: Message + Clone + 'static> Block for Const<T> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    extern crate std;
+
+    use crate::blocks::Const;
+    use crate::transports::MockTransport;
+    use crate::System;
+
+    #[test]
+    fn const_block() -> Result<(), ()> {
+        let system = System::<MockTransport>::build(|s| {
+            let _const_1 = s.block(Const {
+                output: s.output(),
+                value: 42,
+            });
+        });
+        let process = system.execute().unwrap();
+        process.join().unwrap();
+        Ok(())
+    }
+}

@@ -59,7 +59,10 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
         Ok(block_process)
     }
 
-    fn execute_system<X: Transport>(&mut self, system: System<X>) -> BlockResult<Rc<dyn Process>> {
+    fn execute_system<X: Transport + Default>(
+        &mut self,
+        system: System<X>,
+    ) -> BlockResult<Rc<dyn Process>> {
         let mut system_process = RunningSystem {
             id: self.process_id.fetch_add(1, Ordering::SeqCst),
             runtime: self.clone(),

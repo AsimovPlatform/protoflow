@@ -13,7 +13,7 @@ pub struct InputPort<T: Message> {
 }
 
 impl<T: Message> InputPort<T> {
-    pub fn new<X: Transport>(system: &System<X>) -> Self {
+    pub fn new<X: Transport + Default>(system: &System<X>) -> Self {
         let runtime = system.runtime.as_ref();
         let transport = runtime.transport.clone();
         Self {
