@@ -2,8 +2,8 @@
 
 use crate::{
     prelude::{
-        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, PhantomData, Range, Rc,
-        RefCell, ToString, Vec,
+        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Range, Rc, RefCell,
+        ToString, Vec,
     },
     transport::Transport,
     transports::MockTransport,
@@ -15,16 +15,16 @@ extern crate std;
 
 #[allow(unused)]
 pub struct StdRuntime<T: Transport = MockTransport> {
-    _phantom: PhantomData<T>,
+    pub(crate) transport: Arc<T>,
     is_alive: AtomicBool,
     process_id: AtomicUsize,
 }
 
 #[allow(unused)]
 impl<T: Transport> StdRuntime<T> {
-    pub fn new() -> Result<Arc<Self>, BlockError> {
+    pub fn new(transport: T) -> Result<Arc<Self>, BlockError> {
         Ok(Arc::new(Self {
-            _phantom: PhantomData,
+            transport: Arc::new(transport),
             is_alive: AtomicBool::new(true),
             process_id: AtomicUsize::new(1),
         }))
@@ -45,7 +45,6 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
                         std::thread::park();
                         Block::prepare(block.as_mut(), block_runtime.as_ref()).unwrap();
                         Block::execute(block.as_mut(), block_runtime.as_ref()).unwrap();
-                        ()
                     })
                     .unwrap(),
             )),
@@ -60,21 +59,11 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
         Ok(block_process)
     }
 
-    fn execute_system(&mut self, system: System) -> BlockResult<Rc<dyn Process>> {
-        // FIXME:
-        let transport = MockTransport::with_ports(
-            system.source_id.borrow().abs() as usize,
-            system.target_id.borrow().abs() as usize,
-        );
-
-        for (source_id, target_id) in system.connections.borrow().iter() {
-            transport.connect(*source_id, *target_id).unwrap();
-        }
-
+    fn execute_system<X: Transport>(&mut self, system: System<X>) -> BlockResult<Rc<dyn Process>> {
         let mut system_process = RunningSystem {
             id: self.process_id.fetch_add(1, Ordering::SeqCst),
             runtime: self.clone(),
-            transport,
+            transport: self.transport.clone(),
             blocks: Vec::new(),
         };
 
@@ -173,7 +162,7 @@ impl<T: Transport> Process for RunningBlock<T> {
 struct RunningSystem<T: Transport> {
     id: ProcessID,
     runtime: Arc<StdRuntime<T>>,
-    transport: Box<dyn Transport>,
+    transport: Arc<T>,
     blocks: Vec<Rc<dyn Process>>,
 }
 

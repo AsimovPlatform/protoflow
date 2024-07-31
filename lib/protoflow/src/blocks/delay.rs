@@ -30,7 +30,7 @@ pub enum DelayType {
     Random(Range<Duration>),
 }
 
-impl<T: Message> Block for Delay<T> {
+impl<T: Message + Clone + 'static> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         while let Some(message) = self.input.recv()? {
             if !self.output.is_connected() {
@@ -44,7 +44,7 @@ impl<T: Message> Block for Delay<T> {
             };
             runtime.sleep_for(duration)?;
 
-            self.output.send(&message)?;
+            self.output.send(message)?;
         }
         Ok(())
     }

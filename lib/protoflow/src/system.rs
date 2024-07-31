@@ -1,8 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{slice, Arc, BTreeSet, BTreeSetIter, Box, RefCell, VecDeque},
-    Block, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
+    prelude::{Arc, Box, PhantomData, RefCell, VecDeque},
+    runtimes::StdRuntime,
+    transports::MockTransport,
+    Block, InputPort, Message, OutputPort, Transport,
 };
 
 /// A machine-readable identifier for a block in a system.
@@ -11,37 +13,39 @@ use crate::{
 pub type BlockID = usize;
 
 /// A system is a collection of blocks that are connected together.
-pub struct System {
+pub struct System<X: Transport + 'static = MockTransport> {
+    _phantom: PhantomData<X>,
+    pub(crate) runtime: Arc<StdRuntime<X>>,
     /// The registered blocks in the system.
     pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
-    pub(crate) connections: RefCell<BTreeSet<(OutputPortID, InputPortID)>>,
-    pub(crate) source_id: RefCell<isize>,
-    pub(crate) target_id: RefCell<isize>,
+    //pub(crate) connections: RefCell<BTreeSet<(OutputPortID, InputPortID)>>,
 }
 
-pub type Subsystem = System;
+pub type Subsystem<X> = System<X>;
 
-impl System {
+impl<X: Transport> System<X> {
     /// Instantiates a new system.
-    pub fn new() -> Self {
+    pub fn new(runtime: &Arc<StdRuntime<X>>) -> Self {
         Self {
+            _phantom: PhantomData,
+            runtime: runtime.clone(),
             blocks: RefCell::new(VecDeque::new()),
-            connections: RefCell::new(BTreeSet::new()),
-            source_id: RefCell::new(1),
-            target_id: RefCell::new(-1),
+            //connections: RefCell::new(BTreeSet::new()),
         }
     }
 
-    pub fn blocks(&self) -> slice::Iter<Arc<dyn Block>> {
-        todo!() // self.blocks.iter()
+    /// Creates a new input port.
+    pub fn input<M: Message + 'static>(&self) -> InputPort<M> {
+        InputPort::new(self)
     }
 
-    pub fn connections(&self) -> BTreeSetIter<(PortID, PortID)> {
-        todo!() //self.connections.iter()
+    /// Creates a new output port.
+    pub fn output<M: Message + Clone + 'static>(&self) -> OutputPort<M> {
+        OutputPort::new(self)
     }
 
     /// Instantiates a block in the system.
-    pub fn block<T: Block + Clone + 'static>(&self, block: T) -> T {
+    pub fn block<B: Block + Clone + 'static>(&self, block: B) -> B {
         self.blocks.borrow_mut().push_back(Box::new(block.clone()));
         block
     }
@@ -49,38 +53,46 @@ impl System {
     /// Connects two ports of two blocks in the system.
     ///
     /// Both ports must be of the same message type.
-    pub fn connect<T: Message>(
+    pub fn connect<M: Message>(
         &self,
-        source: &OutputPort<T>,
-        target: &InputPort<T>,
+        source: &OutputPort<M>,
+        target: &InputPort<M>,
     ) -> Result<bool, ()> {
-        Ok(self.connections.borrow_mut().insert((source.id, target.id)))
+        let runtime = self.runtime.as_ref();
+        let transport = runtime.transport.as_ref();
+        Ok(transport.connect(source.id, target.id).unwrap())
+        //Ok(self.connections.borrow_mut().insert((source.id, target.id)))
     }
 }
 
 #[cfg(test)]
 mod test {
     extern crate std;
+
     use crate::blocks::{Const, Drop};
     use crate::runtimes::StdRuntime;
     use crate::transports::MockTransport;
-    use crate::{InputPort, OutputPort, Runtime, System};
+    use crate::{Runtime, System};
 
     #[test]
     fn define_system() -> Result<(), ()> {
-        let mut runtime = StdRuntime::<MockTransport>::new().unwrap();
+        let transport = MockTransport::new();
+        let mut runtime = StdRuntime::new(transport).unwrap();
 
-        let system = System::new();
+        let system = System::new(&runtime);
 
         let constant = system.block(Const {
-            output: OutputPort::new(&system),
+            output: system.output(),
             value: 42,
         });
-        let blackhole = system.block(Drop(InputPort::new(&system)));
+
+        let blackhole = system.block(Drop(system.input()));
 
         system.connect(&constant.output, &blackhole.0)?;
 
-        let _ = runtime.execute_system(system).unwrap();
+        let process = runtime.execute_system(system).unwrap();
+
+        process.join().unwrap();
 
         Ok(())
     }

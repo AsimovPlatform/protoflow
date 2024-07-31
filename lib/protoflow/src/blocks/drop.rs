@@ -12,6 +12,7 @@ impl<T: Message> Block for Drop<T> {
         while let Some(message) = self.0.recv()? {
             drop(message);
         }
+        self.0.close()?;
         Ok(())
     }
 }
