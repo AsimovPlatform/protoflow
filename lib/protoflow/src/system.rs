@@ -1,10 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Arc, Box, PhantomData, RefCell, VecDeque},
+    prelude::{Arc, Box, PhantomData, Rc, RefCell, VecDeque},
     runtimes::StdRuntime,
     transports::MockTransport,
-    Block, InputPort, Message, OutputPort, Transport,
+    Block, BlockResult, InputPort, Message, OutputPort, Process, Runtime, Transport,
 };
 
 /// A machine-readable identifier for a block in a system.
@@ -13,25 +13,38 @@ use crate::{
 pub type BlockID = usize;
 
 /// A system is a collection of blocks that are connected together.
-pub struct System<X: Transport + 'static = MockTransport> {
+pub struct System<X: Transport + Default + 'static = MockTransport> {
     _phantom: PhantomData<X>,
     pub(crate) runtime: Arc<StdRuntime<X>>,
+
     /// The registered blocks in the system.
     pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
-    //pub(crate) connections: RefCell<BTreeSet<(OutputPortID, InputPortID)>>,
 }
 
 pub type Subsystem<X> = System<X>;
 
-impl<X: Transport> System<X> {
+impl<X: Transport + Default + 'static> System<X> {
+    /// Builds a new system.
+    pub fn build<F: FnOnce(&mut System<X>)>(f: F) -> Self {
+        let transport = X::default();
+        let runtime = StdRuntime::new(transport).unwrap();
+        let mut system = System::new(&runtime);
+        f(&mut system);
+        system
+    }
+
     /// Instantiates a new system.
     pub fn new(runtime: &Arc<StdRuntime<X>>) -> Self {
         Self {
             _phantom: PhantomData,
             runtime: runtime.clone(),
             blocks: RefCell::new(VecDeque::new()),
-            //connections: RefCell::new(BTreeSet::new()),
         }
+    }
+
+    pub fn execute(self) -> BlockResult<Rc<dyn Process>> {
+        let mut runtime = self.runtime.clone();
+        runtime.execute_system(self)
     }
 
     /// Creates a new input port.
