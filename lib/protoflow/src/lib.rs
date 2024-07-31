@@ -38,6 +38,9 @@ pub use function_block::*;
 mod input_port;
 pub use input_port::*;
 
+mod message;
+pub use message::*;
+
 mod message_buffer;
 pub use message_buffer::*;
 
@@ -81,6 +84,7 @@ pub mod types {
 
 pub use prost::Message;
 
+#[allow(unused_imports)]
 pub(crate) mod utils {
     mod rw_condvar;
     pub use rw_condvar::*;

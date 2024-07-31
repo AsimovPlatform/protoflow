@@ -24,13 +24,13 @@ pub struct Count<T: Message> {
     counter: u64,
 }
 
-impl<T: Message> Block for Count<T> {
+impl<T: Message + Clone + 'static> Block for Count<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         while let Some(message) = self.input.recv()? {
             self.counter += 1;
 
             if self.output.is_connected() {
-                self.output.send(&message)?;
+                self.output.send(message)?;
             } else {
                 drop(message);
             }

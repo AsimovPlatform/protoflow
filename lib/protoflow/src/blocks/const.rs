@@ -15,11 +15,12 @@ pub struct Const<T: Message> {
     pub value: T,
 }
 
-impl<T: Message> Block for Const<T> {
+impl<T: Message + Clone + 'static> Block for Const<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
         runtime.wait_for(&self.output)?;
 
         self.output.send(&self.value)?;
+        self.output.close()?;
 
         Ok(())
     }

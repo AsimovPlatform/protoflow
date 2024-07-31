@@ -1,8 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, PhantomData, ToString},
-    InputPortID, Message, Port, PortError, PortID, PortResult, PortState, System, Transport,
+    prelude::{fmt, Arc, Box, PhantomData},
+    InputPortID, Message, Port, PortID, PortResult, PortState, System, Transport,
 };
 
 #[derive(Clone)] //, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -27,12 +27,12 @@ impl<T: Message> InputPort<T> {
         self.transport.close(PortID::Input(self.id))
     }
 
-    pub fn recv(&self) -> PortResult<Option<T>> {
-        Err(PortError::Other("recv not implemented yet".to_string())) // TODO
+    pub fn recv(&self) -> PortResult<Option<Box<dyn Message>>> {
+        self.transport.recv(self.id)
     }
 
-    pub fn try_recv(&self) -> PortResult<Option<T>> {
-        Err(PortError::Other("trY_recv not implemented yet".to_string())) // TODO
+    pub fn try_recv(&self) -> PortResult<Option<Box<dyn Message>>> {
+        self.transport.try_recv(self.id)
     }
 }
 

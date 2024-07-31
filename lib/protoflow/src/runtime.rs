@@ -2,15 +2,15 @@
 
 use crate::{
     prelude::{Box, Rc},
-    Block, BlockResult, Process, System,
+    Block, BlockResult, Process, System, Transport,
 };
 
 pub trait Runtime {
-    fn execute<T: Block + 'static>(&mut self, block: T) -> BlockResult<Rc<dyn Process>> {
-        self.execute_block(Box::new(block))
-    }
+    //fn execute<T: Block + 'static>(&mut self, block: T) -> BlockResult<Rc<dyn Process>> {
+    //    self.execute_block(Box::new(block))
+    //}
 
     fn execute_block(&mut self, block: Box<dyn Block>) -> BlockResult<Rc<dyn Process>>;
 
-    fn execute_system(&mut self, system: System) -> BlockResult<Rc<dyn Process>>;
+    fn execute_system<X: Transport>(&mut self, system: System<X>) -> BlockResult<Rc<dyn Process>>;
 }
