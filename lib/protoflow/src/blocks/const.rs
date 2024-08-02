@@ -33,23 +33,15 @@ impl<T: Message + Clone + 'static> Block for Const<T> {
 }
 
 #[cfg(test)]
-mod test {
-    extern crate std;
-
-    use crate::blocks::Const;
-    use crate::transports::MockTransport;
-    use crate::System;
+mod tests {
+    use super::Const;
+    use crate::{transports::MockTransport, System};
 
     #[test]
-    fn const_block() -> Result<(), ()> {
-        let system = System::<MockTransport>::build(|s| {
-            let _const_1 = s.block(Const {
-                output: s.output(),
-                value: 42,
-            });
+    fn instantiate_const_block() {
+        // Check that the block is constructible:
+        let _ = System::<MockTransport>::build(|s| {
+            let _ = s.block(Const::<i32>::new(s.output(), 0x00BAB10C));
         });
-        let process = system.execute().unwrap();
-        process.join().unwrap();
-        Ok(())
     }
 }

@@ -33,3 +33,17 @@ impl<T: Message> Block for Random<T> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Random;
+    use crate::{transports::MockTransport, System};
+
+    #[test]
+    fn instantiate_random_block() {
+        // Check that the block is constructible:
+        let _ = System::<MockTransport>::build(|s| {
+            let _ = s.block(Random::<i32>::new(s.output(), None));
+        });
+    }
+}

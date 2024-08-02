@@ -22,3 +22,17 @@ impl<T: Message> Block for Drop<T> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Drop;
+    use crate::{transports::MockTransport, System};
+
+    #[test]
+    fn instantiate_drop_block() {
+        // Check that the block is constructible:
+        let _ = System::<MockTransport>::build(|s| {
+            let _ = s.block(Drop::<i32>::new(s.input()));
+        });
+    }
+}
