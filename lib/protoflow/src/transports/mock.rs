@@ -1,9 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{vec, Box, ToString, Vec},
+    prelude::{vec, Bytes, ToString, Vec},
     transport::Transport,
-    InputPortID, Message, MessageBuffer, OutputPortID, PortError, PortID, PortResult, PortState,
+    InputPortID, MessageBuffer, OutputPortID, PortError, PortID, PortResult, PortState,
 };
 use parking_lot::RwLock;
 
@@ -159,7 +159,7 @@ impl Transport for MockTransport {
         Ok(true)
     }
 
-    fn send(&self, output: OutputPortID, message: Box<dyn Message>) -> PortResult<()> {
+    fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()> {
         let input = {
             let state = self.state.read();
             match state.outputs.get(output.index()) {
@@ -178,7 +178,7 @@ impl Transport for MockTransport {
         Ok(())
     }
 
-    fn recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>> {
+    fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
         let state = self.state.read();
         if state.inputs.get(input.index()).is_none() {
             return Err(PortError::Invalid(PortID::Input(input)));
@@ -198,7 +198,7 @@ impl Transport for MockTransport {
         }
     }
 
-    fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Box<dyn Message>>> {
+    fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
         todo!() // TODO: implement try_recv()
     }
 }

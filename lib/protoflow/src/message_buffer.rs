@@ -1,13 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{
-    prelude::{Box, Vec},
-    Message,
-};
+use crate::prelude::{Bytes, VecDeque};
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct MessageBuffer {
-    pub(crate) messages: Vec<Box<dyn Message>>,
+    pub(crate) messages: VecDeque<Bytes>,
 }
 
 impl MessageBuffer {
@@ -27,11 +24,11 @@ impl MessageBuffer {
         self.messages.clear();
     }
 
-    pub fn push(&mut self, message: Box<dyn Message>) {
-        self.messages.push(message);
+    pub fn push(&mut self, message: Bytes) {
+        self.messages.push_back(message);
     }
 
-    pub fn pop(&mut self) -> Option<Box<dyn Message>> {
-        self.messages.pop()
+    pub fn pop(&mut self) -> Option<Bytes> {
+        self.messages.pop_front()
     }
 }

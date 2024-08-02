@@ -82,7 +82,7 @@ pub mod types {
     pub use prost_types::*;
 }
 
-pub use prost::Message;
+pub use prost::DecodeError;
 
 #[allow(unused_imports)]
 pub(crate) mod utils {

@@ -15,13 +15,13 @@ pub struct Const<T: Message> {
     pub value: T,
 }
 
-impl<T: Message + Clone + 'static> Const<T> {
+impl<T: Message + 'static> Const<T> {
     pub fn new(output: OutputPort<T>, value: T) -> Self {
         Self { output, value }
     }
 }
 
-impl<T: Message + Clone + 'static> Block for Const<T> {
+impl<T: Message + 'static> Block for Const<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.output)?;
 
