@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, OutputPort, Port};
+use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
@@ -25,7 +25,7 @@ pub struct Count<T: Message> {
 }
 
 impl<T: Message + Clone + 'static> Block for Count<T> {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             self.counter += 1;
 

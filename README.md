@@ -59,14 +59,14 @@ let running_system = runtime.execute_system(system).unwrap();
 
 ```rust
 use protoflow::derive::FunctionBlock;
-use protoflow::{BlockError, FunctionBlock, InputPort, OutputPort};
+use protoflow::{BlockResult, FunctionBlock, InputPort, OutputPort};
 
 /// A block that simply echoes inputs to outputs.
 #[derive(FunctionBlock, Clone)]
 pub struct Echo(pub InputPort<i64>, pub OutputPort<i64>);
 
 impl FunctionBlock<i64, i64> for Echo {
-    fn compute(&self, input: i64) -> Result<i64, BlockError> {
+    fn compute(&self, input: i64) -> BlockResult<i64> {
         Ok(input)
     }
 }
@@ -76,14 +76,14 @@ impl FunctionBlock<i64, i64> for Echo {
 
 ```rust
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, PortDescriptor};
+use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, PortDescriptor};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block, Clone)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
 impl<T: Message> Block for Drop<T> {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
+    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.0.recv()? {
             drop(message);
         }
@@ -96,7 +96,7 @@ impl<T: Message> Block for Drop<T> {
 
 ```rust
 use protoflow::derive::Block;
-use protoflow::{Block, BlockError, BlockRuntime, InputPort, Message, OutputPort, Port, PortDescriptor};
+use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port, PortDescriptor};
 use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
@@ -117,7 +117,7 @@ pub struct Delay<T: Message> {
 }
 
 impl<T: Message> Block for Delay<T> {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             runtime.sleep_for(self.delay)?;
 

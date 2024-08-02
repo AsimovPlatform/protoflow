@@ -51,7 +51,7 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
             clippy::redundant_locals,
         )]
         impl #impl_generics #protoflow::Block for #ident #ty_generics #where_clause {
-            fn execute(&mut self, runtime: &dyn #protoflow::Runtime) -> #protoflow::BlockResult<()> {
+            fn execute(&mut self, runtime: &dyn #protoflow::Runtime) -> #protoflow::BlockResult {
                 let input = &self.0;
                 let output = &self.1;
                 while let Some(message) = #protoflow::InputPort::recv(input)? {
