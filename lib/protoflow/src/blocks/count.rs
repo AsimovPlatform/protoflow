@@ -24,6 +24,17 @@ pub struct Count<T: Message> {
     counter: u64,
 }
 
+impl<T: Message + Clone + 'static> Count<T> {
+    pub fn new(input: InputPort<T>, output: OutputPort<T>, count: OutputPort<u64>) -> Self {
+        Self {
+            input,
+            output,
+            count,
+            counter: 0,
+        }
+    }
+}
+
 impl<T: Message + Clone + 'static> Block for Count<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {

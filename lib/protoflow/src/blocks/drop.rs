@@ -7,6 +7,12 @@ use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message};
 #[derive(Block, Clone)]
 pub struct Drop<T: Message>(#[input] pub InputPort<T>);
 
+impl<T: Message> Drop<T> {
+    pub fn new(input: InputPort<T>) -> Self {
+        Self(input)
+    }
+}
+
 impl<T: Message> Block for Drop<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.0.recv()? {

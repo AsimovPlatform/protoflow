@@ -30,6 +30,16 @@ pub enum DelayType {
     Random(Range<Duration>),
 }
 
+impl<T: Message + Clone + 'static> Delay<T> {
+    pub fn new(input: InputPort<T>, output: OutputPort<T>, delay: DelayType) -> Self {
+        Self {
+            input,
+            output,
+            delay,
+        }
+    }
+}
+
 impl<T: Message + Clone + 'static> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
