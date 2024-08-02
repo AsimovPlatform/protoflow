@@ -138,6 +138,7 @@ impl<T: Message + Clone + 'static> Block for Delay<T> {
 
 ### Blocks
 
+- [`Buffer`](lib/protoflow/src/blocks/buffer.rs)
 - [`Const`](lib/protoflow/src/blocks/const.rs)
 - [`Count`](lib/protoflow/src/blocks/count.rs)
 - [`Delay`](lib/protoflow/src/blocks/delay.rs)
