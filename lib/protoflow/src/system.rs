@@ -98,8 +98,8 @@ mod tests {
             output: system.output(),
             value: 42,
         });
-        let blackhole = system.block(Drop(system.input()));
-        system.connect(&constant.output, &blackhole.0)?;
+        let blackhole = system.block(Drop::new(system.input()));
+        system.connect(&constant.output, &blackhole.input)?;
         //let process = runtime.execute_system(system).unwrap();
         //process.join().unwrap();
         Ok(())
