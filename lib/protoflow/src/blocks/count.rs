@@ -54,3 +54,17 @@ impl<T: Message + Clone + 'static> Block for Count<T> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Count;
+    use crate::{transports::MockTransport, System};
+
+    #[test]
+    fn instantiate_count_block() {
+        // Check that the block is constructible:
+        let _ = System::<MockTransport>::build(|s| {
+            let _ = s.block(Count::<i32>::new(s.input(), s.output(), s.output()));
+        });
+    }
+}

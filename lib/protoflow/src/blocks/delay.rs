@@ -59,3 +59,21 @@ impl<T: Message + Clone + 'static> Block for Delay<T> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Delay, DelayType};
+    use crate::{prelude::Duration, transports::MockTransport, System};
+
+    #[test]
+    fn instantiate_delay_block() {
+        // Check that the block is constructible:
+        let _ = System::<MockTransport>::build(|s| {
+            let _ = s.block(Delay::<i32>::new(
+                s.input(),
+                s.output(),
+                DelayType::Fixed(Duration::from_secs(1)),
+            ));
+        });
+    }
+}
