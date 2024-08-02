@@ -89,3 +89,7 @@ pub(crate) mod utils {
     mod rw_condvar;
     pub use rw_condvar::*;
 }
+
+#[doc = include_str!("../../../README.md")]
+#[cfg(doctest)]
+pub struct ReadmeDoctests;

@@ -12,7 +12,7 @@ pub trait Runtime {
 
     fn execute_block(&mut self, block: Box<dyn Block>) -> BlockResult<Rc<dyn Process>>;
 
-    fn execute_system<X: Transport + Default>(
+    fn execute<X: Transport + Default>(
         &mut self,
         system: System<X>,
     ) -> BlockResult<Rc<dyn Process>>;
