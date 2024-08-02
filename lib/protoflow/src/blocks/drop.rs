@@ -6,6 +6,7 @@ use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message};
 /// A block that simply discards all messages it receives.
 #[derive(Block, Clone)]
 pub struct Drop<T: Message> {
+    /// The input message stream.
     #[input]
     pub input: InputPort<T>,
 }

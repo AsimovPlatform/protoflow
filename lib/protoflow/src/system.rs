@@ -44,7 +44,7 @@ impl<X: Transport + Default + 'static> System<X> {
 
     pub fn execute(self) -> BlockResult<Rc<dyn Process>> {
         let mut runtime = self.runtime.clone();
-        runtime.execute_system(self)
+        runtime.execute(self)
     }
 
     /// Creates a new input port.
@@ -70,11 +70,10 @@ impl<X: Transport + Default + 'static> System<X> {
         &self,
         source: &OutputPort<M>,
         target: &InputPort<M>,
-    ) -> Result<bool, ()> {
+    ) -> bool {
         let runtime = self.runtime.as_ref();
         let transport = runtime.transport.as_ref();
-        Ok(transport.connect(source.id, target.id).unwrap())
-        //Ok(self.connections.borrow_mut().insert((source.id, target.id)))
+        transport.connect(source.id, target.id).unwrap()
     }
 }
 
@@ -99,7 +98,7 @@ mod tests {
             value: 42,
         });
         let blackhole = system.block(Drop::new(system.input()));
-        system.connect(&constant.output, &blackhole.input)?;
+        system.connect(&constant.output, &blackhole.input);
         //let process = runtime.execute_system(system).unwrap();
         //process.join().unwrap();
         Ok(())

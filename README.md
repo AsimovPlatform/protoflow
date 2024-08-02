@@ -31,17 +31,14 @@ use protoflow::derive::*;
 
 ```rust
 use protoflow::blocks::{Const, Drop};
-use protoflow::{InputPort, OutputPort, System};
+use protoflow::transports::MockTransport;
+use protoflow::System;
 
-let system = System::new();
-
-let constant = system.block(Const {
-    output: OutputPort::new(&system),
-    value: 42,
+let system = System::<MockTransport>::build(|s| {
+    let source = s.block(Const::<i32>::new(s.output(), 42));
+    let sink = s.block(Drop::<i32>::new(s.input()));
+    s.connect(&source.output, &sink.input);
 });
-let blackhole = system.block(Drop(InputPort::new(&system)));
-
-system.connect(&constant.output, &blackhole.0)?;
 ```
 
 ### Executing a system or subsystem
@@ -49,15 +46,20 @@ system.connect(&constant.output, &blackhole.0)?;
 ```rust
 use protoflow::runtimes::StdRuntime;
 use protoflow::transports::MockTransport;
+use protoflow::{Runtime, System};
+
+let system = System::<MockTransport>::build(|s| {
+    /* ... build the system here ... */
+});
 
 let transport = MockTransport::new();
 let mut runtime = StdRuntime::new(transport).unwrap();
-let running_system = runtime.execute_system(system).unwrap();
+let running_system = runtime.execute(system).unwrap();
 ```
 
 ### Authoring a trivial function block
 
-```rust
+```rust,ignore
 use protoflow::derive::FunctionBlock;
 use protoflow::{BlockResult, FunctionBlock, InputPort, OutputPort};
 
@@ -74,9 +76,9 @@ impl FunctionBlock<i64, i64> for Echo {
 
 ### Authoring a simple DROP block
 
-```rust
+```rust,ignore
 use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, PortDescriptor};
+use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block, Clone)]
@@ -94,9 +96,9 @@ impl<T: Message> Block for Drop<T> {
 
 ### Authoring a simple DELAY block
 
-```rust
+```rust,ignore
 use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port, PortDescriptor};
+use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
 use std::time::Duration;
 
 /// A block that passes messages through while delaying them by a fixed
@@ -116,7 +118,7 @@ pub struct Delay<T: Message> {
     pub delay: Duration,
 }
 
-impl<T: Message> Block for Delay<T> {
+impl<T: Message + Clone + 'static> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             runtime.sleep_for(self.delay)?;

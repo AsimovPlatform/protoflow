@@ -59,7 +59,7 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
         Ok(block_process)
     }
 
-    fn execute_system<X: Transport + Default>(
+    fn execute<X: Transport + Default>(
         &mut self,
         system: System<X>,
     ) -> BlockResult<Rc<dyn Process>> {
