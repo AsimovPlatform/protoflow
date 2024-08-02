@@ -56,4 +56,4 @@ zeromq = { version = "0.4", optional = true, default-features = false }
 protoflow-derive = { version = "0" }
 
 [target.'cfg(any())'.dependencies]
-protoflow-derive = { version = "=0.0.9", optional = true }
+protoflow-derive = { version = "=0.0.10", optional = true }
