@@ -15,8 +15,13 @@ pub struct Random<T: Message> {
 
     /// A parameter for the random seed to use.
     #[parameter]
-    #[allow(unused)]
     pub seed: Option<T>,
+}
+
+impl<T: Message> Random<T> {
+    pub fn new(output: OutputPort<T>, seed: Option<T>) -> Self {
+        Self { output, seed }
+    }
 }
 
 impl<T: Message> Block for Random<T> {

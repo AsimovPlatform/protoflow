@@ -122,7 +122,7 @@ impl<T: Message> Block for Delay<T> {
             runtime.sleep_for(self.delay)?;
 
             if self.output.is_connected() {
-                self.output.send(&message)?;
+                self.output.send(message)?;
             }
         }
         Ok(())
