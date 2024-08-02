@@ -43,8 +43,8 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
                     .spawn(move || {
                         let mut block = block;
                         std::thread::park();
-                        Block::prepare(block.as_mut(), block_runtime.as_ref()).unwrap();
-                        Block::execute(block.as_mut(), block_runtime.as_ref()).unwrap();
+                        Block::prepare(block.as_mut(), block_runtime.as_ref())
+                            .and_then(|_| Block::execute(block.as_mut(), block_runtime.as_ref()))
                     })
                     .unwrap(),
             )),
@@ -83,7 +83,7 @@ impl<T: Transport> BlockRuntime for Arc<StdRuntime<T>> {
         self.is_alive.load(Ordering::SeqCst)
     }
 
-    fn sleep_for(&self, duration: Duration) -> Result<(), BlockError> {
+    fn sleep_for(&self, duration: Duration) -> BlockResult {
         #[cfg(feature = "std")]
         std::thread::sleep(duration);
         #[cfg(not(feature = "std"))]
@@ -91,11 +91,11 @@ impl<T: Transport> BlockRuntime for Arc<StdRuntime<T>> {
         Ok(())
     }
 
-    fn sleep_until(&self, _instant: Instant) -> Result<(), BlockError> {
+    fn sleep_until(&self, _instant: Instant) -> BlockResult {
         todo!() // TODO
     }
 
-    fn wait_for(&self, _port: &dyn Port) -> Result<(), BlockError> {
+    fn wait_for(&self, _port: &dyn Port) -> BlockResult {
         // while self.is_alive() && !port.is_connected() {
         //     self.yield_now()?;
         // }
@@ -133,7 +133,7 @@ impl<T: Transport> BlockRuntime for Arc<StdRuntime<T>> {
 struct RunningBlock<T: Transport> {
     id: ProcessID,
     runtime: Arc<StdRuntime<T>>,
-    handle: RefCell<Option<std::thread::JoinHandle<()>>>,
+    handle: RefCell<Option<std::thread::JoinHandle<BlockResult>>>,
 }
 
 #[allow(unused)]
@@ -156,8 +156,11 @@ impl<T: Transport> Process for RunningBlock<T> {
             .unwrap_or(false)
     }
 
-    fn join(&self) -> Result<(), ()> {
-        self.handle.take().unwrap().join().map_err(|_| ())
+    fn join(&self) -> BlockResult {
+        let handle = self.handle.take().unwrap();
+        handle
+            .join()
+            .map_err(<Box<dyn core::any::Any + Send>>::from)?
     }
 }
 
@@ -178,7 +181,7 @@ impl<T: Transport> Process for RunningSystem<T> {
         self.blocks.iter().any(|block| block.is_alive())
     }
 
-    fn join(&self) -> Result<(), ()> {
+    fn join(&self) -> BlockResult {
         for block in self.blocks.iter() {
             block.join()?;
         }

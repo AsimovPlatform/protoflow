@@ -3,7 +3,7 @@
 use protoflow::derive::Block;
 use protoflow::{
     prelude::{Duration, Range},
-    Block, BlockError, BlockRuntime, InputPort, Message, OutputPort, Port,
+    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
 };
 
 /// A block that passes messages through while delaying them by a fixed or
@@ -31,7 +31,7 @@ pub enum DelayType {
 }
 
 impl<T: Message + Clone + 'static> Block for Delay<T> {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> Result<(), BlockError> {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             if !self.output.is_connected() {
                 drop(message);
