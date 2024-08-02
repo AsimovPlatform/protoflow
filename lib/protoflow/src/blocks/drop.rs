@@ -5,20 +5,24 @@ use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message};
 
 /// A block that simply discards all messages it receives.
 #[derive(Block, Clone)]
-pub struct Drop<T: Message>(#[input] pub InputPort<T>);
+pub struct Drop<T: Message> {
+    #[input]
+    pub input: InputPort<T>,
+}
 
 impl<T: Message> Drop<T> {
     pub fn new(input: InputPort<T>) -> Self {
-        Self(input)
+        Self { input }
     }
 }
 
 impl<T: Message> Block for Drop<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        while let Some(message) = self.0.recv()? {
+        while let Some(message) = self.input.recv()? {
             drop(message);
+            self.input.close()?;
         }
-        self.0.close()?;
+        self.input.close()?;
         Ok(())
     }
 }
