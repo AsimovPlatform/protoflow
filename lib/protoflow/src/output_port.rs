@@ -1,8 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, PhantomData},
-    IntoMessage, Message, OutputPortID, Port, PortID, PortResult, PortState, System, Transport,
+    prelude::{fmt, Arc, Bytes, PhantomData},
+    Message, OutputPortID, Port, PortID, PortResult, PortState, System, Transport,
 };
 
 #[derive(Clone)] //, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -27,8 +27,10 @@ impl<T: Message + Clone + 'static> OutputPort<T> {
         self.transport.close(PortID::Output(self.id))
     }
 
-    pub fn send(&self, message: impl IntoMessage) -> PortResult<()> {
-        self.transport.send(self.id, message.into_message())
+    //pub fn send(&self, message: impl Into<T>) -> PortResult<()> {
+    pub fn send(&self, message: &T) -> PortResult<()> {
+        self.transport
+            .send(self.id, Bytes::from(message.encode_to_vec()))
     }
 }
 

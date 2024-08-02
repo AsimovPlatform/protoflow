@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, Box, PhantomData},
+    prelude::{fmt, Arc, PhantomData},
     InputPortID, Message, Port, PortID, PortResult, PortState, System, Transport,
 };
 
@@ -27,12 +27,24 @@ impl<T: Message> InputPort<T> {
         self.transport.close(PortID::Input(self.id))
     }
 
-    pub fn recv(&self) -> PortResult<Option<Box<dyn Message>>> {
-        self.transport.recv(self.id)
+    pub fn recv(&self) -> PortResult<Option<T>> {
+        match self.transport.recv(self.id)? {
+            None => Ok(None), // EOS
+            Some(encoded_message) => match T::decode(encoded_message) {
+                Ok(message) => Ok(Some(message)),
+                Err(err) => Err(err.into()),
+            },
+        }
     }
 
-    pub fn try_recv(&self) -> PortResult<Option<Box<dyn Message>>> {
-        self.transport.try_recv(self.id)
+    pub fn try_recv(&self) -> PortResult<Option<T>> {
+        match self.transport.try_recv(self.id)? {
+            None => Ok(None), // EOS
+            Some(encoded_message) => match T::decode(encoded_message) {
+                Ok(message) => Ok(Some(message)),
+                Err(err) => Err(err.into()),
+            },
+        }
     }
 }
 

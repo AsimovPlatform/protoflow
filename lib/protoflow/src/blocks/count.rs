@@ -24,7 +24,7 @@ pub struct Count<T: Message> {
     counter: u64,
 }
 
-impl<T: Message + Clone + 'static> Count<T> {
+impl<T: Message + 'static> Count<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<T>, count: OutputPort<u64>) -> Self {
         Self {
             input,
@@ -35,13 +35,13 @@ impl<T: Message + Clone + 'static> Count<T> {
     }
 }
 
-impl<T: Message + Clone + 'static> Block for Count<T> {
+impl<T: Message + 'static> Block for Count<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             self.counter += 1;
 
             if self.output.is_connected() {
-                self.output.send(message)?;
+                self.output.send(&message)?;
             } else {
                 drop(message);
             }

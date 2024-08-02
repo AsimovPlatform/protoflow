@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{prelude::Box, InputPortID, Message, OutputPortID, PortID, PortResult, PortState};
+use crate::{prelude::Bytes, InputPortID, OutputPortID, PortID, PortResult, PortState};
 
 #[allow(unused)]
 pub trait Transport: AsTransport + Send + Sync {
@@ -18,9 +18,9 @@ pub trait Transport: AsTransport + Send + Sync {
     fn close_input(&self, input: InputPortID) -> PortResult<bool>;
     fn close_output(&self, output: OutputPortID) -> PortResult<bool>;
     fn connect(&self, source: OutputPortID, target: InputPortID) -> PortResult<bool>;
-    fn send(&self, output: OutputPortID, message: Box<dyn Message>) -> PortResult<()>;
-    fn recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>>;
-    fn try_recv(&self, input: InputPortID) -> PortResult<Option<Box<dyn Message>>>;
+    fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()>;
+    fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>>;
+    fn try_recv(&self, input: InputPortID) -> PortResult<Option<Bytes>>;
 }
 
 pub trait AsTransport {
