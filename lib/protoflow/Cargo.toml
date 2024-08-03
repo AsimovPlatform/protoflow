@@ -15,17 +15,17 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["derive", "flume", "rand", "std", "tokio", "tracing"]
+default = ["derive", "rand", "std", "tracing"]
 derive = ["dep:protoflow-derive"]
 flume = ["dep:flume"]
 rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
 std = [
-    "dep:zeromq",
     "futures/std",
     "getrandom?/std",
     "prost/std",
     "prost-types/std",
     "rand?/std",
+    "rand?/std_rng",
     "tokio?/full",
     "tracing?/std",
     "zeromq?/default",
