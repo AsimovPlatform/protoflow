@@ -161,6 +161,7 @@ impl<T: Message + Clone + 'static> Block for Delay<T> {
 - [`flume`](lib/protoflow/Cargo.toml)
 - [`rand`](lib/protoflow/Cargo.toml)
 - [`std`](lib/protoflow/Cargo.toml)
+- [`sysml`](lib/protoflow/Cargo.toml)
 - [`tokio`](lib/protoflow/Cargo.toml)
 - [`tracing`](lib/protoflow/Cargo.toml)
 - [`web`](lib/protoflow/Cargo.toml)
