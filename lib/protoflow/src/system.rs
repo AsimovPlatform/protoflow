@@ -66,11 +66,7 @@ impl<X: Transport + Default + 'static> System<X> {
     /// Connects two ports of two blocks in the system.
     ///
     /// Both ports must be of the same message type.
-    pub fn connect<M: Message>(
-        &self,
-        source: &OutputPort<M>,
-        target: &InputPort<M>,
-    ) -> bool {
+    pub fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         let runtime = self.runtime.as_ref();
         let transport = runtime.transport.as_ref();
         transport.connect(source.id, target.id).unwrap()

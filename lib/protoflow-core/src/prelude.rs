@@ -37,7 +37,20 @@ pub use core::{
 
 pub use bytes::Bytes;
 
+pub type Instant = Duration;
+
+#[doc(hidden)]
+pub use bytes;
+
+#[doc(hidden)]
+pub use futures;
+
+#[doc(hidden)]
 pub use prost;
+
+#[doc(hidden)]
 pub use prost_types;
 
-pub type Instant = Duration;
+#[cfg(feature = "sysml")]
+#[doc(hidden)]
+pub use sysml_model;

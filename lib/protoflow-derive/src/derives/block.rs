@@ -29,6 +29,29 @@ pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, sy
         _ => panic!("`#[derive(Block)]` only supports structs"),
     };
 
+    #[cfg(not(feature = "sysml"))]
+    let impl_sysml_traits = quote! {};
+
+    #[cfg(feature = "sysml")]
+    let impl_sysml_traits = quote! {
+        #[automatically_derived]
+        #[allow(
+            unused_qualifications,
+            clippy::redundant_locals,
+        )]
+        impl #impl_generics #protoflow::prelude::sysml_model::BlockDefinition for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::PartDefinition for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::ItemDefinition for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::OccurrenceDefinition for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Definition for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Structure for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Class for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Classifier for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Type for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Namespace for #ident #ty_generics #where_clause {}
+        impl #impl_generics #protoflow::prelude::sysml_model::Element for #ident #ty_generics #where_clause {}
+    };
+
     Ok(quote! {
         #[automatically_derived]
         #[allow(
@@ -44,5 +67,7 @@ pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, sy
                 #protoflow::prelude::vec![] // TODO
             }
         }
+
+        #impl_sysml_traits
     })
 }
