@@ -16,7 +16,7 @@ publish.workspace = true
 
 [features]
 default = ["std", "tracing"]
-std = ["protoflow-core/std", "tracing?/std"]
+std = ["protoflow-core/std", "tracing?/std", "zeromq/default"]
 tracing = ["dep:tracing"]
 
 [build-dependencies]
@@ -24,6 +24,7 @@ cfg_aliases.workspace = true
 
 [dependencies]
 protoflow-core = { version = "=0.0.10", default-features = false }
-tracing = { version = "0.1", optional = true, default-features = false }
+tracing = { version = "0.1", default-features = false, optional = true }
+zeromq = { version = "0.4", default-features = false }
 
 [dev-dependencies]

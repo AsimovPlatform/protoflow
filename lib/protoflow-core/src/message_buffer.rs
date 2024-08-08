@@ -4,7 +4,8 @@ use crate::prelude::{Bytes, VecDeque};
 
 #[derive(Clone, Debug, Default)]
 pub struct MessageBuffer {
-    pub(crate) messages: VecDeque<Bytes>,
+    #[doc(hidden)]
+    pub messages: VecDeque<Bytes>,
 }
 
 impl MessageBuffer {
