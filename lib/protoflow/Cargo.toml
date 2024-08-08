@@ -24,6 +24,8 @@ std = [
     "getrandom?/std",
     "prost/std",
     "prost-types/std",
+    "protoflow-core/std",
+    "protoflow-derive?/std",
     "rand?/std",
     "rand?/std_rng",
     "sysml-model?/std",
@@ -31,7 +33,7 @@ std = [
     "tracing?/std",
     "zeromq?/default",
 ]
-sysml = ["dep:sysml-model"]
+sysml = ["dep:sysml-model", "protoflow-derive?/sysml"]
 tokio = ["dep:tokio"]
 tracing = ["dep:tracing"]
 web = []
@@ -48,7 +50,8 @@ getrandom = { version = "0.2", optional = true, default-features = false }
 parking_lot = "0.12"
 prost = { version = "0.13", default-features = false, features = ["derive"] }
 prost-types = { version = "0.13", default-features = false }
-protoflow-derive = { version = "0", optional = true }
+protoflow-core = { version = "=0.0.10", default-features = false }
+protoflow-derive = { version = "=0.0.10", optional = true }
 rand = { version = "0.8", optional = true, default-features = false }
 sysml-model = { version = "0.1", optional = true, default-features = false }
 tokio = { version = "1.38", optional = true, default-features = false }
@@ -57,6 +60,3 @@ zeromq = { version = "0.4", optional = true, default-features = false }
 
 [dev-dependencies]
 protoflow-derive = { version = "0" }
-
-[target.'cfg(any())'.dependencies]
-protoflow-derive = { version = "=0.0.10", optional = true }
