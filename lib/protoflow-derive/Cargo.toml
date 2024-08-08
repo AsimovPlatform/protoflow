@@ -18,7 +18,9 @@ publish.workspace = true
 proc-macro = true
 
 [features]
-default = []
+default = ["std", "sysml"]
+std = []
+sysml = []
 
 [dependencies]
 proc-macro2 = { version = "1", default-features = false }

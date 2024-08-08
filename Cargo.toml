@@ -2,7 +2,7 @@
 
 [workspace]
 members = ["lib/*"]
-default-members = ["lib/protoflow", "lib/protoflow-derive"]
+default-members = ["lib/*"]
 resolver = "2"
 
 [workspace.package]
@@ -23,8 +23,18 @@ publish = true
 [workspace.dependencies]
 cfg_aliases = "0.2"
 protoflow = { path = "lib/protoflow" }
+protoflow-blocks = { path = "lib/protoflow-blocks" }
+protoflow-core = { path = "lib/protoflow-core" }
+protoflow-crossbeam = { path = "lib/protoflow-crossbeam" }
 protoflow-derive = { path = "lib/protoflow-derive" }
+protoflow-flume = { path = "lib/protoflow-flume" }
+protoflow-zeromq = { path = "lib/protoflow-zeromq" }
 
 [patch.crates-io]
 protoflow = { path = "lib/protoflow" }
+protoflow-blocks = { path = "lib/protoflow-blocks" }
+protoflow-core = { path = "lib/protoflow-core" }
+protoflow-crossbeam = { path = "lib/protoflow-crossbeam" }
 protoflow-derive = { path = "lib/protoflow-derive" }
+protoflow-flume = { path = "lib/protoflow-flume" }
+protoflow-zeromq = { path = "lib/protoflow-zeromq" }
