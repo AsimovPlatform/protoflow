@@ -2,6 +2,10 @@
 
 /// The set of features that are enabled in this build of the crate.
 pub static FEATURES: &[&str] = &[
+    #[cfg(feature = "blocks")]
+    "blocks",
+    #[cfg(feature = "crossbeam")]
+    "crossbeam",
     #[cfg(feature = "derive")]
     "derive",
     #[cfg(feature = "flume")]

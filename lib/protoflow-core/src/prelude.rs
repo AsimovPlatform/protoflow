@@ -37,4 +37,7 @@ pub use core::{
 
 pub use bytes::Bytes;
 
+pub use prost;
+pub use prost_types;
+
 pub type Instant = Duration;

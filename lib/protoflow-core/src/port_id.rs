@@ -65,7 +65,8 @@ impl fmt::Display for PortID {
 pub struct InputPortID(isize);
 
 impl InputPortID {
-    pub(crate) fn index(&self) -> usize {
+    #[doc(hidden)]
+    pub fn index(&self) -> usize {
         self.0.unsigned_abs() - 1
     }
 }
@@ -104,7 +105,8 @@ impl fmt::Display for InputPortID {
 pub struct OutputPortID(isize);
 
 impl OutputPortID {
-    pub(crate) fn index(&self) -> usize {
+    #[doc(hidden)]
+    pub fn index(&self) -> usize {
         (self.0 as usize) - 1
     }
 }

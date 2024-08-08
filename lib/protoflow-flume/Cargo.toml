@@ -23,7 +23,8 @@ tracing = ["dep:tracing"]
 cfg_aliases.workspace = true
 
 [dependencies]
+flume = { version = "0.11", default-features = false }
 protoflow-core = { version = "=0.0.10", default-features = false }
-tracing = { version = "0.1", optional = true, default-features = false }
+tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]
