@@ -15,7 +15,7 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["derive", "rand", "std", "tracing"]
+default = ["derive", "rand", "std", "sysml", "tracing"]
 derive = ["dep:protoflow-derive"]
 flume = ["dep:flume"]
 rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
@@ -26,10 +26,12 @@ std = [
     "prost-types/std",
     "rand?/std",
     "rand?/std_rng",
+    "sysml-model?/std",
     "tokio?/full",
     "tracing?/std",
     "zeromq?/default",
 ]
+sysml = ["dep:sysml-model"]
 tokio = ["dep:tokio"]
 tracing = ["dep:tracing"]
 web = []
@@ -48,6 +50,7 @@ prost = { version = "0.13", default-features = false, features = ["derive"] }
 prost-types = { version = "0.13", default-features = false }
 protoflow-derive = { version = "0", optional = true }
 rand = { version = "0.8", optional = true, default-features = false }
+sysml-model = { version = "0.1", optional = true, default-features = false }
 tokio = { version = "1.38", optional = true, default-features = false }
 tracing = { version = "0.1", optional = true, default-features = false }
 zeromq = { version = "0.4", optional = true, default-features = false }
