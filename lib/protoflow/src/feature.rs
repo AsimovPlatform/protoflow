@@ -12,6 +12,8 @@ pub static FEATURES: &[&str] = &[
     "flume",
     #[cfg(feature = "rand")]
     "rand",
+    #[cfg(feature = "syntax")]
+    "syntax",
     #[cfg(feature = "sysml")]
     "sysml",
     #[cfg(feature = "tokio")]
