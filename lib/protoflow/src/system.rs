@@ -95,7 +95,7 @@ mod tests {
         });
         let blackhole = system.block(Drop::new(system.input()));
         system.connect(&constant.output, &blackhole.input);
-        //let process = runtime.execute_system(system).unwrap();
+        //let process = runtime.execute(system).unwrap();
         //process.join().unwrap();
         Ok(())
     }

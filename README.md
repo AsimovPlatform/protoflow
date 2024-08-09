@@ -145,16 +145,6 @@ impl<T: Message + Clone + 'static> Block for Delay<T> {
 - [`Drop`](lib/protoflow/src/blocks/drop.rs)
 - [`Random`](lib/protoflow/src/blocks/random.rs)
 
-### Transports
-
-- [`FlumeTransport`](lib/protoflow/src/transports/flume.rs)
-- [`MockTransport`](lib/protoflow/src/transports/mock.rs)
-- [`ZeromqTransport`](lib/protoflow/src/transports/zeromq.rs)
-
-### Runtimes
-
-- [`StdRuntime`](lib/protoflow/src/runtimes/std.rs)
-
 ### Features
 
 - [`derive`](lib/protoflow/Cargo.toml)
