@@ -17,7 +17,7 @@ publish.workspace = true
 [features]
 blocks = ["dep:protoflow-blocks"]
 crossbeam = ["dep:protoflow-crossbeam"]
-default = ["blocks", "derive", "rand", "std", "sysml", "tracing"]
+default = ["blocks", "derive", "rand", "std", "syntax", "sysml", "tracing"]
 derive = ["dep:protoflow-derive"]
 flume = ["dep:protoflow-flume"]
 rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
@@ -28,12 +28,14 @@ std = [
     "protoflow-crossbeam?/std",
     "protoflow-derive?/std",
     "protoflow-flume?/std",
+    "protoflow-syntax?/std",
     "protoflow-zeromq?/std",
     "rand?/std",
     "rand?/std_rng",
     "tokio?/full",
     "tracing?/std",
 ]
+syntax = ["dep:protoflow-syntax"]
 sysml = ["protoflow-core/sysml", "protoflow-derive?/sysml"]
 tokio = ["dep:tokio"]
 tracing = ["dep:tracing"]
@@ -51,6 +53,7 @@ protoflow-core = { version = "=0.0.11", default-features = false }
 protoflow-crossbeam = { version = "=0.0.11", default-features = false, optional = true }
 protoflow-derive = { version = "=0.0.11", optional = true }
 protoflow-flume = { version = "=0.0.11", default-features = false, optional = true }
+protoflow-syntax = { version = "=0.0.11", default-features = false, optional = true }
 protoflow-zeromq = { version = "=0.0.11", default-features = false, optional = true }
 rand = { version = "0.8", optional = true, default-features = false }
 tokio = { version = "1.38", default-features = false, optional = true }

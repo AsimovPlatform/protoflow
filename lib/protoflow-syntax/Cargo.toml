@@ -1,0 +1,31 @@
+[package]
+name = "protoflow-syntax"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+#documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish.workspace = true
+
+[features]
+default = ["std", "sysml", "tracing"]
+std = ["protoflow-core/std", "sysml-parser?/std", "tracing?/std"]
+sysml = ["dep:sysml-parser"]
+tracing = ["dep:tracing", "sysml-parser?/tracing"]
+
+[build-dependencies]
+cfg_aliases.workspace = true
+
+[dependencies]
+protoflow-core = { version = "=0.0.11", default-features = false }
+sysml-parser = { version = "0.1", default-features = false, optional = true }
+tracing = { version = "0.1", default-features = false, optional = true }
+
+[dev-dependencies]
