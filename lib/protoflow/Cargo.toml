@@ -46,12 +46,12 @@ cfg_aliases.workspace = true
 [dependencies]
 getrandom = { version = "0.2", optional = true, default-features = false }
 parking_lot = "0.12"
-protoflow-blocks = { version = "=0.0.10", default-features = false, optional = true }
-protoflow-core = { version = "=0.0.10", default-features = false }
-protoflow-crossbeam = { version = "=0.0.10", default-features = false, optional = true }
-protoflow-derive = { version = "=0.0.10", optional = true }
-protoflow-flume = { version = "=0.0.10", default-features = false, optional = true }
-protoflow-zeromq = { version = "=0.0.10", default-features = false, optional = true }
+protoflow-blocks = { version = "=0.0.11", default-features = false, optional = true }
+protoflow-core = { version = "=0.0.11", default-features = false }
+protoflow-crossbeam = { version = "=0.0.11", default-features = false, optional = true }
+protoflow-derive = { version = "=0.0.11", optional = true }
+protoflow-flume = { version = "=0.0.11", default-features = false, optional = true }
+protoflow-zeromq = { version = "=0.0.11", default-features = false, optional = true }
 rand = { version = "0.8", optional = true, default-features = false }
 tokio = { version = "1.38", default-features = false, optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
