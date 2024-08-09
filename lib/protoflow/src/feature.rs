@@ -16,8 +16,6 @@ pub static FEATURES: &[&str] = &[
     "syntax",
     #[cfg(feature = "sysml")]
     "sysml",
-    #[cfg(feature = "tokio")]
-    "tokio",
     #[cfg(feature = "tracing")]
     "tracing",
     #[cfg(feature = "web")]

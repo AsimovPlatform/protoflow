@@ -147,12 +147,14 @@ impl<T: Message + Clone + 'static> Block for Delay<T> {
 
 ### Features
 
+- [`blocks`](lib/protoflow/Cargo.toml)
+- [`crossbeam`](lib/protoflow/Cargo.toml)
 - [`derive`](lib/protoflow/Cargo.toml)
 - [`flume`](lib/protoflow/Cargo.toml)
 - [`rand`](lib/protoflow/Cargo.toml)
 - [`std`](lib/protoflow/Cargo.toml)
+- [`syntax`](lib/protoflow/Cargo.toml)
 - [`sysml`](lib/protoflow/Cargo.toml)
-- [`tokio`](lib/protoflow/Cargo.toml)
 - [`tracing`](lib/protoflow/Cargo.toml)
 - [`web`](lib/protoflow/Cargo.toml)
 - [`zeromq`](lib/protoflow/Cargo.toml)

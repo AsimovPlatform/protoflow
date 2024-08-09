@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow::derive::Block;
-use protoflow::{prelude::VecDeque, Block, BlockResult, BlockRuntime, InputPort, Message};
+use protoflow_core::{prelude::VecDeque, Block, BlockResult, BlockRuntime, InputPort, Message};
+use protoflow_derive::Block;
 
 /// A block that simply stores all messages it receives.
 #[derive(Block, Clone)]
@@ -41,7 +41,7 @@ impl<T: Message> Block for Buffer<T> {
 #[cfg(test)]
 mod tests {
     use super::Buffer;
-    use crate::{transports::MockTransport, System};
+    use protoflow_core::{transports::MockTransport, System};
 
     #[test]
     fn instantiate_buffer_block() {

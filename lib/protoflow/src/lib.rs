@@ -9,70 +9,26 @@ pub use protoflow_core::prelude;
 
 pub use protoflow_core::*;
 
-mod block;
-pub use block::*;
-
-mod block_descriptor;
-pub use block_descriptor::*;
-
-mod block_error;
-pub use block_error::*;
-
-mod block_runtime;
-pub use block_runtime::*;
-
-pub mod blocks;
+/// Default blocks are available if the crate was built with a
+/// `features = ["blocks"]` configuration.
+#[cfg(feature = "blocks")]
+#[cfg_attr(docsrs, doc(cfg(feature = "blocks")))]
+pub use protoflow_blocks as blocks;
 
 /// Derive macros are available if the crate was built with a
 /// `features = ["derive"]` configuration.
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
-pub mod derive {
-    pub use protoflow_derive::*;
-}
+pub use protoflow_derive as derive;
 
 mod feature;
 pub use feature::*;
 
-mod function_block;
-pub use function_block::*;
-
-mod input_port;
-pub use input_port::*;
-
-mod output_port;
-pub use output_port::*;
-
-mod port;
-pub use port::*;
-
-mod port_descriptor;
-pub use port_descriptor::*;
-
-mod port_error;
-pub use port_error::*;
-
-mod process;
-pub use process::*;
-
-mod runtime;
-pub use runtime::*;
-
-pub mod runtimes;
-
-mod system;
-pub use system::*;
-
-mod transport;
-pub use transport::*;
-
-pub mod transports;
-
-#[allow(unused_imports)]
-pub(crate) mod utils {
-    mod rw_condvar;
-    pub use rw_condvar::*;
-}
+/// The parser is available if the crate was built with a
+/// `features = ["syntax"]` configuration.
+#[cfg(feature = "syntax")]
+#[cfg_attr(docsrs, doc(cfg(feature = "syntax")))]
+pub use protoflow_syntax as syntax;
 
 #[doc = include_str!("../../../README.md")]
 #[cfg(doctest)]

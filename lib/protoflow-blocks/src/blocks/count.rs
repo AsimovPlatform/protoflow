@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
+use protoflow_derive::Block;
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
@@ -58,7 +58,7 @@ impl<T: Message + 'static> Block for Count<T> {
 #[cfg(test)]
 mod tests {
     use super::Count;
-    use crate::{transports::MockTransport, System};
+    use protoflow_core::{transports::MockTransport, System};
 
     #[test]
     fn instantiate_count_block() {

@@ -15,7 +15,8 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["std", "tracing"]
+default = ["rand", "std", "tracing"]
+rand = ["protoflow-core/rand"]
 std = ["protoflow-core/std", "tracing?/std"]
 tracing = ["dep:tracing"]
 
@@ -24,6 +25,8 @@ cfg_aliases.workspace = true
 
 [dependencies]
 protoflow-core = { version = "=0.0.11", default-features = false }
+protoflow-derive = { version = "=0.0.11" }
 tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]
+protoflow-derive = { version = "=0.0.11" }

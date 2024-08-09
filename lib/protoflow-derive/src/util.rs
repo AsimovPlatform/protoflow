@@ -6,7 +6,8 @@ use quote::quote;
 use syn::Ident;
 
 pub(crate) fn protoflow_crate() -> TokenStream {
-    let found_crate = crate_name("protoflow").expect("protoflow is present in `Cargo.toml`");
+    let found_crate =
+        crate_name("protoflow-core").expect("protoflow-core is present in `Cargo.toml`");
     match found_crate {
         FoundCrate::Itself => quote!(crate),
         FoundCrate::Name(name) => {
