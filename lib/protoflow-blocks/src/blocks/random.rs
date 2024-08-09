@@ -1,10 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, Message, OutputPort};
-
-//#[cfg(feature = "rand")]
-//use rand::{distributions::Distribution, Rng};
+use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
+use protoflow_derive::Block;
 
 /// A block for sending a random value.
 #[derive(Block, Clone)]
@@ -37,7 +34,7 @@ impl<T: Message> Block for Random<T> {
 #[cfg(test)]
 mod tests {
     use super::Random;
-    use crate::{transports::MockTransport, System};
+    use protoflow_core::{transports::MockTransport, System};
 
     #[test]
     fn instantiate_random_block() {

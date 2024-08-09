@@ -1,10 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow::derive::Block;
-use protoflow::{
+use protoflow_core::{
     prelude::{Duration, Range},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
 };
+use protoflow_derive::Block;
 
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
@@ -63,7 +63,7 @@ impl<T: Message + 'static> Block for Delay<T> {
 #[cfg(test)]
 mod tests {
     use super::{Delay, DelayType};
-    use crate::{prelude::Duration, transports::MockTransport, System};
+    use protoflow_core::{prelude::Duration, transports::MockTransport, System};
 
     #[test]
     fn instantiate_delay_block() {

@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, Message, OutputPort};
+use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
+use protoflow_derive::Block;
 
 /// A block for sending a constant value.
 #[derive(Block, Clone)]
@@ -35,7 +35,7 @@ impl<T: Message + 'static> Block for Const<T> {
 #[cfg(test)]
 mod tests {
     use super::Const;
-    use crate::{transports::MockTransport, System};
+    use protoflow_core::{transports::MockTransport, System};
 
     #[test]
     fn instantiate_const_block() {

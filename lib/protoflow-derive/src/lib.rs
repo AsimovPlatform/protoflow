@@ -3,7 +3,7 @@
 //! This crate provides Protoflow's derive macros.
 //!
 //! ```edition2021
-//! # use protoflow::derive::{Block, FunctionBlock, Subsystem, System};
+//! # use protoflow_derive::{Block, FunctionBlock, Subsystem, System};
 //! ```
 
 extern crate proc_macro;

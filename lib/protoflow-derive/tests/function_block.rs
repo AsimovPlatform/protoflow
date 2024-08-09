@@ -2,8 +2,8 @@
 
 #[test]
 fn define_function_block() {
-    use protoflow::derive::FunctionBlock;
-    use protoflow::{BlockResult, FunctionBlock, InputPort, OutputPort};
+    use protoflow_core::{BlockResult, FunctionBlock, InputPort, OutputPort};
+    use protoflow_derive::FunctionBlock;
 
     /// A block that simply echoes inputs to outputs.
     #[derive(FunctionBlock, Clone)]

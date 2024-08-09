@@ -25,7 +25,7 @@ cfg_aliases.workspace = true
 
 [dependencies]
 protoflow-core = { version = "=0.0.11", default-features = false }
-sysml-parser = { version = "0.1", default-features = false, optional = true }
+sysml-parser = { version = "=0.1.0", default-features = false, optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]

@@ -72,31 +72,3 @@ impl<X: Transport + Default + 'static> System<X> {
         transport.connect(source.id, target.id).unwrap()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    extern crate std;
-
-    use super::System;
-    use crate::{
-        blocks::{Const, Drop},
-        runtimes::StdRuntime,
-        transports::MockTransport,
-    };
-
-    #[test]
-    fn define_system() -> Result<(), ()> {
-        let transport = MockTransport::new();
-        let runtime = StdRuntime::new(transport).unwrap();
-        let system = System::new(&runtime);
-        let constant = system.block(Const {
-            output: system.output(),
-            value: 42,
-        });
-        let blackhole = system.block(Drop::new(system.input()));
-        system.connect(&constant.output, &blackhole.input);
-        //let process = runtime.execute(system).unwrap();
-        //process.join().unwrap();
-        Ok(())
-    }
-}
