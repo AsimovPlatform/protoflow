@@ -5,11 +5,6 @@ mod std;
 #[cfg(feature = "std")]
 pub use std::*;
 
-//#[cfg(feature = "tokio")]
-//mod tokio;
-//#[cfg(feature = "tokio")]
-//pub use tokio::*;
-
 //#[cfg(feature = "web")]
 //mod web;
 //#[cfg(feature = "web")]

@@ -3,57 +3,59 @@
 extern crate std;
 
 use crate::{
-    prelude::{vec, Bytes, ToString, Vec},
+    prelude::{Bytes, ToString, Vec},
     transport::Transport,
-    InputPortID, MessageBuffer, OutputPortID, PortError, PortID, PortResult, PortState,
+    InputPortID, OutputPortID, PortError, PortID, PortResult, PortState,
 };
 use parking_lot::RwLock;
-use std::sync::{Condvar, Mutex};
+use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
+
+pub(crate) const DEFAULT_INPUT_PORT_COUNT: usize = 16;
+pub(crate) const DEFAULT_OUTPUT_PORT_COUNT: usize = 16;
+pub(crate) const DEFAULT_CONNECTION_CAPACITY: usize = 1;
 
 #[derive(Debug, Default)]
-pub struct MockTransport {
-    pub state: RwLock<MockTransportState>,
-    pub(crate) wakeup: (Mutex<bool>, Condvar),
+pub struct MpscTransport {
+    pub state: RwLock<MpscTransportState>,
 }
 
 #[derive(Debug, Default)]
-pub struct MockTransportState {
+pub struct MpscTransportState {
     outputs: Vec<PortState>,
     inputs: Vec<PortState>,
-    inboxes: Vec<MessageBuffer>,
+    channels: Vec<(SyncSender<Bytes>, Receiver<Bytes>)>,
 }
 
-impl MockTransport {
+unsafe impl Sync for MpscTransportState {}
+
+impl MpscTransport {
     pub fn new() -> Self {
         Self {
-            state: RwLock::new(MockTransportState::default()),
-            wakeup: (Mutex::new(false), Condvar::new()),
-        }
-    }
-
-    pub fn with_ports(input: usize, output: usize) -> Self {
-        let mut inboxes = Vec::with_capacity(input);
-        inboxes.resize_with(input, MessageBuffer::new);
-        Self {
-            state: RwLock::new(MockTransportState {
-                outputs: vec![PortState::Open; output],
-                inputs: vec![PortState::Open; input],
-                inboxes,
-            }),
-            wakeup: (Mutex::new(false), Condvar::new()),
+            state: RwLock::new(MpscTransportState::new()),
         }
     }
 }
 
-impl Transport for MockTransport {
+impl MpscTransportState {
+    pub fn new() -> Self {
+        // Avoid reallocations by pre-allocating an ample default capacity.
+        Self {
+            outputs: Vec::with_capacity(DEFAULT_OUTPUT_PORT_COUNT),
+            inputs: Vec::with_capacity(DEFAULT_INPUT_PORT_COUNT),
+            channels: Vec::with_capacity(DEFAULT_INPUT_PORT_COUNT),
+        }
+    }
+}
+
+impl Transport for MpscTransport {
     fn state(&self, port: PortID) -> PortResult<PortState> {
         let state = self.state.read();
         match port {
-            PortID::Input(inport) => match state.inputs.get(inport.index()) {
+            PortID::Input(input) => match state.inputs.get(input.index()) {
                 None => Err(PortError::Invalid(port)),
                 Some(state) => Ok(*state),
             },
-            PortID::Output(outport) => match state.outputs.get(outport.index()) {
+            PortID::Output(output) => match state.outputs.get(output.index()) {
                 None => Err(PortError::Invalid(port)),
                 Some(state) => Ok(*state),
             },
@@ -63,7 +65,9 @@ impl Transport for MockTransport {
     fn open_input(&self) -> PortResult<InputPortID> {
         let mut state = self.state.write();
         state.inputs.push(PortState::Open);
-        state.inboxes.push(MessageBuffer::new());
+        state
+            .channels
+            .push(sync_channel(DEFAULT_CONNECTION_CAPACITY));
 
         InputPortID::try_from(-(state.inputs.len() as isize))
             .map_err(|s| PortError::Other(s.to_string()))
@@ -96,11 +100,13 @@ impl Transport for MockTransport {
                         state.outputs[output_index],
                         PortState::Connected(PortID::Input(_))
                     ));
+                    let sender = state.channels[input_index].0.clone();
                     state.with_upgraded(|state| {
                         state.outputs[output_index] = PortState::Open;
                         state.inputs[input_index] = PortState::Closed;
-                        state.inboxes[input_index].clear();
                     });
+                    drop(state);
+                    sender.send(Bytes::new()).unwrap(); // blocking
                     true
                 }
                 PortState::Connected(PortID::Input(_)) => unreachable!(),
@@ -128,12 +134,13 @@ impl Transport for MockTransport {
                         state.inputs[input_index],
                         PortState::Connected(PortID::Output(_))
                     ));
+                    let sender = state.channels[input_index].0.clone();
                     state.with_upgraded(|state| {
                         state.outputs[output_index] = PortState::Closed;
                         state.inputs[input_index] = PortState::Open;
                     });
                     drop(state);
-                    self.recv_notify(input); // wake up the receiving thread
+                    sender.send(Bytes::new()).unwrap(); // blocking
                     true
                 }
                 PortState::Connected(PortID::Output(_)) => unreachable!(),
@@ -157,8 +164,8 @@ impl Transport for MockTransport {
     }
 
     fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()> {
+        let state = self.state.read();
         let input = {
-            let state = self.state.read();
             match state.outputs.get(output.index()) {
                 None => return Err(PortError::Invalid(PortID::Output(output))),
                 Some(PortState::Closed) => return Err(PortError::Closed),
@@ -167,12 +174,9 @@ impl Transport for MockTransport {
                 Some(PortState::Connected(PortID::Input(input))) => *input,
             }
         };
-        {
-            let mut state = self.state.write();
-            state.inboxes[input.index()].push(message);
-        }
-        self.recv_notify(input); // wake up the receiving thread
-        Ok(())
+        let sender = state.channels[input.index()].0.clone();
+        drop(state);
+        Ok(sender.send(message).unwrap()) // blocking (TODO: error handling)
     }
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
@@ -180,19 +184,14 @@ impl Transport for MockTransport {
         if state.inputs.get(input.index()).is_none() {
             return Err(PortError::Invalid(PortID::Input(input)));
         }
-        drop(state);
-
-        loop {
-            let mut state = self.state.upgradable_read();
-            if !state.inboxes[input.index()].is_empty() {
-                return Ok(state.with_upgraded(|state| state.inboxes[input.index()].pop()));
-            }
-            if state.inputs[input.index()].is_closed() {
-                return Ok(None);
-            }
-            drop(state);
-            self.recv_wait(input); // sleep until something happens
+        if state.inputs[input.index()].is_closed() {
+            return Ok(None); // EOS
         }
+        let receiver = &state.channels[input.index()].1;
+        let bytes = receiver
+            .recv() // blocking
+            .map_err(|_| PortError::Disconnected)?;
+        return Ok(if bytes.is_empty() { None } else { Some(bytes) });
     }
 
     fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
@@ -200,22 +199,30 @@ impl Transport for MockTransport {
     }
 }
 
-impl MockTransport {
-    fn recv_wait(&self, _input: InputPortID) {
-        let (ref recv_lock, ref recv_cvar) = self.wakeup;
-        let mut recv_guard = recv_lock.lock().unwrap();
-        while !*recv_guard {
-            recv_guard = recv_cvar.wait(recv_guard).unwrap(); // blocks the current thread
-        }
-        *recv_guard = false;
-    }
+#[cfg(test)]
+mod tests {
+    extern crate std;
 
-    fn recv_notify(&self, _input: InputPortID) {
-        let (ref recv_lock, ref recv_cvar) = self.wakeup;
-        let mut recv_guard = recv_lock.lock().unwrap();
-        *recv_guard = true;
-        recv_cvar.notify_all();
+    use super::*;
+    use crate::{
+        blocks::{Const, Drop},
+        runtimes::StdRuntime,
+        Runtime, System,
+    };
+
+    #[test]
+    fn execute_mpsc_transport() -> Result<(), ()> {
+        let transport = MpscTransport::new();
+        let mut runtime = StdRuntime::new(transport).unwrap();
+        let system = System::new(&runtime);
+        let constant = system.block(Const {
+            output: system.output(),
+            value: 42,
+        });
+        let blackhole = system.block(Drop::new(system.input()));
+        system.connect(&constant.output, &blackhole.input);
+        let process = runtime.execute(system).unwrap();
+        process.join().unwrap();
+        Ok(())
     }
 }
-
-impl MockTransportState {}
