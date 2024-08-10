@@ -35,8 +35,11 @@ impl SystemParser {
                         ]));
                     }
                 }
-                (Some("Protoflow"), Some(name), None) => {
-                    if !BLOCKS.iter().any(|block_name| *block_name == name) {
+                (Some("Protoflow"), Some(unqualified_name), None) => {
+                    if !BLOCKS
+                        .iter()
+                        .any(|block_name| *block_name == unqualified_name)
+                    {
                         return Err(AnalyzeError::InvalidImport(import.imported_name.clone()));
                     }
                     self.imported_names.insert(import.imported_name.clone());
@@ -51,13 +54,22 @@ impl SystemParser {
                 }
             }
             ParsedMember::BlockUsage(block) => {
-                let _block = self.check_block(block).unwrap(); // TODO
+                if let Some(definition_name) = &block.definition {
+                    if !self.imported_names.contains(&definition_name) {
+                        return Err(AnalyzeError::UnknownName(definition_name.clone()));
+                    }
+                }
+                let _ = self.check_block(block)?;
             }
-            ParsedMember::AttributeUsage(_attribute) => {
-                todo!("AttributeUsage") // TODO
+            ParsedMember::AttributeUsage(attribute) => {
+                if let Some(definition_name) = &attribute.definition {
+                    if !self.imported_names.contains(&definition_name) {
+                        return Err(AnalyzeError::UnknownName(definition_name.clone()));
+                    }
+                }
             }
             ParsedMember::PortUsage(_port) => {
-                todo!("PortUsage") // TODO
+                unreachable!("PortUsage")
             }
         };
         Ok(())
@@ -78,6 +90,8 @@ pub enum ParseError {
 pub enum AnalyzeError {
     /// Invalid import: `{0}`.
     InvalidImport(QualifiedName),
+    /// Unknown name: `{0}`.
+    UnknownName(QualifiedName),
     /// Other error: `{0}`.
     Other(String),
 }
