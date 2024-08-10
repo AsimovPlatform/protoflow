@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::prelude::{vec, BTreeSet, String};
+#[cfg(feature = "std")]
+extern crate std;
+
+use crate::prelude::{vec, BTreeSet, String, ToString};
 use displaydoc::Display;
 use protoflow_blocks::BLOCKS;
 use sysml_model::QualifiedName;
@@ -16,8 +19,30 @@ impl SystemParser {
         Self::default()
     }
 
-    pub fn parse(&mut self, _input: &str) -> Result<(), ParseError> {
-        todo!()
+    #[cfg(feature = "std")]
+    pub fn parse_from_file(
+        &mut self,
+        pathname: impl AsRef<std::path::Path>,
+    ) -> Result<ParsedPackage, ParseError> {
+        let input =
+            std::fs::read_to_string(pathname).map_err(|e| ParseError::Other(e.to_string()))?;
+        self.parse_from_string(&input)
+    }
+
+    #[cfg(feature = "std")]
+    pub fn parse_from_reader(
+        &mut self,
+        reader: impl std::io::Read,
+    ) -> Result<ParsedPackage, ParseError> {
+        let input =
+            std::io::read_to_string(reader).map_err(|e| ParseError::Other(e.to_string()))?;
+        self.parse_from_string(&input)
+    }
+
+    pub fn parse_from_string(&mut self, input: &str) -> Result<ParsedPackage, ParseError> {
+        let (_, package) =
+            sysml_parser::grammar::package(input).map_err(|e| ParseError::Other(e.to_string()))?;
+        Ok(package)
     }
 
     pub fn check(&mut self, package: ParsedPackage) -> Result<(), AnalyzeError> {

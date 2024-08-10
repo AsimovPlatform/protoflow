@@ -35,7 +35,7 @@ impl std::process::Termination for Sysexits {
 
 impl From<std::boxed::Box<dyn std::error::Error>> for Sysexits {
     fn from(_err: std::boxed::Box<dyn std::error::Error>) -> Self {
-        Sysexits::EX_SOFTWARE
+        Self::EX_SOFTWARE
     }
 }
 
@@ -65,6 +65,12 @@ impl From<std::io::Error> for Sysexits {
             WriteZero => Self::EX_IOERR,
             _ => Self::EX_UNAVAILABLE, // catch-all
         }
+    }
+}
+
+impl From<protoflow_syntax::ParseError> for Sysexits {
+    fn from(_err: protoflow_syntax::ParseError) -> Self {
+        Self::EX_DATAERR
     }
 }
 
