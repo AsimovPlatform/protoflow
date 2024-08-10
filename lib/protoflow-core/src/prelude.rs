@@ -15,6 +15,7 @@ pub use alloc::{
     collections::btree_set::Iter as BTreeSetIter,
     collections::BTreeSet,
     collections::VecDeque,
+    format,
     rc::Rc,
     string::{String, ToString},
     sync::Arc,

@@ -17,3 +17,6 @@ pub use drop::*;
 
 mod random;
 pub use random::*;
+
+/// The set of block types that are enabled in this build of the crate.
+pub static BLOCKS: &[&str] = &["Buffer", "Const", "Count", "Delay", "Drop", "Random"];
