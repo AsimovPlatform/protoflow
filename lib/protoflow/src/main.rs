@@ -2,9 +2,12 @@
 
 mod sysexits;
 
+use std::path::PathBuf;
+
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
 use dotenvy::dotenv;
+use protoflow_syntax::SystemParser;
 
 /// Protoflow command-line interface (CLI)
 #[derive(Debug, Parser)]
@@ -35,6 +38,12 @@ struct Options {
 enum Commands {
     /// Show the current configuration
     Config {},
+
+    /// TBD
+    Check { path: PathBuf },
+
+    /// TBD
+    Execute { path: PathBuf },
 }
 
 pub fn main() -> Sysexits {
@@ -63,6 +72,13 @@ pub fn main() -> Sysexits {
     let subcommand = &options.command;
     let result = match subcommand.as_ref().expect("subcommand is required") {
         Commands::Config {} => Ok(()),
+        Commands::Check { path } => {
+            let mut parser = SystemParser::new();
+            let _package = parser.parse_from_file(path).unwrap();
+            // TODO
+            Ok(())
+        }
+        Commands::Execute { path: _ } => Ok(()),
     };
     return result.err().unwrap_or_default();
 }
