@@ -191,7 +191,7 @@ impl Transport for MpscTransport {
         let bytes = receiver
             .recv() // blocking
             .map_err(|_| PortError::Disconnected)?;
-        return Ok(if bytes.is_empty() { None } else { Some(bytes) });
+        Ok(Some(bytes))
     }
 
     fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
