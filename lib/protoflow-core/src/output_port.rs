@@ -29,8 +29,8 @@ impl<T: Message + Clone + 'static> OutputPort<T> {
 
     //pub fn send(&self, message: impl Into<T>) -> PortResult<()> {
     pub fn send(&self, message: &T) -> PortResult<()> {
-        self.transport
-            .send(self.id, Bytes::from(message.encode_to_vec()))
+        let bytes = Bytes::from(message.encode_length_delimited_to_vec());
+        self.transport.send(self.id, bytes)
     }
 }
 

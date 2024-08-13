@@ -29,11 +29,17 @@ impl<T: Message> InputPort<T> {
 
     pub fn recv(&self) -> PortResult<Option<T>> {
         match self.transport.recv(self.id)? {
-            None => Ok(None), // EOS
-            Some(encoded_message) => match T::decode(encoded_message) {
-                Ok(message) => Ok(Some(message)),
-                Err(err) => Err(err.into()),
-            },
+            None => Ok(None), // EOS (port closed)
+            Some(encoded_message) => {
+                if encoded_message.len() == 0 {
+                    Ok(None) // EOS (port disconnected)
+                } else {
+                    match T::decode_length_delimited(encoded_message) {
+                        Ok(message) => Ok(Some(message)),
+                        Err(err) => Err(err.into()),
+                    }
+                }
+            }
         }
     }
 
