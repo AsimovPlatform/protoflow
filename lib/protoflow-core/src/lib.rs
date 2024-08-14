@@ -35,6 +35,12 @@ pub use message::*;
 mod message_buffer;
 pub use message_buffer::*;
 
+mod message_receiver;
+pub use message_receiver::*;
+
+mod message_sender;
+pub use message_sender::*;
+
 mod output_port;
 pub use output_port::*;
 

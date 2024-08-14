@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{fmt, Arc, PhantomData},
-    InputPortID, Message, Port, PortID, PortResult, PortState, System, Transport,
+    InputPortID, Message, MessageReceiver, Port, PortID, PortResult, PortState, System, Transport,
 };
 
 #[derive(Clone)] //, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -63,6 +63,16 @@ impl<T: Message> Port for InputPort<T> {
         self.transport
             .state(PortID::Input(self.id))
             .unwrap_or(PortState::Closed)
+    }
+}
+
+impl<T: Message> MessageReceiver<T> for InputPort<T> {
+    fn recv(&self) -> PortResult<Option<T>> {
+        InputPort::recv(self)
+    }
+
+    fn try_recv(&self) -> PortResult<Option<T>> {
+        InputPort::try_recv(self)
     }
 }
 
