@@ -25,8 +25,8 @@ cfg_aliases.workspace = true
 
 [dependencies]
 displaydoc = { version = "0.2", default-features = false }
-protoflow-blocks = { version = "=0.0.11", default-features = false }
-protoflow-core = { version = "=0.0.11", default-features = false }
+protoflow-blocks = { version = "=0.0.12", default-features = false }
+protoflow-core = { version = "=0.0.12", default-features = false }
 sysml-model = { version = "=0.1.1", default-features = false, optional = true }
 sysml-parser = { version = "=0.1.1", default-features = false, optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
