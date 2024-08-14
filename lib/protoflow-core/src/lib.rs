@@ -1,6 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 #![no_std]
+#![allow(unsafe_code)] // for `impl Sync`
 
 extern crate self as protoflow_core;
 
