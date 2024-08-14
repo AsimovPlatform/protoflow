@@ -16,7 +16,12 @@ publish.workspace = true
 
 [features]
 default = ["std", "sysml", "tracing"]
-std = ["protoflow-core/std", "sysml-parser?/std", "tracing?/std"]
+std = [
+    "protoflow-core/std",
+    "sysml-model?/std",
+    "sysml-parser?/std",
+    "tracing?/std",
+]
 sysml = ["dep:sysml-model", "dep:sysml-parser"]
 tracing = ["dep:tracing", "sysml-parser?/tracing"]
 
@@ -27,8 +32,8 @@ cfg_aliases.workspace = true
 displaydoc = { version = "0.2", default-features = false }
 protoflow-blocks = { version = "=0.0.12", default-features = false }
 protoflow-core = { version = "=0.0.12", default-features = false }
-sysml-model = { version = "=0.1.1", default-features = false, optional = true }
-sysml-parser = { version = "=0.1.1", default-features = false, optional = true }
+sysml-model = { version = "=0.2.0", default-features = false, optional = true }
+sysml-parser = { version = "=0.2.0", default-features = false, optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]
