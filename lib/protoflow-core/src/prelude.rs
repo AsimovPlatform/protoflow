@@ -26,10 +26,10 @@ pub use alloc::{
 #[allow(unused)]
 pub use core::{
     cell::RefCell,
-    convert::TryFrom,
+    convert::{AsRef, TryFrom},
     fmt,
     marker::PhantomData,
-    ops::Range,
+    ops::{Deref, Index, Range},
     result::Result,
     slice,
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
