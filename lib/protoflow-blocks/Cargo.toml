@@ -18,17 +18,17 @@ publish.workspace = true
 default = ["rand", "std", "sysml", "tracing"]
 rand = ["protoflow-core/rand"]
 std = ["protoflow-core/std", "sysml-model?/std", "tracing?/std"]
-sysml = ["dep:sysml-model"]
+sysml = ["dep:sysml-model", "protoflow-core/sysml"]
 tracing = ["dep:tracing"]
 
 [build-dependencies]
 cfg_aliases.workspace = true
 
 [dependencies]
-protoflow-core = { version = "=0.0.12", default-features = false }
-protoflow-derive = { version = "=0.0.12" }
+protoflow-core = { version = "=0.0.13", default-features = false }
+protoflow-derive = { version = "=0.0.13" }
 tracing = { version = "0.1", default-features = false, optional = true }
 sysml-model = { version = "=0.2.0", default-features = false, optional = true }
 
 [dev-dependencies]
-protoflow-derive = { version = "=0.0.12" }
+protoflow-derive = { version = "=0.0.13" }
