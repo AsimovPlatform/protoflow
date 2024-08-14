@@ -24,9 +24,9 @@ tracing = ["dep:tracing"]
 cfg_aliases.workspace = true
 
 [dependencies]
-protoflow-core = { version = "=0.0.11", default-features = false }
-protoflow-derive = { version = "=0.0.11" }
+protoflow-core = { version = "=0.0.12", default-features = false }
+protoflow-derive = { version = "=0.0.12" }
 tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]
-protoflow-derive = { version = "=0.0.11" }
+protoflow-derive = { version = "=0.0.12" }
