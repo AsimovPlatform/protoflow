@@ -4,7 +4,7 @@
 
 use crate::{
     prelude::{fmt, slice, AsRef, Deref, Index},
-    Message, OutputPort, System, Transport,
+    Message, MessageSender, OutputPort, PortResult, System, Transport,
 };
 
 #[derive(Clone)]
@@ -33,10 +33,6 @@ impl<T: Message, const N: usize> OutputPorts<T, N> {
         Self::LEN as _
     }
 
-    pub const fn as_slice(&self) -> &[OutputPort<T>] {
-        self.array.as_slice()
-    }
-
     #[must_use]
     pub fn get<I>(&self, index: usize) -> Option<&OutputPort<T>> {
         self.array.get(index)
@@ -44,6 +40,19 @@ impl<T: Message, const N: usize> OutputPorts<T, N> {
 
     pub fn iter(&self) -> slice::Iter<OutputPort<T>> {
         self.into_iter()
+    }
+
+    pub const fn as_slice(&self) -> &[OutputPort<T>] {
+        self.array.as_slice()
+    }
+}
+
+impl<T: Message, const N: usize> MessageSender<T> for OutputPorts<T, N> {
+    fn send<'a>(&self, _message: impl Into<&'a T>) -> PortResult<()>
+    where
+        T: 'a,
+    {
+        todo!("OutputPorts::send") // TODO
     }
 }
 

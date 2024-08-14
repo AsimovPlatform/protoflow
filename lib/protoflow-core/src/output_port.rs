@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{fmt, Arc, Bytes, PhantomData},
-    Message, OutputPortID, Port, PortID, PortResult, PortState, System, Transport,
+    Message, MessageSender, OutputPortID, Port, PortID, PortResult, PortState, System, Transport,
 };
 
 #[derive(Clone)] //, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -27,8 +27,11 @@ impl<T: Message> OutputPort<T> {
         self.transport.close(PortID::Output(self.id))
     }
 
-    //pub fn send(&self, message: impl Into<T>) -> PortResult<()> {
-    pub fn send(&self, message: &T) -> PortResult<()> {
+    pub fn send<'a>(&self, message: impl Into<&'a T>) -> PortResult<()>
+    where
+        T: 'a,
+    {
+        let message: &T = message.into();
         let bytes = Bytes::from(message.encode_length_delimited_to_vec());
         self.transport.send(self.id, bytes)
     }
@@ -43,6 +46,15 @@ impl<T: Message> Port for OutputPort<T> {
         self.transport
             .state(PortID::Output(self.id))
             .unwrap_or(PortState::Closed)
+    }
+}
+
+impl<T: Message> MessageSender<T> for OutputPort<T> {
+    fn send<'a>(&self, message: impl Into<&'a T>) -> PortResult<()>
+    where
+        T: 'a,
+    {
+        OutputPort::send(self, message)
     }
 }
 

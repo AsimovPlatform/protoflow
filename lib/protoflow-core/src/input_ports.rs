@@ -4,7 +4,7 @@
 
 use crate::{
     prelude::{fmt, slice, AsRef, Deref, Index},
-    InputPort, Message, System, Transport,
+    InputPort, Message, MessageReceiver, PortResult, System, Transport,
 };
 
 #[derive(Clone)]
@@ -33,10 +33,6 @@ impl<T: Message, const N: usize> InputPorts<T, N> {
         Self::LEN as _
     }
 
-    pub const fn as_slice(&self) -> &[InputPort<T>] {
-        self.array.as_slice()
-    }
-
     #[must_use]
     pub fn get<I>(&self, index: usize) -> Option<&InputPort<T>> {
         self.array.get(index)
@@ -44,6 +40,20 @@ impl<T: Message, const N: usize> InputPorts<T, N> {
 
     pub fn iter(&self) -> slice::Iter<InputPort<T>> {
         self.into_iter()
+    }
+
+    pub const fn as_slice(&self) -> &[InputPort<T>] {
+        self.array.as_slice()
+    }
+}
+
+impl<T: Message, const N: usize> MessageReceiver<T> for InputPorts<T, N> {
+    fn recv(&self) -> PortResult<Option<T>> {
+        todo!("InputPort::recv") // TODO
+    }
+
+    fn try_recv(&self) -> PortResult<Option<T>> {
+        todo!("InputPort::try_recv") // TODO
     }
 }
 

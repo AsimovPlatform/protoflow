@@ -118,7 +118,7 @@ pub struct Delay<T: Message> {
     pub delay: Duration,
 }
 
-impl<T: Message + Clone + 'static> Block for Delay<T> {
+impl<T: Message> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             runtime.sleep_for(self.delay)?;

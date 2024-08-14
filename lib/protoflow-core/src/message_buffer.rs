@@ -2,9 +2,9 @@
 
 use crate::prelude::{Bytes, VecDeque};
 
+#[doc(hidden)]
 #[derive(Clone, Debug, Default)]
 pub struct MessageBuffer {
-    #[doc(hidden)]
     pub messages: VecDeque<Bytes>,
 }
 
