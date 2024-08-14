@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{PortID, PortState};
+use crate::{prelude::ToString, PortError, PortID, PortResult, PortState};
 
 /// The common interface for ports, whether for input or output.
 pub trait Port {
@@ -33,5 +33,18 @@ pub trait Port {
     /// Checks whether this port is currently connected.
     fn is_connected(&self) -> bool {
         self.state().is_connected()
+    }
+
+    /// Closes this port, returning immediately.
+    ///
+    /// If the port had an open connection, it will be disconnected.
+    /// If the port was already closed, no further action is taken.
+    /// There is no facility to reopen a port once it has been closed.
+    ///
+    /// Returns `Ok(true)` if the port was successfully closed.
+    /// Returns `Ok(false)` if the port was already closed.
+    /// Returns `Err(PortError)` if an error occurs.
+    fn close(&mut self) -> PortResult<bool> {
+        Err(PortError::Other("not implemented".to_string()))
     }
 }

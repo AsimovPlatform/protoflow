@@ -47,6 +47,10 @@ impl<T: Message> Port for OutputPort<T> {
             .state(PortID::Output(self.id))
             .unwrap_or(PortState::Closed)
     }
+
+    fn close(&mut self) -> PortResult<bool> {
+        OutputPort::close(self)
+    }
 }
 
 impl<T: Message> MessageSender<T> for OutputPort<T> {

@@ -64,6 +64,10 @@ impl<T: Message> Port for InputPort<T> {
             .state(PortID::Input(self.id))
             .unwrap_or(PortState::Closed)
     }
+
+    fn close(&mut self) -> PortResult<bool> {
+        InputPort::close(self)
+    }
 }
 
 impl<T: Message> MessageReceiver<T> for InputPort<T> {
