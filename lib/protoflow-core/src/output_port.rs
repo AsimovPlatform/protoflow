@@ -7,12 +7,12 @@ use crate::{
 
 #[derive(Clone)] //, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct OutputPort<T: Message> {
-    _phantom: PhantomData<T>,
     pub(crate) id: OutputPortID,
     pub(crate) transport: Arc<dyn Transport>,
+    _phantom: PhantomData<T>,
 }
 
-impl<T: Message + Clone + 'static> OutputPort<T> {
+impl<T: Message> OutputPort<T> {
     pub fn new<X: Transport + Default>(system: &System<X>) -> Self {
         let runtime = system.runtime.as_ref();
         let transport = runtime.transport.clone();
@@ -49,5 +49,11 @@ impl<T: Message> Port for OutputPort<T> {
 impl<T: Message> fmt::Display for OutputPort<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}→", self.id)
+    }
+}
+
+impl<T: Message> fmt::Debug for OutputPort<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("OutputPort").field("id", &self.id).finish()
     }
 }

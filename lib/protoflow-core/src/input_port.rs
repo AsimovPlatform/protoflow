@@ -7,9 +7,9 @@ use crate::{
 
 #[derive(Clone)] //, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct InputPort<T: Message> {
-    _phantom: PhantomData<T>,
     pub(crate) id: InputPortID,
     pub(crate) transport: Arc<dyn Transport>,
+    _phantom: PhantomData<T>,
 }
 
 impl<T: Message> InputPort<T> {
@@ -69,5 +69,11 @@ impl<T: Message> Port for InputPort<T> {
 impl<T: Message> fmt::Display for InputPort<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "→{}", self.id)
+    }
+}
+
+impl<T: Message> fmt::Debug for InputPort<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("InputPort").field("id", &self.id).finish()
     }
 }
