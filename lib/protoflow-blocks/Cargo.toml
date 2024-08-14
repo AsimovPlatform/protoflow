@@ -15,9 +15,10 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["rand", "std", "tracing"]
+default = ["rand", "std", "sysml", "tracing"]
 rand = ["protoflow-core/rand"]
-std = ["protoflow-core/std", "tracing?/std"]
+std = ["protoflow-core/std", "sysml-model?/std", "tracing?/std"]
+sysml = ["dep:sysml-model"]
 tracing = ["dep:tracing"]
 
 [build-dependencies]
@@ -27,6 +28,7 @@ cfg_aliases.workspace = true
 protoflow-core = { version = "=0.0.12", default-features = false }
 protoflow-derive = { version = "=0.0.12" }
 tracing = { version = "0.1", default-features = false, optional = true }
+sysml-model = { version = "=0.2.0", default-features = false, optional = true }
 
 [dev-dependencies]
 protoflow-derive = { version = "=0.0.12" }

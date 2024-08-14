@@ -43,7 +43,11 @@ std = [
     "tracing?/std",
 ]
 syntax = ["dep:protoflow-syntax"]
-sysml = ["protoflow-core/sysml", "protoflow-derive?/sysml"]
+sysml = [
+    "protoflow-blocks?/sysml",
+    "protoflow-core/sysml",
+    "protoflow-derive?/sysml",
+]
 tokio = []
 tracing = ["dep:tracing"]
 web = []
