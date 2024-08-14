@@ -6,6 +6,8 @@
 //! # use protoflow_derive::{Block, FunctionBlock, Subsystem, System};
 //! ```
 
+#![deny(unsafe_code)]
+
 extern crate proc_macro;
 
 mod derives;
