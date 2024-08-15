@@ -41,7 +41,7 @@ parking_lot = "0.12"
 prost = { version = "0.13", default-features = false, features = ["derive"] }
 prost-types = { version = "0.13", default-features = false }
 rand = { version = "0.8", optional = true, default-features = false }
-sysml-model = { version = "=0.2.0", default-features = false, optional = true }
+sysml-model = { version = "=0.2.1", default-features = false, optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]
