@@ -39,8 +39,12 @@ enum Commands {
     /// Show the current configuration
     Config {},
 
-    /// TBD
-    Check { path: PathBuf },
+    /// Check the syntax of a Protoflow file
+    Check {
+        /// Pathnames of files to check
+        #[clap(default_value = "/dev/stdin")]
+        paths: Vec<PathBuf>,
+    },
 
     /// TBD
     Execute { path: PathBuf },
@@ -72,12 +76,7 @@ pub fn main() -> Sysexits {
     let subcommand = &options.command;
     let result = match subcommand.as_ref().expect("subcommand is required") {
         Commands::Config {} => Ok(()),
-        Commands::Check { path } => {
-            let mut parser = SystemParser::new();
-            let _package = parser.parse_from_file(path).unwrap();
-            // TODO
-            Ok(())
-        }
+        Commands::Check { paths } => check(paths),
         Commands::Execute { path: _ } => Ok(()),
     };
     return result.err().unwrap_or_default();
@@ -90,5 +89,15 @@ fn version(_options: &Options) -> Result<(), Sysexits> {
 
 fn license() -> Result<(), Sysexits> {
     println!("This is free and unencumbered software released into the public domain.");
+    Ok(())
+}
+
+fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
+    for path in paths {
+        if let Err(error) = SystemParser::from_file(path).and_then(|mut parser| parser.check()) {
+            eprintln!("{}: {:?}", "protoflow", error); // TODO: pretty print it
+            return Err(Sysexits::EX_DATAERR);
+        }
+    }
     Ok(())
 }
