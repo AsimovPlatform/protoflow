@@ -3,53 +3,63 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-use crate::prelude::{vec, BTreeSet, String, ToString};
-use displaydoc::Display;
+use crate::{
+    prelude::{vec, BTreeSet, Vec},
+    AnalysisError, AnalysisResult,
+};
+use error_stack::ResultExt;
 use protoflow_blocks::BLOCKS;
 use sysml_model::QualifiedName;
-use sysml_parser::{ParsedBlock, ParsedMember, ParsedPackage};
+use sysml_parser::{ParsedBlock, ParsedMember, ParsedModel};
+
+pub use sysml_parser::ParseError;
 
 #[derive(Debug, Default)]
 pub struct SystemParser {
+    pub(crate) model: ParsedModel,
     pub(crate) imported_names: BTreeSet<QualifiedName>,
 }
 
 impl SystemParser {
-    pub fn new() -> Self {
-        Self::default()
+    fn new(model: ParsedModel) -> Self {
+        Self {
+            model,
+            ..Default::default()
+        }
     }
 
     #[cfg(feature = "std")]
-    pub fn parse_from_file(
-        &mut self,
-        pathname: impl AsRef<std::path::Path>,
-    ) -> Result<ParsedPackage, ParseError> {
-        let input =
-            std::fs::read_to_string(pathname).map_err(|e| ParseError::Other(e.to_string()))?;
-        self.parse_from_string(&input)
+    pub fn from_file(pathname: impl AsRef<std::path::Path>) -> AnalysisResult<Self> {
+        Ok(Self::new(
+            sysml_parser::parse_from_file(pathname).change_context(AnalysisError::ParseFailure)?,
+        ))
     }
 
     #[cfg(feature = "std")]
-    pub fn parse_from_reader(
+    pub fn from_reader(reader: impl std::io::Read) -> AnalysisResult<Self> {
+        Ok(Self::new(
+            sysml_parser::parse_from_reader(reader).change_context(AnalysisError::ParseFailure)?,
+        ))
+    }
+
+    pub fn from_string(&mut self, input: &str) -> AnalysisResult<Self> {
+        Ok(Self::new(
+            sysml_parser::parse_from_string(input).change_context(AnalysisError::ParseFailure)?,
+        ))
+    }
+
+    pub fn check(&mut self) -> AnalysisResult<()> {
+        let members: Vec<ParsedMember> = self.model.members().iter().cloned().collect();
+        for member in members {
+            self.check_usage(&member)?;
+        }
+        Ok(())
+    }
+
+    pub fn check_usage(
         &mut self,
-        reader: impl std::io::Read,
-    ) -> Result<ParsedPackage, ParseError> {
-        let input =
-            std::io::read_to_string(reader).map_err(|e| ParseError::Other(e.to_string()))?;
-        self.parse_from_string(&input)
-    }
-
-    pub fn parse_from_string(&mut self, input: &str) -> Result<ParsedPackage, ParseError> {
-        let (_, package) =
-            sysml_parser::grammar::package(input).map_err(|e| ParseError::Other(e.to_string()))?;
-        Ok(package)
-    }
-
-    pub fn check(&mut self, package: ParsedPackage) -> Result<(), AnalyzeError> {
-        self.check_usage(&ParsedMember::Package(package))
-    }
-
-    pub fn check_usage(&mut self, member: &ParsedMember) -> Result<(), AnalyzeError> {
+        member: &ParsedMember,
+    ) -> core::result::Result<(), AnalysisError> {
         match member {
             ParsedMember::Import(import) => match import.imported_name.to_tuple3() {
                 (Some("Protoflow"), Some("*") | Some("**"), None) => {
@@ -65,12 +75,12 @@ impl SystemParser {
                         .iter()
                         .any(|block_name| *block_name == unqualified_name)
                     {
-                        return Err(AnalyzeError::InvalidImport(import.imported_name.clone()));
+                        return Err(AnalysisError::InvalidImport(import.imported_name.clone()));
                     }
                     self.imported_names.insert(import.imported_name.clone());
                 }
                 _ => {
-                    return Err(AnalyzeError::InvalidImport(import.imported_name.clone()));
+                    return Err(AnalysisError::InvalidImport(import.imported_name.clone()));
                 }
             },
             ParsedMember::Package(package) => {
@@ -81,15 +91,15 @@ impl SystemParser {
             ParsedMember::BlockUsage(block) => {
                 if let Some(definition_name) = &block.definition {
                     if !self.imported_names.contains(&definition_name) {
-                        return Err(AnalyzeError::UnknownName(definition_name.clone()));
+                        return Err(AnalysisError::UnknownName(definition_name.clone()));
                     }
                 }
-                let _ = self.check_block(block)?;
+                let _ = self.check_block_usage(block)?;
             }
             ParsedMember::AttributeUsage(attribute) => {
                 if let Some(definition_name) = &attribute.definition {
                     if !self.imported_names.contains(&definition_name) {
-                        return Err(AnalyzeError::UnknownName(definition_name.clone()));
+                        return Err(AnalysisError::UnknownName(definition_name.clone()));
                     }
                 }
             }
@@ -100,23 +110,10 @@ impl SystemParser {
         Ok(())
     }
 
-    pub fn check_block(&mut self, _member: &ParsedBlock) -> Result<(), AnalyzeError> {
+    pub fn check_block_usage(
+        &mut self,
+        _member: &ParsedBlock,
+    ) -> core::result::Result<(), AnalysisError> {
         Ok(()) // TODO
     }
-}
-
-#[derive(Debug, Display)]
-pub enum ParseError {
-    /// Other error: `{0}`.
-    Other(String),
-}
-
-#[derive(Debug, Display)]
-pub enum AnalyzeError {
-    /// Invalid import: `{0}`.
-    InvalidImport(QualifiedName),
-    /// Unknown name: `{0}`.
-    UnknownName(QualifiedName),
-    /// Other error: `{0}`.
-    Other(String),
 }
