@@ -69,8 +69,20 @@ impl From<std::io::Error> for Sysexits {
 }
 
 impl From<protoflow_syntax::ParseError> for Sysexits {
-    fn from(_err: protoflow_syntax::ParseError) -> Self {
-        Self::EX_DATAERR
+    fn from(_error: protoflow_syntax::ParseError) -> Self {
+        Self::EX_NOINPUT
+    }
+}
+
+impl From<error_stack::Report<protoflow_syntax::AnalysisError>> for Sysexits {
+    fn from(error: error_stack::Report<protoflow_syntax::AnalysisError>) -> Self {
+        use protoflow_syntax::AnalysisError::*;
+        match error.current_context() {
+            ParseFailure => Self::EX_NOINPUT,
+            InvalidImport(_) => Self::EX_DATAERR,
+            UnknownName(_) => Self::EX_DATAERR,
+            Other(_) => Self::EX_SOFTWARE,
+        }
     }
 }
 

@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
 use dotenvy::dotenv;
-use protoflow_syntax::SystemParser;
+use error_stack::Report;
+use protoflow_syntax::{AnalysisError, Code, SystemParser};
 
 /// Protoflow command-line interface (CLI)
 #[derive(Debug, Parser)]
@@ -39,15 +40,22 @@ enum Commands {
     /// Show the current configuration
     Config {},
 
-    /// Check the syntax of a Protoflow file
+    /// Check the syntax of a Protoflow system
     Check {
-        /// Pathnames of files to check
+        /// Pathnames of Protoflow files to check
         #[clap(default_value = "/dev/stdin")]
         paths: Vec<PathBuf>,
     },
 
-    /// TBD
-    Execute { path: PathBuf },
+    #[cfg(feature = "dev")]
+    /// Execute a Protoflow system
+    Execute { url: PathBuf },
+
+    /// Generate code from a Protoflow system
+    Generate {
+        /// Pathname of the Protoflow file
+        path: PathBuf,
+    },
 }
 
 pub fn main() -> Sysexits {
@@ -77,7 +85,10 @@ pub fn main() -> Sysexits {
     let result = match subcommand.as_ref().expect("subcommand is required") {
         Commands::Config {} => Ok(()),
         Commands::Check { paths } => check(paths),
+        #[cfg(feature = "dev")]
         Commands::Execute { path: _ } => Ok(()),
+        // #[cfg(feature = "dev")]
+        Commands::Generate { path } => generate(path),
     };
     return result.err().unwrap_or_default();
 }
@@ -94,10 +105,28 @@ fn license() -> Result<(), Sysexits> {
 
 fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
     for path in paths {
-        if let Err(error) = SystemParser::from_file(path).and_then(|mut parser| parser.check()) {
-            eprintln!("{}: {:?}", "protoflow", error); // TODO: pretty print it
-            return Err(Sysexits::EX_DATAERR);
+        if let Err(error) =
+            SystemParser::from_file(path).and_then(|mut parser| parser.check().map(|_| ()))
+        {
+            return _err(error);
         }
     }
     Ok(())
+}
+
+fn generate(path: &PathBuf) -> Result<(), Sysexits> {
+    match SystemParser::from_file(path) {
+        Err(error) => _err(error),
+        Ok(mut parser) => {
+            let model = parser.check()?;
+            let code = Code::from(model);
+            std::print!("{}", code.unparse());
+            Ok(())
+        }
+    }
+}
+
+fn _err(error: Report<AnalysisError>) -> Result<(), Sysexits> {
+    eprintln!("{}: {:?}", "protoflow", error); // TODO: pretty print it
+    Err(Sysexits::from(error))
 }

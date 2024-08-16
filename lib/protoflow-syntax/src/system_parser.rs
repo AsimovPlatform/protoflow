@@ -10,9 +10,8 @@ use crate::{
 use error_stack::ResultExt;
 use protoflow_blocks::BLOCKS;
 use sysml_model::QualifiedName;
-use sysml_parser::{ParsedBlock, ParsedMember, ParsedModel};
 
-pub use sysml_parser::ParseError;
+pub use sysml_parser::{ParseError, ParsedBlock, ParsedMember, ParsedModel};
 
 #[derive(Debug, Default)]
 pub struct SystemParser {
@@ -48,12 +47,12 @@ impl SystemParser {
         ))
     }
 
-    pub fn check(&mut self) -> AnalysisResult<()> {
+    pub fn check(&mut self) -> AnalysisResult<&ParsedModel> {
         let members: Vec<ParsedMember> = self.model.members().iter().cloned().collect();
         for member in members {
             self.check_usage(&member)?;
         }
-        Ok(())
+        Ok(&self.model)
     }
 
     pub fn check_usage(
