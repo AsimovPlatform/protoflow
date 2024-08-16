@@ -1,18 +1,17 @@
 // This is free and unencumbered software released into the public domain.
 
+mod commands {
+    pub mod check;
+    pub mod config;
+    pub mod execute;
+    pub mod generate;
+}
 mod sysexits;
-
-use std::path::PathBuf;
 
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
 use dotenvy::dotenv;
-#[cfg(feature = "dev")]
-use protoflow_core::prelude::Bytes;
-use protoflow_syntax::{Code, SystemParser};
-
-#[cfg(feature = "dev")]
-type System = protoflow_core::System<protoflow_core::transports::MpscTransport>;
+use std::{error::Error, path::PathBuf, str::FromStr};
 
 /// Protoflow command-line interface (CLI)
 #[derive(Debug, Parser)]
@@ -51,9 +50,15 @@ enum Commands {
         paths: Vec<PathBuf>,
     },
 
-    #[cfg(feature = "dev")]
     /// Execute a Protoflow system or block
-    Execute { path_or_uri: PathBuf },
+    Execute {
+        /// Pathname of the Protoflow system or block
+        block: PathBuf,
+
+        /// TBD
+        #[clap(value_parser = parse_kv_param::<String, String>)]
+        params: Vec<(String, String)>,
+    },
 
     /// Generate code from a Protoflow system
     Generate {
@@ -88,10 +93,9 @@ pub fn main() -> Sysexits {
     let subcommand = &options.command;
     let result = match subcommand.as_ref().expect("subcommand is required") {
         Commands::Config {} => Ok(()),
-        Commands::Check { paths } => check(paths),
-        #[cfg(feature = "dev")]
-        Commands::Execute { path_or_uri } => execute(path_or_uri),
-        Commands::Generate { path } => generate(path),
+        Commands::Check { paths } => commands::check::check(paths),
+        Commands::Execute { block, params } => commands::execute::execute(block, params),
+        Commands::Generate { path } => commands::generate::generate(path),
     };
     return result.err().unwrap_or_default();
 }
@@ -106,39 +110,15 @@ fn license() -> Result<(), Sysexits> {
     Ok(())
 }
 
-fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
-    for path in paths {
-        let mut parser = SystemParser::from_file(path)?;
-        let _ = parser.check()?;
-    }
-    Ok(())
-}
-
-#[cfg(feature = "dev")]
-fn execute(path_or_uri: &PathBuf) -> Result<(), Sysexits> {
-    let path_or_uri = path_or_uri.to_string_lossy();
-    let system = match path_or_uri.as_ref() {
-        "Const" => {
-            use protoflow_blocks::{Const, WriteStdout};
-            System::build(|s| {
-                let stdout = s.block(WriteStdout::new(s.input()));
-                let value = s.block(Const::with_params(
-                    s.output(),
-                    Bytes::from_static(b"Hello, world!\n"), // TODO
-                ));
-                s.connect(&value.output, &stdout.input);
-            })
-        }
-        _ => todo!("load system from file or URI"), // TODO
-    };
-    system.execute().unwrap().join().unwrap(); // TODO
-    Ok(())
-}
-
-fn generate(path: &PathBuf) -> Result<(), Sysexits> {
-    let mut parser = SystemParser::from_file(path)?;
-    let model = parser.check()?;
-    let code = Code::try_from(model)?;
-    std::print!("{}", code.unparse());
-    Ok(())
+fn parse_kv_param<K, V>(input: &str) -> Result<(K, V), Box<dyn Error + Send + Sync + 'static>>
+where
+    K: FromStr,
+    K::Err: Error + Send + Sync + 'static,
+    V: FromStr,
+    V::Err: Error + Send + Sync + 'static,
+{
+    let split_pos = input
+        .find('=')
+        .ok_or_else(|| format!("invalid key=value parameter"))?;
+    Ok((input[..split_pos].parse()?, input[split_pos + 1..].parse()?))
 }
