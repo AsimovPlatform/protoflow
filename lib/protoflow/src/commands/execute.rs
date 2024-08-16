@@ -46,6 +46,22 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
                 s.connect(&adapter.output, &stdout.input);
             })
         }
+        "ReadEnv" => {
+            use protoflow_blocks::{Const, ReadEnv, Write, WriteStdout};
+            let Some(name) = params.iter().find(|(k, _)| k == "name").map(|(_, v)| v) else {
+                return Err(ExecuteError::MissingParameter("name"))?;
+            };
+            let name = name.clone();
+            System::build(|s| {
+                let name = s.block(Const::<String>::with_params(s.output(), name));
+                let env = s.block(ReadEnv::<String>::new(s.input(), s.output()));
+                let adapter = s.block(Write::<String>::new(s.input(), s.output()));
+                let stdout = s.block(WriteStdout::new(s.input()));
+                s.connect(&name.output, &env.name);
+                s.connect(&env.output, &adapter.input);
+                s.connect(&adapter.output, &stdout.input);
+            })
+        }
         _ => return Err(ExecuteError::UnknownSystem(path_or_uri.to_string()))?,
     };
     system.execute().unwrap().join().unwrap(); // TODO
