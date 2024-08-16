@@ -7,8 +7,7 @@ use std::path::PathBuf;
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
 use dotenvy::dotenv;
-use error_stack::Report;
-use protoflow_syntax::{AnalysisError, Code, SystemParser};
+use protoflow_syntax::{Code, SystemParser};
 
 /// Protoflow command-line interface (CLI)
 #[derive(Debug, Parser)]
@@ -105,28 +104,16 @@ fn license() -> Result<(), Sysexits> {
 
 fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
     for path in paths {
-        if let Err(error) =
-            SystemParser::from_file(path).and_then(|mut parser| parser.check().map(|_| ()))
-        {
-            return _err(error);
-        }
+        let mut parser = SystemParser::from_file(path)?;
+        let _ = parser.check()?;
     }
     Ok(())
 }
 
 fn generate(path: &PathBuf) -> Result<(), Sysexits> {
-    match SystemParser::from_file(path) {
-        Err(error) => _err(error),
-        Ok(mut parser) => {
-            let model = parser.check()?;
-            let code = Code::from(model);
-            std::print!("{}", code.unparse());
-            Ok(())
-        }
-    }
-}
-
-fn _err(error: Report<AnalysisError>) -> Result<(), Sysexits> {
-    eprintln!("{}: {:?}", "protoflow", error); // TODO: pretty print it
-    Err(Sysexits::from(error))
+    let mut parser = SystemParser::from_file(path)?;
+    let model = parser.check()?;
+    let code = Code::try_from(model)?;
+    std::print!("{}", code.unparse());
+    Ok(())
 }

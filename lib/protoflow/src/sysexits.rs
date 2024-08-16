@@ -34,15 +34,17 @@ impl std::process::Termination for Sysexits {
 }
 
 impl From<std::boxed::Box<dyn std::error::Error>> for Sysexits {
-    fn from(_err: std::boxed::Box<dyn std::error::Error>) -> Self {
+    fn from(error: std::boxed::Box<dyn std::error::Error>) -> Self {
+        std::eprintln!("{}: {:?}", "protoflow", error);
         Self::EX_SOFTWARE
     }
 }
 
 impl From<std::io::Error> for Sysexits {
-    fn from(err: std::io::Error) -> Self {
+    fn from(error: std::io::Error) -> Self {
         use std::io::ErrorKind::*;
-        match err.kind() {
+        std::eprintln!("{}: {:?}", "protoflow", error);
+        match error.kind() {
             AddrInUse => Self::EX_TEMPFAIL,
             AddrNotAvailable => Self::EX_USAGE,
             AlreadyExists => Self::EX_CANTCREAT,
@@ -69,7 +71,8 @@ impl From<std::io::Error> for Sysexits {
 }
 
 impl From<protoflow_syntax::ParseError> for Sysexits {
-    fn from(_error: protoflow_syntax::ParseError) -> Self {
+    fn from(error: protoflow_syntax::ParseError) -> Self {
+        std::eprintln!("{}: {:?}", "protoflow", error);
         Self::EX_NOINPUT
     }
 }
@@ -77,6 +80,7 @@ impl From<protoflow_syntax::ParseError> for Sysexits {
 impl From<error_stack::Report<protoflow_syntax::AnalysisError>> for Sysexits {
     fn from(error: error_stack::Report<protoflow_syntax::AnalysisError>) -> Self {
         use protoflow_syntax::AnalysisError::*;
+        std::eprintln!("{}: {:?}", "protoflow", error); // TODO: pretty print it
         match error.current_context() {
             ParseFailure => Self::EX_NOINPUT,
             InvalidImport(_) => Self::EX_DATAERR,

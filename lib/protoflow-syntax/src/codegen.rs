@@ -2,7 +2,11 @@
 
 extern crate std;
 
-use crate::prelude::{fmt, String};
+use crate::{
+    prelude::{fmt, String, Vec},
+    AnalysisError,
+};
+use error_stack::Report;
 use quote::{format_ident, quote, ToTokens};
 use sysml_parser::{ParsedBlock, ParsedImport, ParsedMember, ParsedModel};
 
@@ -28,59 +32,76 @@ impl ToTokens for Code {
     }
 }
 
-impl From<&ParsedModel> for Code {
-    fn from(model: &ParsedModel) -> Self {
-        //std::eprintln!("model: {:#?}", model);
-        let members = model.members().into_iter().map(Code::from);
-        Code(quote! {
+impl TryFrom<&ParsedModel> for Code {
+    type Error = Report<AnalysisError>;
+
+    fn try_from(model: &ParsedModel) -> Result<Self, Self::Error> {
+        let members = model
+            .members()
+            .into_iter()
+            .map(|member| Code::try_from(member))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Code(quote! {
             fn main() {
                 #(#members)*
             }
-        })
+        }))
     }
 }
 
-impl From<&ParsedMember> for Code {
-    fn from(member: &ParsedMember) -> Self {
+impl TryFrom<&ParsedMember> for Code {
+    type Error = Report<AnalysisError>;
+
+    fn try_from(member: &ParsedMember) -> Result<Self, Self::Error> {
         use ParsedMember::*;
         match member {
-            Import(import) => Code::from(import),
+            Import(import) => Code::try_from(import),
             Package(package) => {
-                let members = package.members().into_iter().map(Code::from);
-                Code(quote! {
+                let members = package
+                    .members()
+                    .into_iter()
+                    .map(|member| Code::try_from(member))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(Code(quote! {
                     #(#members)*
-                })
+                }))
             }
-            BlockUsage(usage) => Code::from(usage),
-            AttributeUsage(_usage) => Code::default(), // TODO
-            PortUsage(_usage) => Code::default(),      // TODO
+            BlockUsage(usage) => Code::try_from(usage),
+            AttributeUsage(_usage) => Ok(Code::default()), // TODO
+            PortUsage(_usage) => Ok(Code::default()),      // TODO
         }
     }
 }
 
-impl From<&ParsedImport> for Code {
-    fn from(import: &ParsedImport) -> Self {
-        let name = syn::Path {
-            leading_colon: None,
-            segments: import
-                .imported_name
-                .to_vec()
-                .into_iter()
-                .map(|s| syn::PathSegment {
-                    ident: format_ident!("{}", s),
-                    arguments: syn::PathArguments::None,
-                })
-                .collect(),
-        };
-        let code = quote! {
-            use #name;
-        };
-        Self(code)
+impl TryFrom<&ParsedImport> for Code {
+    type Error = Report<AnalysisError>;
+
+    fn try_from(import: &ParsedImport) -> Result<Self, Self::Error> {
+        Ok(Self(match import.imported_name.to_tuple3() {
+            (Some("Protoflow"), Some("*") | Some("**"), None) => {
+                quote! {
+                    use protoflow::*;
+                }
+            }
+            (Some("Protoflow"), Some(unqualified_name), None) => {
+                let block_name = format_ident!("{}", unqualified_name);
+                quote! {
+                    use protoflow::blocks::#block_name;
+                }
+            }
+            _ => {
+                return Err(Report::new(AnalysisError::InvalidImport(
+                    import.imported_name.clone(),
+                )));
+            }
+        }))
     }
 }
 
-impl From<&ParsedBlock> for Code {
-    fn from(usage: &ParsedBlock) -> Self {
+impl TryFrom<&ParsedBlock> for Code {
+    type Error = Report<AnalysisError>;
+
+    fn try_from(usage: &ParsedBlock) -> Result<Self, Self::Error> {
         let name = format_ident!(
             "{}",
             usage
@@ -89,8 +110,8 @@ impl From<&ParsedBlock> for Code {
                 .map(|s| s.as_str())
                 .unwrap_or_else(|| "block")
         );
-        Self(quote! {
+        Ok(Self(quote! {
             let #name = s.block();
-        })
+        }))
     }
 }
