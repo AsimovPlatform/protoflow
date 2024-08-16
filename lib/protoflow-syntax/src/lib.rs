@@ -9,5 +9,8 @@ pub use protoflow_core::prelude;
 mod analysis_error;
 pub use analysis_error::*;
 
+mod codegen;
+pub use codegen::*;
+
 mod system_parser;
 pub use system_parser::*;
