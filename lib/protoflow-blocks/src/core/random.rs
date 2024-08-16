@@ -3,30 +3,29 @@
 use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 
-/// A block for sending a constant value.
+/// A block for sending a random value.
 #[derive(Block, Clone)]
-pub struct Const<T: Message> {
+pub struct Random<T: Message> {
     /// The port to send the value on.
     #[output]
     pub output: OutputPort<T>,
 
-    /// A parameter for the value to send.
+    /// A parameter for the random seed to use.
     #[parameter]
-    pub value: T,
+    pub seed: Option<T>,
 }
 
-impl<T: Message> Const<T> {
-    pub fn new(output: OutputPort<T>, value: T) -> Self {
-        Self { output, value }
+impl<T: Message> Random<T> {
+    pub fn new(output: OutputPort<T>, seed: Option<T>) -> Self {
+        Self { output, seed }
     }
 }
 
-impl<T: Message> Block for Const<T> {
+impl<T: Message> Block for Random<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.output)?;
 
-        self.output.send(&self.value)?;
-        self.output.close()?;
+        //self.output.send(todo!())?; // TODO
 
         Ok(())
     }
@@ -34,14 +33,14 @@ impl<T: Message> Block for Const<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::Const;
+    use super::Random;
     use protoflow_core::{transports::MockTransport, System};
 
     #[test]
-    fn instantiate_const_block() {
+    fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Const::<i32>::new(s.output(), 0x00BAB10C));
+            let _ = s.block(Random::<i32>::new(s.output(), None));
         });
     }
 }

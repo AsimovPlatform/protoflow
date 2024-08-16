@@ -125,7 +125,10 @@ impl<T: Transport> BlockRuntime for Arc<StdRuntime<T>> {
             Duration::from_nanos(rng.gen_range(low..high))
         }
         #[cfg(not(all(feature = "std", feature = "rand")))]
-        let mut _rng = todo!();
+        {
+            drop(range);
+            let mut _rng = todo!();
+        }
     }
 }
 
