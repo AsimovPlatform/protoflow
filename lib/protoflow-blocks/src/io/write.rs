@@ -26,8 +26,16 @@ impl<T: Message> Write<T> {
 }
 
 impl<T: Message> Block for Write<T> {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        unimplemented!() // TODO
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        runtime.wait_for(&self.input)?;
+
+        while let Some(message) = self.input.recv()? {
+            let bytes = Bytes::from(message.encode_length_delimited_to_vec());
+            self.output.send(&bytes)?;
+        }
+
+        self.input.close()?;
+        Ok(())
     }
 }
 

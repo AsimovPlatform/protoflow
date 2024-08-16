@@ -12,20 +12,25 @@ pub struct Random<T: Message> {
 
     /// A parameter for the random seed to use.
     #[parameter]
-    pub seed: Option<T>,
+    pub seed: Option<u64>,
 }
 
 impl<T: Message> Random<T> {
-    pub fn new(output: OutputPort<T>, seed: Option<T>) -> Self {
+    pub fn new(output: OutputPort<T>) -> Self {
+        Self::with_params(output, None)
+    }
+
+    pub fn with_params(output: OutputPort<T>, seed: Option<u64>) -> Self {
         Self { output, seed }
     }
 }
 
-impl<T: Message> Block for Random<T> {
+impl<T: Message + Default> Block for Random<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.output)?;
 
-        //self.output.send(todo!())?; // TODO
+        self.output.send(&T::default())?; // TODO
+        self.output.close()?;
 
         Ok(())
     }
@@ -40,7 +45,7 @@ mod tests {
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Random::<i32>::new(s.output(), None));
+            let _ = s.block(Random::<i32>::new(s.output()));
         });
     }
 }
