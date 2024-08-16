@@ -15,8 +15,14 @@ pub struct Const<T: Message> {
     pub value: T,
 }
 
+impl<T: Message + Default> Const<T> {
+    pub fn new(output: OutputPort<T>) -> Self {
+        Self::with_params(output, T::default())
+    }
+}
+
 impl<T: Message> Const<T> {
-    pub fn new(output: OutputPort<T>, value: T) -> Self {
+    pub fn with_params(output: OutputPort<T>, value: T) -> Self {
         Self { output, value }
     }
 }
@@ -41,7 +47,7 @@ mod tests {
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Const::<i32>::new(s.output(), 0x00BAB10C));
+            let _ = s.block(Const::<i32>::with_params(s.output(), 0x00BAB10C));
         });
     }
 }
