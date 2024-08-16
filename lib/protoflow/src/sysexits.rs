@@ -106,6 +106,7 @@ impl From<crate::commands::execute::ExecuteError> for Sysexits {
         std::eprintln!("{}: {:?}", "protoflow", error);
         match error {
             MissingParameter(_) => Self::EX_USAGE,
+            InvalidParameter(_) => Self::EX_USAGE,
             UnknownSystem(_) => Self::EX_UNAVAILABLE,
         }
     }
