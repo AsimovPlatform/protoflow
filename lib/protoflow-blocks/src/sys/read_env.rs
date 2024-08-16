@@ -12,7 +12,7 @@ use protoflow_derive::Block;
 
 /// A block that reads the value of an environment variable.
 #[derive(Block, Clone)]
-pub struct ReadEnv<T: Message + FromStr> {
+pub struct ReadEnv<T: Message + FromStr = String> {
     /// The name of the environment variable to read.
     #[input]
     pub name: InputPort<String>,
@@ -29,8 +29,17 @@ impl<T: Message + FromStr> ReadEnv<T> {
 }
 
 impl<T: Message + FromStr> Block for ReadEnv<T> {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        unimplemented!() // TODO
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        runtime.wait_for(&self.name)?;
+        let name = self.name.recv()?.unwrap();
+        //self.name.close()?; // FIXME
+
+        let value = std::env::var(&name).unwrap_or_default();
+        let value = T::from_str(&value).unwrap_or_default();
+        self.output.send(&value)?;
+
+        self.output.close()?;
+        Ok(())
     }
 }
 
