@@ -44,7 +44,7 @@ mod tests {
     use protoflow_core::{transports::MockTransport, System};
 
     #[test]
-    fn instantiate_buffer_block() {
+    fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
             let _ = s.block(Buffer::<i32>::new(s.input()));

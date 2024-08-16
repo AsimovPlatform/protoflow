@@ -47,8 +47,8 @@ enum Commands {
     },
 
     #[cfg(feature = "dev")]
-    /// Execute a Protoflow system
-    Execute { url: PathBuf },
+    /// Execute a Protoflow system or block
+    Execute { path_or_uri: PathBuf },
 
     /// Generate code from a Protoflow system
     Generate {
@@ -85,8 +85,7 @@ pub fn main() -> Sysexits {
         Commands::Config {} => Ok(()),
         Commands::Check { paths } => check(paths),
         #[cfg(feature = "dev")]
-        Commands::Execute { path: _ } => Ok(()),
-        // #[cfg(feature = "dev")]
+        Commands::Execute { path_or_uri } => execute(path_or_uri),
         Commands::Generate { path } => generate(path),
     };
     return result.err().unwrap_or_default();
@@ -106,6 +105,15 @@ fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
     for path in paths {
         let mut parser = SystemParser::from_file(path)?;
         let _ = parser.check()?;
+    }
+    Ok(())
+}
+
+#[cfg(feature = "dev")]
+fn execute(path_or_uri: &PathBuf) -> Result<(), Sysexits> {
+    let path_or_uri = path_or_uri.to_string_lossy();
+    match path_or_uri.as_ref() {
+        _ => {} // TODO
     }
     Ok(())
 }

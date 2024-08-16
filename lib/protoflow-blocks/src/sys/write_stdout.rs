@@ -1,27 +1,28 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message};
+#![allow(dead_code)]
+
+use protoflow_core::{prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort};
 use protoflow_derive::Block;
 
-/// A block that simply discards all messages it receives.
+/// A block that writes bytes to standard output (aka stdout).
 #[derive(Block, Clone)]
-pub struct Drop<T: Message> {
+pub struct WriteStdout {
     /// The input message stream.
     #[input]
-    pub input: InputPort<T>,
+    pub input: InputPort<Bytes>,
 }
 
-impl<T: Message> Drop<T> {
-    pub fn new(input: InputPort<T>) -> Self {
+impl WriteStdout {
+    pub fn new(input: InputPort<Bytes>) -> Self {
         Self { input }
     }
 }
 
-impl<T: Message> Block for Drop<T> {
+impl Block for WriteStdout {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        while let Some(message) = self.input.recv()? {
-            drop(message);
-            self.input.close()?;
+        while let Some(_message) = self.input.recv()? {
+            unimplemented!() // TODO
         }
         self.input.close()?;
         Ok(())
@@ -30,14 +31,14 @@ impl<T: Message> Block for Drop<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::Drop;
+    use super::WriteStdout;
     use protoflow_core::{transports::MockTransport, System};
 
     #[test]
-    fn instantiate_drop_block() {
+    fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Drop::<i32>::new(s.input()));
+            let _ = s.block(WriteStdout::new(s.input()));
         });
     }
 }

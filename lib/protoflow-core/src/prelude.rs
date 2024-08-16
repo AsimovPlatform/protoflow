@@ -32,6 +32,7 @@ pub use core::{
     ops::{Deref, Index, Range},
     result::Result,
     slice,
+    str::FromStr,
     sync::atomic::{AtomicBool, AtomicUsize, Ordering},
     time::Duration,
 };

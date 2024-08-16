@@ -66,7 +66,7 @@ mod tests {
     use protoflow_core::{prelude::Duration, transports::MockTransport, System};
 
     #[test]
-    fn instantiate_delay_block() {
+    fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
             let _ = s.block(Delay::<i32>::new(
