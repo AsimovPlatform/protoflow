@@ -90,6 +90,37 @@ impl From<error_stack::Report<protoflow_syntax::AnalysisError>> for Sysexits {
     }
 }
 
+impl From<crate::commands::check::CheckError> for Sysexits {
+    fn from(error: crate::commands::check::CheckError) -> Self {
+        use crate::commands::check::CheckError::*;
+        std::eprintln!("{}: {:?}", "protoflow", error);
+        match error {
+            _ => Self::EX_SOFTWARE, // TODO
+        }
+    }
+}
+
+impl From<crate::commands::execute::ExecuteError> for Sysexits {
+    fn from(error: crate::commands::execute::ExecuteError) -> Self {
+        use crate::commands::execute::ExecuteError::*;
+        std::eprintln!("{}: {:?}", "protoflow", error);
+        match error {
+            MissingParameter(_) => Self::EX_USAGE,
+            UnknownSystem(_) => Self::EX_UNAVAILABLE,
+        }
+    }
+}
+
+impl From<crate::commands::generate::GenerateError> for Sysexits {
+    fn from(error: crate::commands::generate::GenerateError) -> Self {
+        use crate::commands::generate::GenerateError::*;
+        std::eprintln!("{}: {:?}", "protoflow", error);
+        match error {
+            _ => Self::EX_SOFTWARE, // TODO
+        }
+    }
+}
+
 pub fn exit(code: Sysexits) -> ! {
     std::process::exit(code as i32);
 }

@@ -4,6 +4,9 @@ use crate::sysexits::Sysexits;
 use protoflow_syntax::SystemParser;
 use std::path::PathBuf;
 
+#[derive(Debug)]
+pub enum CheckError {}
+
 pub fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
     for path in paths {
         let mut parser = SystemParser::from_file(path)?;
