@@ -2,6 +2,8 @@
 
 #![allow(dead_code)]
 
+extern crate std;
+
 use protoflow_core::{
     prelude::{FromStr, String},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,

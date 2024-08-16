@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(dead_code)]
+extern crate std;
 
 use protoflow_core::{prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort};
 use protoflow_derive::Block;
@@ -20,10 +20,15 @@ impl WriteStderr {
 }
 
 impl Block for WriteStderr {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        while let Some(_message) = self.input.recv()? {
-            unimplemented!() // TODO
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        let mut stderr = std::io::stderr().lock();
+
+        runtime.wait_for(&self.input)?;
+
+        while let Some(message) = self.input.recv()? {
+            std::io::Write::write_all(&mut stderr, &message)?;
         }
+
         self.input.close()?;
         Ok(())
     }
