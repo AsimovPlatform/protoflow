@@ -7,7 +7,12 @@ use std::path::PathBuf;
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
 use dotenvy::dotenv;
+#[cfg(feature = "dev")]
+use protoflow_core::prelude::Bytes;
 use protoflow_syntax::{Code, SystemParser};
+
+#[cfg(feature = "dev")]
+type System = protoflow_core::System<protoflow_core::transports::MpscTransport>;
 
 /// Protoflow command-line interface (CLI)
 #[derive(Debug, Parser)]
@@ -112,9 +117,21 @@ fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
 #[cfg(feature = "dev")]
 fn execute(path_or_uri: &PathBuf) -> Result<(), Sysexits> {
     let path_or_uri = path_or_uri.to_string_lossy();
-    match path_or_uri.as_ref() {
-        _ => {} // TODO
-    }
+    let system = match path_or_uri.as_ref() {
+        "Const" => {
+            use protoflow_blocks::{Const, WriteStdout};
+            System::build(|s| {
+                let stdout = s.block(WriteStdout::new(s.input()));
+                let value = s.block(Const::with_params(
+                    s.output(),
+                    Bytes::from_static(b"Hello, world!\n"), // TODO
+                ));
+                s.connect(&value.output, &stdout.input);
+            })
+        }
+        _ => todo!("load system from file or URI"), // TODO
+    };
+    system.execute().unwrap().join().unwrap(); // TODO
     Ok(())
 }
 
