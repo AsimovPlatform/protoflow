@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{Rc, String, ToString},
+    prelude::{Arc, Rc, String, ToString},
     AllBlocks, Const, CoreBlocks, FlowBlocks, IoBlocks, MathBlocks, ReadDir, ReadEnv, ReadFile,
     ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
@@ -11,9 +11,26 @@ use protoflow_core::{
     Block, BlockResult, InputPort, Message, OutputPort, Process, SystemBuilding, SystemExecution,
 };
 
-pub struct System(protoflow_core::System);
+type Transport = protoflow_core::transports::MpscTransport;
+type Runtime = protoflow_core::runtimes::StdRuntime<Transport>;
 
-impl System {}
+pub struct System(protoflow_core::System<Transport>);
+
+impl System {
+    /// Builds a new system.
+    pub fn build<F: FnOnce(&mut System)>(f: F) -> Self {
+        let transport = Transport::default();
+        let runtime = Runtime::new(transport).unwrap();
+        let mut system = System::new(&runtime);
+        f(&mut system);
+        system
+    }
+
+    /// Instantiates a new system.
+    pub fn new(runtime: &Arc<Runtime>) -> Self {
+        Self(protoflow_core::System::<Transport>::new(runtime))
+    }
+}
 
 impl AllBlocks for System {}
 

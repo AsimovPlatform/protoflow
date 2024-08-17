@@ -3,14 +3,14 @@
 #![allow(dead_code)]
 
 use protoflow_core::{
-    prelude::{Bytes, String},
+    prelude::{Bytes, String, ToString},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 
 /// A block that encodes `T` messages to a byte stream.
 #[derive(Block, Clone)]
-pub struct Write<T: Message = String> {
+pub struct Write<T: Message + ToString = String> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
@@ -32,7 +32,7 @@ pub enum WriteEncoding {
     LengthPrefixed,
 }
 
-impl<T: Message> Write<T> {
+impl<T: Message + ToString> Write<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<Bytes>) -> Self {
         Self::with_params(input, output, WriteEncoding::default())
     }
@@ -50,7 +50,7 @@ impl<T: Message> Write<T> {
     }
 }
 
-impl<T: Message> Block for Write<T> {
+impl<T: Message + ToString> Block for Write<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.input)?;
 
