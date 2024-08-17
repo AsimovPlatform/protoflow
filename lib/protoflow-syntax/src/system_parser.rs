@@ -62,7 +62,7 @@ impl SystemParser {
         match member {
             ParsedMember::Import(import) => match import.imported_name.to_tuple3() {
                 (Some("Protoflow"), Some("*") | Some("**"), None) => {
-                    for block_name in BLOCKS.iter() {
+                    for (_, block_name) in BLOCKS.iter() {
                         self.imported_names.insert(QualifiedName::new(vec![
                             "Protoflow".into(),
                             (*block_name).into(),
@@ -72,7 +72,7 @@ impl SystemParser {
                 (Some("Protoflow"), Some(unqualified_name), None) => {
                     if !BLOCKS
                         .iter()
-                        .any(|block_name| *block_name == unqualified_name)
+                        .any(|(_, block_name)| *block_name == unqualified_name)
                     {
                         return Err(AnalysisError::InvalidImport(import.imported_name.clone()));
                     }
