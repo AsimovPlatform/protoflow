@@ -4,9 +4,9 @@
 
 use crate::{
     prelude::{Arc, FromStr, Rc, String, ToString},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode,
-    FlowBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEncoding, ReadEnv, ReadFile, ReadStdin,
-    SysBlocks, TextBlocks, WriteEncoding, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, Encoding,
+    FlowBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SysBlocks,
+    TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockResult, InputPort, Message, OutputPort, Process, SystemBuilding, SystemExecution,
@@ -86,7 +86,7 @@ impl IoBlocks for System {
             .block(Decode::<T>::new(self.0.input(), self.0.output()))
     }
 
-    fn decode_with<T: Message + FromStr + 'static>(&self, encoding: ReadEncoding) -> Decode<T> {
+    fn decode_with<T: Message + FromStr + 'static>(&self, encoding: Encoding) -> Decode<T> {
         self.0.block(Decode::<T>::with_params(
             self.0.input(),
             self.0.output(),
@@ -99,7 +99,7 @@ impl IoBlocks for System {
             .block(Encode::<T>::new(self.0.input(), self.0.output()))
     }
 
-    fn encode_with<T: Message + ToString + 'static>(&self, encoding: WriteEncoding) -> Encode<T> {
+    fn encode_with<T: Message + ToString + 'static>(&self, encoding: Encoding) -> Encode<T> {
         self.0.block(Encode::<T>::with_params(
             self.0.input(),
             self.0.output(),

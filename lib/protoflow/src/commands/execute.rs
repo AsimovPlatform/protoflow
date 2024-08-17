@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::sysexits::Sysexits;
-use protoflow_blocks::{CoreBlocks, IoBlocks, SysBlocks, WriteEncoding};
+use protoflow_blocks::{CoreBlocks, Encoding, IoBlocks, SysBlocks};
 use protoflow_core::{SystemBuilding, SystemExecution};
 use std::path::PathBuf;
 
@@ -28,7 +28,7 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
             };
             System::build(|s| {
                 let value = s.const_string(value);
-                let encoder = s.encode_with(WriteEncoding::TextWithNewlineSuffix);
+                let encoder = s.encode_with(Encoding::TextWithNewlineSuffix);
                 let stdout = s.write_stdout();
                 s.connect(&value.output, &encoder.input);
                 s.connect(&encoder.output, &stdout.input);
@@ -48,7 +48,7 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
             let seed = seed.map(Result::unwrap);
             System::build(|s| {
                 let random = s.random::<u64>(seed);
-                let encoder = s.encode_with::<u64>(WriteEncoding::TextWithNewlineSuffix);
+                let encoder = s.encode_with::<u64>(Encoding::TextWithNewlineSuffix);
                 let stdout = s.write_stdout();
                 s.connect(&random.output, &encoder.input);
                 s.connect(&encoder.output, &stdout.input);
@@ -62,7 +62,7 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
             System::build(|s| {
                 let name = s.const_string(name);
                 let env = s.read_env();
-                let encoder = s.encode_with(WriteEncoding::TextWithNewlineSuffix);
+                let encoder = s.encode_with(Encoding::TextWithNewlineSuffix);
                 let stdout = s.write_stdout();
                 s.connect(&name.output, &env.name);
                 s.connect(&env.output, &encoder.input);

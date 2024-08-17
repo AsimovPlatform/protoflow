@@ -9,6 +9,9 @@ pub use protoflow_core::prelude;
 mod core;
 pub use core::*;
 
+mod encoding;
+pub use encoding::*;
+
 mod flow;
 pub use flow::*;
 
