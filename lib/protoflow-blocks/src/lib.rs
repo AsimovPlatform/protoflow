@@ -48,8 +48,8 @@ pub static BLOCKS: &[(&str, &str)] = &[
     ("core", "Random"),
     // FlowBlocks
     // IoBlocks
-    ("io", "Read"),
-    ("io", "Write"),
+    ("io", "Decode"),
+    ("io", "Encode"),
     // MathBlocks
     // SysBlocks
     #[cfg(feature = "std")]
