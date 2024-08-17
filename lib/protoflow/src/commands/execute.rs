@@ -55,7 +55,13 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
                 s.connect(&encoder.output, &stdout.input);
             })
         }
-        "Drop" => todo!(),
+        "Drop" => System::build(|s| {
+            let stdin = s.read_stdin();
+            let decoder = s.decode_with::<String>(Encoding::TextWithNewlineSuffix); // TODO
+            let drop = s.drop();
+            s.connect(&stdin.output, &decoder.input);
+            s.connect(&decoder.output, &drop.input);
+        }),
         "Random" => {
             let seed = params
                 .iter()
