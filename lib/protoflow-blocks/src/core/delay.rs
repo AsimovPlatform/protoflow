@@ -31,7 +31,11 @@ pub enum DelayType {
 }
 
 impl<T: Message> Delay<T> {
-    pub fn new(input: InputPort<T>, output: OutputPort<T>, delay: DelayType) -> Self {
+    pub fn new(input: InputPort<T>, output: OutputPort<T>) -> Self {
+        Self::with_params(input, output, DelayType::Fixed(Duration::from_secs(1)))
+    }
+
+    pub fn with_params(input: InputPort<T>, output: OutputPort<T>, delay: DelayType) -> Self {
         Self {
             input,
             output,

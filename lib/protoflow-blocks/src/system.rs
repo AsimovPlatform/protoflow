@@ -4,9 +4,9 @@
 
 use crate::{
     prelude::{Arc, FromStr, Rc, String, ToString},
-    AllBlocks, Const, CoreBlocks, Decode, Encode, FlowBlocks, IoBlocks, MathBlocks, ReadDir,
-    ReadEncoding, ReadEnv, ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteEncoding, WriteFile,
-    WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode,
+    FlowBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEncoding, ReadEnv, ReadFile, ReadStdin,
+    SysBlocks, TextBlocks, WriteEncoding, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockResult, InputPort, Message, OutputPort, Process, SystemBuilding, SystemExecution,
@@ -36,11 +36,45 @@ impl System {
 impl AllBlocks for System {}
 
 impl CoreBlocks for System {
+    fn buffer<T: Message + Into<T> + 'static>(&self) -> Buffer<T> {
+        self.0.block(Buffer::<T>::new(self.0.input()))
+    }
+
     fn const_string(&self, value: impl ToString) -> Const<String> {
         self.0.block(Const::<String>::with_params(
             self.0.output(),
             value.to_string(),
         ))
+    }
+
+    fn count<T: Message + 'static>(&self) -> Count<T> {
+        self.0.block(Count::<T>::new(
+            self.0.input(),
+            self.0.output(),
+            self.0.output(),
+        ))
+    }
+
+    fn delay<T: Message + 'static>(&self) -> Delay<T> {
+        self.0
+            .block(Delay::<T>::new(self.0.input(), self.0.output()))
+    }
+
+    fn delay_by<T: Message + 'static>(&self, delay: DelayType) -> Delay<T> {
+        self.0.block(Delay::<T>::with_params(
+            self.0.input(),
+            self.0.output(),
+            delay,
+        ))
+    }
+
+    fn drop<T: Message + 'static>(&self) -> Drop<T> {
+        self.0.block(Drop::<T>::new(self.0.input()))
+    }
+
+    fn random<T: Message + 'static>(&self, seed: Option<u64>) -> Random<T> {
+        self.0
+            .block(Random::<T>::with_params(self.0.output(), seed))
     }
 }
 
