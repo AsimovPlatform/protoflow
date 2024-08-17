@@ -9,39 +9,59 @@ pub use protoflow_core::prelude;
 mod core;
 pub use core::*;
 
+mod flow;
+pub use flow::*;
+
 mod io;
 pub use io::*;
+
+mod math;
+pub use math::*;
 
 #[cfg(feature = "std")]
 mod sys;
 #[cfg(feature = "std")]
 pub use sys::*;
 
-//mod text;
-//pub use text::*;
+#[cfg(not(feature = "std"))]
+pub trait SysBlocks {}
+
+mod text;
+pub use text::*;
+
+pub trait AllBlocks:
+    CoreBlocks + FlowBlocks + IoBlocks + MathBlocks + SysBlocks + TextBlocks
+{
+}
 
 /// The set of block types that are enabled in this build of the crate.
-pub static BLOCKS: &[&str] = &[
-    "Buffer",
-    "Const",
-    "Count",
-    "Delay",
-    "Drop",
-    "Random",
-    "Read",
+pub static BLOCKS: &[(&str, &str)] = &[
+    // CoreBlocks
+    ("core", "Buffer"),
+    ("core", "Const"),
+    ("core", "Count"),
+    ("core", "Delay"),
+    ("core", "Drop"),
+    ("core", "Random"),
+    // FlowBlocks
+    // IoBlocks
+    ("io", "Read"),
+    ("io", "Write"),
+    // MathBlocks
+    // SysBlocks
     #[cfg(feature = "std")]
-    "ReadDir",
+    ("sys", "ReadDir"),
     #[cfg(feature = "std")]
-    "ReadEnv",
+    ("sys", "ReadEnv"),
     #[cfg(feature = "std")]
-    "ReadFile",
+    ("sys", "ReadFile"),
     #[cfg(feature = "std")]
-    "ReadStdin",
-    "Write",
+    ("sys", "ReadStdin"),
     #[cfg(feature = "std")]
-    "WriteFile",
+    ("sys", "WriteFile"),
     #[cfg(feature = "std")]
-    "WriteStderr",
+    ("sys", "WriteStderr"),
     #[cfg(feature = "std")]
-    "WriteStdout",
+    ("sys", "WriteStdout"),
+    // TextBlocks
 ];
