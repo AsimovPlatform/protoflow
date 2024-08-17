@@ -1,10 +1,11 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(dead_code)]
-
 extern crate std;
 
-use protoflow_core::{prelude::String, Block, BlockResult, BlockRuntime, InputPort, OutputPort};
+use protoflow_core::{
+    prelude::{String, ToString},
+    Block, BlockResult, BlockRuntime, InputPort, OutputPort,
+};
 use protoflow_derive::Block;
 
 /// A block that reads file names from a file system directory.
@@ -26,8 +27,21 @@ impl ReadDir {
 }
 
 impl Block for ReadDir {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        unimplemented!() // TODO
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        runtime.wait_for(&self.path)?;
+        let dir_path = self.path.recv()?.unwrap();
+        //self.path.close()?; // FIXME
+
+        let dir = std::fs::read_dir(dir_path)?;
+        for dir_entry in dir {
+            let file_path = dir_entry?.path();
+            //let file_path = file_path.strip_prefix("./").unwrap(); // TODO: parameter
+            let file_path = file_path.to_string_lossy().to_string();
+            self.output.send(&file_path)?;
+        }
+
+        self.output.close()?;
+        Ok(())
     }
 }
 
