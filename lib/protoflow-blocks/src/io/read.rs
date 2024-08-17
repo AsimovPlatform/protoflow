@@ -27,9 +27,10 @@ pub struct Read<T: Message = String> {
 /// The encoding to use when deserializing messages from bytes.
 #[derive(Clone, Debug, Default)]
 pub enum ReadEncoding {
-    MessageOnly,
     #[default]
-    LengthPrefixed,
+    ProtobufWithLengthPrefix,
+    ProtobufWithoutLengthPrefix,
+    TextWithNewlineSuffix,
 }
 
 impl<T: Message> Read<T> {
