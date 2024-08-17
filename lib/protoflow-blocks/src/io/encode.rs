@@ -2,6 +2,7 @@
 
 extern crate std;
 
+use crate::Encoding;
 use protoflow_core::{
     prelude::{Bytes, String, ToString},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
@@ -21,28 +22,15 @@ pub struct Encode<T: Message + ToString = String> {
 
     /// A configuration parameter for how to encode messages.
     #[parameter]
-    pub encoding: WriteEncoding,
-}
-
-/// The encoding to use when serializing messages into bytes.
-#[derive(Clone, Debug, Default)]
-pub enum WriteEncoding {
-    #[default]
-    ProtobufWithLengthPrefix,
-    ProtobufWithoutLengthPrefix,
-    TextWithNewlineSuffix,
+    pub encoding: Encoding,
 }
 
 impl<T: Message + ToString> Encode<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<Bytes>) -> Self {
-        Self::with_params(input, output, WriteEncoding::default())
+        Self::with_params(input, output, Encoding::default())
     }
 
-    pub fn with_params(
-        input: InputPort<T>,
-        output: OutputPort<Bytes>,
-        encoding: WriteEncoding,
-    ) -> Self {
+    pub fn with_params(input: InputPort<T>, output: OutputPort<Bytes>, encoding: Encoding) -> Self {
         Self {
             input,
             output,
@@ -56,7 +44,7 @@ impl<T: Message + ToString> Block for Encode<T> {
         runtime.wait_for(&self.input)?;
 
         while let Some(message) = self.input.recv()? {
-            use WriteEncoding::*;
+            use Encoding::*;
             let bytes = match self.encoding {
                 ProtobufWithLengthPrefix => Bytes::from(message.encode_length_delimited_to_vec()),
                 ProtobufWithoutLengthPrefix => Bytes::from(message.encode_to_vec()),

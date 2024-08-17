@@ -2,6 +2,7 @@
 
 #![allow(dead_code)]
 
+use crate::Encoding;
 use protoflow_core::{
     prelude::{Bytes, FromStr, String},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
@@ -21,28 +22,15 @@ pub struct Decode<T: Message + FromStr = String> {
 
     /// A configuration parameter for how to decode messages.
     #[parameter]
-    pub encoding: ReadEncoding,
-}
-
-/// The encoding to use when deserializing messages from bytes.
-#[derive(Clone, Debug, Default)]
-pub enum ReadEncoding {
-    #[default]
-    ProtobufWithLengthPrefix,
-    ProtobufWithoutLengthPrefix,
-    TextWithNewlineSuffix,
+    pub encoding: Encoding,
 }
 
 impl<T: Message + FromStr> Decode<T> {
     pub fn new(input: InputPort<Bytes>, output: OutputPort<T>) -> Self {
-        Self::with_params(input, output, ReadEncoding::default())
+        Self::with_params(input, output, Encoding::default())
     }
 
-    pub fn with_params(
-        input: InputPort<Bytes>,
-        output: OutputPort<T>,
-        encoding: ReadEncoding,
-    ) -> Self {
+    pub fn with_params(input: InputPort<Bytes>, output: OutputPort<T>, encoding: Encoding) -> Self {
         Self {
             input,
             output,
