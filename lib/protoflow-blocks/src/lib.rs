@@ -18,13 +18,16 @@ pub use io::*;
 mod math;
 pub use math::*;
 
+#[cfg(not(feature = "std"))]
+pub trait SysBlocks {}
+
 #[cfg(feature = "std")]
 mod sys;
 #[cfg(feature = "std")]
 pub use sys::*;
 
-#[cfg(not(feature = "std"))]
-pub trait SysBlocks {}
+mod system;
+pub use system::*;
 
 mod text;
 pub use text::*;

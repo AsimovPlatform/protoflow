@@ -7,18 +7,35 @@ use crate::{
     Block, BlockResult, InputPort, Message, OutputPort, Process, Runtime, Transport,
 };
 
-/// A machine-readable identifier for a block in a system.
-///
-/// Only valid within the scope of that system.
-pub type BlockID = usize;
+pub trait SystemBuilding {
+    /// Creates a new input port inside the system.
+    fn input<M: Message + 'static>(&self) -> InputPort<M>;
+
+    /// Creates a new output port inside the system.
+    fn output<M: Message + 'static>(&self) -> OutputPort<M>;
+
+    /// Instantiates a block inside the system.
+    fn block<B: Block + Clone + 'static>(&self, block: B) -> B;
+
+    /// Connects two ports of two blocks in the system.
+    ///
+    /// Both ports must be of the same message type.
+    fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool;
+}
+
+pub trait SystemExecution {
+    /// Executes the system, returning the system process.
+    fn execute(self) -> BlockResult<Rc<dyn Process>>;
+}
 
 /// A system is a collection of blocks that are connected together.
 pub struct System<X: Transport + Default + 'static = MockTransport> {
-    _phantom: PhantomData<X>,
     pub(crate) runtime: Arc<StdRuntime<X>>,
 
     /// The registered blocks in the system.
     pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
+
+    _phantom: PhantomData<X>,
 }
 
 pub type Subsystem<X> = System<X>;
@@ -36,9 +53,9 @@ impl<X: Transport + Default + 'static> System<X> {
     /// Instantiates a new system.
     pub fn new(runtime: &Arc<StdRuntime<X>>) -> Self {
         Self {
-            _phantom: PhantomData,
             runtime: runtime.clone(),
             blocks: RefCell::new(VecDeque::new()),
+            _phantom: PhantomData,
         }
     }
 
@@ -47,28 +64,46 @@ impl<X: Transport + Default + 'static> System<X> {
         runtime.execute(self)
     }
 
-    /// Creates a new input port.
     pub fn input<M: Message + 'static>(&self) -> InputPort<M> {
         InputPort::new(self)
     }
 
-    /// Creates a new output port.
-    pub fn output<M: Message + Clone + 'static>(&self) -> OutputPort<M> {
+    pub fn output<M: Message + 'static>(&self) -> OutputPort<M> {
         OutputPort::new(self)
     }
 
-    /// Instantiates a block in the system.
     pub fn block<B: Block + Clone + 'static>(&self, block: B) -> B {
         self.blocks.borrow_mut().push_back(Box::new(block.clone()));
         block
     }
 
-    /// Connects two ports of two blocks in the system.
-    ///
-    /// Both ports must be of the same message type.
     pub fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         let runtime = self.runtime.as_ref();
         let transport = runtime.transport.as_ref();
         transport.connect(source.id, target.id).unwrap()
+    }
+}
+
+impl SystemBuilding for System {
+    fn input<M: Message + 'static>(&self) -> InputPort<M> {
+        System::input(self)
+    }
+
+    fn output<M: Message + 'static>(&self) -> OutputPort<M> {
+        System::output(self)
+    }
+
+    fn block<B: Block + Clone + 'static>(&self, block: B) -> B {
+        System::block(self, block)
+    }
+
+    fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
+        System::connect(self, source, target)
+    }
+}
+
+impl SystemExecution for System {
+    fn execute(self) -> BlockResult<Rc<dyn Process>> {
+        System::execute(self)
     }
 }
