@@ -3,13 +3,14 @@
 #![allow(dead_code)]
 
 use protoflow_core::{
-    prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+    prelude::{Bytes, String},
+    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 
-/// A block that parses `T` messages from a byte stream.
+/// A block that decodes `T` messages from a byte stream.
 #[derive(Block, Clone)]
-pub struct Read<T: Message> {
+pub struct Read<T: Message = String> {
     /// The input byte stream.
     #[input]
     pub input: InputPort<Bytes>,
@@ -17,11 +18,35 @@ pub struct Read<T: Message> {
     /// The output message stream.
     #[output]
     pub output: OutputPort<T>,
+
+    /// A configuration parameter for how to decode messages.
+    #[parameter]
+    pub encoding: ReadEncoding,
+}
+
+/// The encoding to use when deserializing messages from bytes.
+#[derive(Clone, Debug, Default)]
+pub enum ReadEncoding {
+    MessageOnly,
+    #[default]
+    LengthPrefixed,
 }
 
 impl<T: Message> Read<T> {
     pub fn new(input: InputPort<Bytes>, output: OutputPort<T>) -> Self {
-        Self { input, output }
+        Self::with_params(input, output, ReadEncoding::default())
+    }
+
+    pub fn with_params(
+        input: InputPort<Bytes>,
+        output: OutputPort<T>,
+        encoding: ReadEncoding,
+    ) -> Self {
+        Self {
+            input,
+            output,
+            encoding,
+        }
     }
 }
 

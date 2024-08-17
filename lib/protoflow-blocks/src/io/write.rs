@@ -3,13 +3,14 @@
 #![allow(dead_code)]
 
 use protoflow_core::{
-    prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+    prelude::{Bytes, String},
+    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 
-/// A block that serializes `T` messages to a byte stream.
+/// A block that encodes `T` messages to a byte stream.
 #[derive(Block, Clone)]
-pub struct Write<T: Message> {
+pub struct Write<T: Message = String> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
@@ -17,11 +18,35 @@ pub struct Write<T: Message> {
     /// The output byte stream.
     #[output]
     pub output: OutputPort<Bytes>,
+
+    /// A configuration parameter for how to encode messages.
+    #[parameter]
+    pub encoding: WriteEncoding,
+}
+
+/// The encoding to use when serializing messages into bytes.
+#[derive(Clone, Debug, Default)]
+pub enum WriteEncoding {
+    MessageOnly,
+    #[default]
+    LengthPrefixed,
 }
 
 impl<T: Message> Write<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<Bytes>) -> Self {
-        Self { input, output }
+        Self::with_params(input, output, WriteEncoding::default())
+    }
+
+    pub fn with_params(
+        input: InputPort<T>,
+        output: OutputPort<Bytes>,
+        encoding: WriteEncoding,
+    ) -> Self {
+        Self {
+            input,
+            output,
+            encoding,
+        }
     }
 }
 
@@ -30,7 +55,10 @@ impl<T: Message> Block for Write<T> {
         runtime.wait_for(&self.input)?;
 
         while let Some(message) = self.input.recv()? {
-            let bytes = Bytes::from(message.encode_length_delimited_to_vec());
+            let bytes = Bytes::from(match self.encoding {
+                WriteEncoding::MessageOnly => message.encode_to_vec(),
+                WriteEncoding::LengthPrefixed => message.encode_length_delimited_to_vec(),
+            });
             self.output.send(&bytes)?;
         }
 
