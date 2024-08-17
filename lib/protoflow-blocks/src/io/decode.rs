@@ -3,14 +3,14 @@
 #![allow(dead_code)]
 
 use protoflow_core::{
-    prelude::{Bytes, String},
+    prelude::{Bytes, FromStr, String},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 
 /// A block that decodes `T` messages from a byte stream.
 #[derive(Block, Clone)]
-pub struct Read<T: Message = String> {
+pub struct Decode<T: Message + FromStr = String> {
     /// The input byte stream.
     #[input]
     pub input: InputPort<Bytes>,
@@ -33,7 +33,7 @@ pub enum ReadEncoding {
     TextWithNewlineSuffix,
 }
 
-impl<T: Message> Read<T> {
+impl<T: Message + FromStr> Decode<T> {
     pub fn new(input: InputPort<Bytes>, output: OutputPort<T>) -> Self {
         Self::with_params(input, output, ReadEncoding::default())
     }
@@ -51,7 +51,7 @@ impl<T: Message> Read<T> {
     }
 }
 
-impl<T: Message> Block for Read<T> {
+impl<T: Message + FromStr> Block for Decode<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         unimplemented!() // TODO
     }
@@ -59,14 +59,14 @@ impl<T: Message> Block for Read<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::Read;
+    use super::Decode;
     use protoflow_core::{transports::MockTransport, System};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Read::<i32>::new(s.input(), s.output()));
+            let _ = s.block(Decode::<i32>::new(s.input(), s.output()));
         });
     }
 }

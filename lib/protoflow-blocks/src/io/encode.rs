@@ -10,7 +10,7 @@ use protoflow_derive::Block;
 
 /// A block that encodes `T` messages to a byte stream.
 #[derive(Block, Clone)]
-pub struct Write<T: Message + ToString = String> {
+pub struct Encode<T: Message + ToString = String> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
@@ -33,7 +33,7 @@ pub enum WriteEncoding {
     TextWithNewlineSuffix,
 }
 
-impl<T: Message + ToString> Write<T> {
+impl<T: Message + ToString> Encode<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<Bytes>) -> Self {
         Self::with_params(input, output, WriteEncoding::default())
     }
@@ -51,7 +51,7 @@ impl<T: Message + ToString> Write<T> {
     }
 }
 
-impl<T: Message + ToString> Block for Write<T> {
+impl<T: Message + ToString> Block for Encode<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.input)?;
 
@@ -76,14 +76,14 @@ impl<T: Message + ToString> Block for Write<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::Write;
+    use super::Encode;
     use protoflow_core::{transports::MockTransport, System};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Write::<i32>::new(s.input(), s.output()));
+            let _ = s.block(Encode::<i32>::new(s.input(), s.output()));
         });
     }
 }
