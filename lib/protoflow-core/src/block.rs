@@ -2,6 +2,11 @@
 
 use crate::{BlockDescriptor, BlockResult, BlockRuntime};
 
+/// A machine-readable identifier for a block in a system.
+///
+/// Only valid within the scope of that system.
+pub type BlockID = usize;
+
 /// A block is an autonomous unit of computation in a system.
 pub trait Block: AsBlock + BlockDescriptor + Send + Sync {
     /// Prepares this block for execution.
