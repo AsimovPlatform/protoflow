@@ -69,6 +69,24 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
                 s.connect(&encoder.output, &stdout.input);
             })
         }
+        "ReadDir" => {
+            let Some(path) = params
+                .iter()
+                .find(|(k, _)| k == "path")
+                .map(|(_, v)| v.clone())
+            else {
+                return Err(ExecuteError::MissingParameter("path"))?;
+            };
+            System::build(|s| {
+                let path = s.const_string(path);
+                let dir = s.read_dir();
+                let encoder = s.encode_with(Encoding::TextWithNewlineSuffix);
+                let stdout = s.write_stdout();
+                s.connect(&path.output, &dir.path);
+                s.connect(&dir.output, &encoder.input);
+                s.connect(&encoder.output, &stdout.input);
+            })
+        }
         _ => return Err(ExecuteError::UnknownSystem(path_or_uri.to_string()))?,
     };
     system.execute().unwrap().join().unwrap(); // TODO
