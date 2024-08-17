@@ -1,9 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::sysexits::Sysexits;
-use protoflow_blocks::{CoreBlocks, Encoding, IoBlocks, SysBlocks};
+use protoflow_blocks::{CoreBlocks, DelayType, Encoding, IoBlocks, SysBlocks};
 use protoflow_core::{SystemBuilding, SystemExecution};
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 type System = protoflow_blocks::System;
 
@@ -35,7 +35,26 @@ pub fn execute(block: &PathBuf, params: &Vec<(String, String)>) -> Result<(), Sy
             })
         }
         "Count" => todo!(),
-        "Delay" => todo!(),
+        "Delay" => {
+            let fixed_delay = params
+                .iter()
+                .find(|(k, _)| k == "fixed")
+                .map(|(_, v)| v.as_str().parse::<f64>());
+            if let Some(Err(_)) = fixed_delay {
+                return Err(ExecuteError::InvalidParameter("fixed"))?;
+            }
+            let fixed_delay = fixed_delay.map(Result::unwrap);
+            let delay = DelayType::Fixed(Duration::from_secs_f64(fixed_delay.unwrap()));
+            System::build(|s| {
+                let random = s.random::<u64>(None);
+                let delay = s.delay_by(delay);
+                let encoder = s.encode_with::<u64>(Encoding::TextWithNewlineSuffix);
+                let stdout = s.write_stdout();
+                s.connect(&random.output, &delay.input);
+                s.connect(&delay.output, &encoder.input);
+                s.connect(&encoder.output, &stdout.input);
+            })
+        }
         "Drop" => todo!(),
         "Random" => {
             let seed = params
