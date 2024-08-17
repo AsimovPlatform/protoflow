@@ -3,10 +3,11 @@
 extern crate std;
 
 use protoflow_core::{
-    prelude::{Bytes, Vec},
+    prelude::{vec, Bytes},
     Block, BlockResult, BlockRuntime, OutputPort,
 };
 use protoflow_derive::Block;
+use std::io::Read;
 
 /// The default buffer size for reading from standard input.
 const DEFAULT_BUFFER_SIZE: usize = 1024;
@@ -38,15 +39,24 @@ impl ReadStdin {
 
 impl Block for ReadStdin {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
-        let mut buffer = Vec::with_capacity(self.buffer_size);
-        let mut stdin = std::io::stdin().lock();
+        let stdin = std::io::stdin().lock();
+        let mut reader = std::io::BufReader::new(stdin);
+        let mut buffer = vec![0; self.buffer_size];
 
         runtime.wait_for(&self.output)?;
 
-        while std::io::Read::read(&mut stdin, &mut buffer).is_ok() {
-            let bytes = Bytes::from(buffer.clone());
-            self.output.send(&bytes)?;
-            buffer.clear();
+        loop {
+            match reader.read(&mut buffer) {
+                Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(err) => return Err(err.into()),
+                Ok(0) => break, // EOF
+                Ok(buffer_len) => {
+                    buffer.resize(buffer_len, b'\0');
+                    let bytes = Bytes::from(buffer.clone());
+                    self.output.send(&bytes)?;
+                    buffer.clear();
+                }
+            }
         }
 
         self.output.close()?;
