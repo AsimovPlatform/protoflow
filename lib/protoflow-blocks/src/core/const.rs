@@ -1,11 +1,11 @@
 // This is free and unencumbered software released into the public domain.
 
-use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
+use protoflow_core::{prelude::String, Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 
 /// A block for sending a constant value.
 #[derive(Block, Clone)]
-pub struct Const<T: Message> {
+pub struct Const<T: Message = String> {
     /// The port to send the value on.
     #[output]
     pub output: OutputPort<T>,
