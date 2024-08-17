@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(dead_code)]
+extern crate std;
 
 use protoflow_core::{
     prelude::{Bytes, String, ToString},
@@ -27,9 +27,10 @@ pub struct Write<T: Message + ToString = String> {
 /// The encoding to use when serializing messages into bytes.
 #[derive(Clone, Debug, Default)]
 pub enum WriteEncoding {
-    MessageOnly,
     #[default]
-    LengthPrefixed,
+    ProtobufWithLengthPrefix,
+    ProtobufWithoutLengthPrefix,
+    TextWithNewlineSuffix,
 }
 
 impl<T: Message + ToString> Write<T> {
@@ -55,10 +56,16 @@ impl<T: Message + ToString> Block for Write<T> {
         runtime.wait_for(&self.input)?;
 
         while let Some(message) = self.input.recv()? {
-            let bytes = Bytes::from(match self.encoding {
-                WriteEncoding::MessageOnly => message.encode_to_vec(),
-                WriteEncoding::LengthPrefixed => message.encode_length_delimited_to_vec(),
-            });
+            use WriteEncoding::*;
+            let bytes = match self.encoding {
+                ProtobufWithLengthPrefix => Bytes::from(message.encode_length_delimited_to_vec()),
+                ProtobufWithoutLengthPrefix => Bytes::from(message.encode_to_vec()),
+                TextWithNewlineSuffix => {
+                    let mut string = message.to_string();
+                    string.push('\n');
+                    Bytes::from(string)
+                }
+            };
             self.output.send(&bytes)?;
         }
 
