@@ -105,6 +105,7 @@ impl From<crate::commands::execute::ExecuteError> for Sysexits {
         use crate::commands::execute::ExecuteError::*;
         std::eprintln!("{}: {:?}", "protoflow", error);
         match error {
+            InvalidEncoding(_) => Self::EX_USAGE,
             MissingParameter(_) => Self::EX_USAGE,
             InvalidParameter(_) => Self::EX_USAGE,
             UnknownSystem(_) => Self::EX_UNAVAILABLE,
