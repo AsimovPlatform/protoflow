@@ -1,5 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{prelude::String, Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 
@@ -35,6 +36,25 @@ impl<T: Message> Block for Const<T> {
         self.output.close()?;
 
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T: Message> StdioSystem for Const<T> {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+
+        let Some(value) = config.params.get("value").map(String::clone) else {
+            return Err(StdioError::MissingParameter("value"))?;
+        };
+
+        Ok(System::build(|s| {
+            let const_source = s.const_string(value); // FIXME
+            let line_encoder = s.encode_with(config.encoding);
+            let stdout = s.write_stdout();
+            s.connect(&const_source.output, &line_encoder.input);
+            s.connect(&line_encoder.output, &stdout.input);
+        }))
     }
 }
 

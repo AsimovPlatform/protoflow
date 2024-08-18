@@ -1,9 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(dead_code)]
-
 extern crate std;
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Bytes, String},
     Block, BlockResult, BlockRuntime, InputPort, OutputPort,
@@ -31,6 +30,15 @@ impl ReadFile {
 impl Block for ReadFile {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         unimplemented!() // TODO
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for ReadFile {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|_s| todo!()))
     }
 }
 

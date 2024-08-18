@@ -1,5 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 
@@ -33,6 +34,27 @@ impl<T: Message + Default> Block for Random<T> {
         self.output.close()?;
 
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for Random<u64> {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+
+        let seed = config.params.get("seed").map(|v| v.as_str().parse::<u64>());
+        if let Some(Err(_)) = seed {
+            return Err(StdioError::InvalidParameter("seed"));
+        }
+        let seed = seed.map(Result::unwrap);
+
+        Ok(System::build(|s| {
+            let random_generator = s.random::<u64>(seed);
+            let number_encoder = s.encode_with::<u64>(config.encoding);
+            let stdout = s.write_stdout();
+            s.connect(&random_generator.output, &number_encoder.input);
+            s.connect(&number_encoder.output, &stdout.input);
+        }))
     }
 }
 

@@ -2,6 +2,7 @@
 
 extern crate std;
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort};
 use protoflow_derive::Block;
 
@@ -31,6 +32,19 @@ impl Block for WriteStderr {
 
         self.input.close()?;
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for WriteStderr {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{SysBlocks, SystemBuilding};
+
+        Ok(System::build(|s| {
+            let stdin = s.read_stdin();
+            let stderr = s.write_stderr();
+            s.connect(&stdin.output, &stderr.input);
+        }))
     }
 }
 

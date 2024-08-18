@@ -2,7 +2,7 @@
 
 extern crate std;
 
-use crate::Encoding;
+use crate::{Encoding, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Bytes, String, ToString},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
@@ -59,6 +59,15 @@ impl<T: Message + ToString> Block for Encode<T> {
 
         self.input.close()?;
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for Encode {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|_s| todo!()))
     }
 }
 

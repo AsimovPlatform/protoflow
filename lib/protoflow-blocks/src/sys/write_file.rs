@@ -1,9 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(dead_code)]
-
 extern crate std;
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Bytes, String},
     Block, BlockResult, BlockRuntime, InputPort,
@@ -35,6 +34,15 @@ impl Block for WriteFile {
         }
         self.input.close()?;
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for WriteFile {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|_s| todo!()))
     }
 }
 

@@ -1,11 +1,12 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{prelude::VecDeque, Block, BlockResult, BlockRuntime, InputPort, Message};
 use protoflow_derive::Block;
 
 /// A block that simply stores all messages it receives.
 #[derive(Block, Clone)]
-pub struct Buffer<T: Message + Into<T>> {
+pub struct Buffer<T: Message> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
@@ -35,6 +36,19 @@ impl<T: Message> Block for Buffer<T> {
         }
         self.input.close()?;
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T: Message> StdioSystem for Buffer<T> {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|s| {
+            let stdin = s.read_stdin();
+            let buffer = s.buffer();
+            s.connect(&stdin.output, &buffer.input);
+        }))
     }
 }
 

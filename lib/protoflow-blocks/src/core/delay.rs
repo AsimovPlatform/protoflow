@@ -1,5 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Duration, Range},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
@@ -61,6 +62,37 @@ impl<T: Message> Block for Delay<T> {
             self.output.send(&message)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> StdioSystem
+    for Delay<T>
+{
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+
+        let fixed_delay = config
+            .params
+            .get("fixed")
+            .map(|v| v.as_str().parse::<f64>());
+        if let Some(Err(_)) = fixed_delay {
+            return Err(StdioError::InvalidParameter("fixed"))?;
+        }
+        let fixed_delay = fixed_delay.map(Result::unwrap);
+        let delay = DelayType::Fixed(Duration::from_secs_f64(fixed_delay.unwrap()));
+
+        Ok(System::build(|s| {
+            let stdin = s.read_stdin();
+            let message_decoder = s.decode_with::<T>(config.encoding);
+            let delayer = s.delay_by(delay);
+            let message_encoder = s.encode_with::<T>(config.encoding);
+            let stdout = s.write_stdout();
+            s.connect(&stdin.output, &message_decoder.input);
+            s.connect(&message_decoder.output, &delayer.input);
+            s.connect(&delayer.output, &message_encoder.input);
+            s.connect(&message_encoder.output, &stdout.input);
+        }))
     }
 }
 

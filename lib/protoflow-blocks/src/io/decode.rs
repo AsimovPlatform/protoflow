@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 
-use crate::Encoding;
+use crate::{Encoding, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Bytes, FromStr, String},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
@@ -42,6 +42,15 @@ impl<T: Message + FromStr> Decode<T> {
 impl<T: Message + FromStr> Block for Decode<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         unimplemented!() // TODO
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for Decode {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|_s| todo!()))
     }
 }
 
