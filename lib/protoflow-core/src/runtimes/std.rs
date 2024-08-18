@@ -6,7 +6,7 @@ use crate::{
         ToString, Vec,
     },
     transport::Transport,
-    transports::MockTransport,
+    transports::MpscTransport,
     Block, BlockError, BlockResult, BlockRuntime, Port, Process, ProcessID, Runtime, System,
 };
 
@@ -14,7 +14,7 @@ use crate::{
 extern crate std;
 
 #[allow(unused)]
-pub struct StdRuntime<T: Transport = MockTransport> {
+pub struct StdRuntime<T: Transport = MpscTransport> {
     pub(crate) transport: Arc<T>,
     is_alive: AtomicBool,
     process_id: AtomicUsize,
