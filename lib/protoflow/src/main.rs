@@ -11,6 +11,7 @@ mod sysexits;
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
 use dotenvy::dotenv;
+use protoflow_blocks::Encoding;
 use std::{error::Error, path::PathBuf, str::FromStr};
 
 /// Protoflow command-line interface (CLI)
@@ -55,6 +56,10 @@ enum Commands {
         /// Pathname of the Protoflow system or block
         block: PathBuf,
 
+        /// Specify the message encoding to use on stdin/stdout
+        #[clap(short = 'e', long, value_parser = parse_encoding, default_value = "text")]
+        encoding: Encoding,
+
         /// TBD
         #[clap(value_parser = parse_kv_param::<String, String>)]
         params: Vec<(String, String)>,
@@ -94,7 +99,11 @@ pub fn main() -> Sysexits {
     let result = match subcommand.as_ref().expect("subcommand is required") {
         Commands::Config {} => Ok(()),
         Commands::Check { paths } => commands::check::check(paths),
-        Commands::Execute { block, params } => commands::execute::execute(block, params),
+        Commands::Execute {
+            block,
+            encoding,
+            params,
+        } => commands::execute::execute(block, *encoding, params),
         Commands::Generate { path } => commands::generate::generate(path),
     };
     return result.err().unwrap_or_default();
@@ -108,6 +117,12 @@ fn version(_options: &Options) -> Result<(), Sysexits> {
 fn license() -> Result<(), Sysexits> {
     println!("This is free and unencumbered software released into the public domain.");
     Ok(())
+}
+
+fn parse_encoding(input: &str) -> Result<Encoding, commands::execute::ExecuteError> {
+    input
+        .parse()
+        .map_err(|e: String| commands::execute::ExecuteError::InvalidEncoding(e))
 }
 
 fn parse_kv_param<K, V>(input: &str) -> Result<(K, V), Box<dyn Error + Send + Sync + 'static>>
