@@ -103,12 +103,23 @@ impl From<crate::commands::check::CheckError> for Sysexits {
 impl From<crate::commands::execute::ExecuteError> for Sysexits {
     fn from(error: crate::commands::execute::ExecuteError) -> Self {
         use crate::commands::execute::ExecuteError::*;
-        std::eprintln!("{}: {:?}", "protoflow", error);
+        std::eprintln!("{}: {}", "protoflow", error);
         match error {
             InvalidEncoding(_) => Self::EX_USAGE,
             MissingParameter(_) => Self::EX_USAGE,
             InvalidParameter(_) => Self::EX_USAGE,
             UnknownSystem(_) => Self::EX_UNAVAILABLE,
+        }
+    }
+}
+
+impl From<protoflow_blocks::StdioError> for Sysexits {
+    fn from(error: protoflow_blocks::StdioError) -> Self {
+        use protoflow_blocks::StdioError::*;
+        std::eprintln!("{}: {}", "protoflow", error);
+        match error {
+            MissingParameter(parameter) => Self::EX_USAGE,
+            InvalidParameter(parameter) => Self::EX_USAGE,
         }
     }
 }

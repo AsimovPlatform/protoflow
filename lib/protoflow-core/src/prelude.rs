@@ -13,8 +13,7 @@ use std as alloc;
 pub use alloc::{
     boxed::Box,
     collections::btree_set::Iter as BTreeSetIter,
-    collections::BTreeSet,
-    collections::VecDeque,
+    collections::{BTreeMap, BTreeSet, VecDeque},
     format,
     rc::Rc,
     string::{String, ToString},

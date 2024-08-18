@@ -21,6 +21,11 @@ pub use io::*;
 mod math;
 pub use math::*;
 
+#[cfg(feature = "std")]
+mod stdio;
+#[cfg(feature = "std")]
+pub use stdio::*;
+
 #[cfg(not(feature = "std"))]
 pub trait SysBlocks {}
 
@@ -34,6 +39,8 @@ pub use system::*;
 
 mod text;
 pub use text::*;
+
+pub use protoflow_core::{SystemBuilding, SystemExecution};
 
 pub trait AllBlocks:
     CoreBlocks + FlowBlocks + IoBlocks + MathBlocks + SysBlocks + TextBlocks

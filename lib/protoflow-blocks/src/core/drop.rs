@@ -1,5 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message};
 use protoflow_derive::Block;
 
@@ -25,6 +26,19 @@ impl<T: Message> Block for Drop<T> {
         }
         self.input.close()?;
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T: Message> StdioSystem for Drop<T> {
+    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|s| {
+            let stdin = s.read_stdin();
+            let dropper = s.drop();
+            s.connect(&stdin.output, &dropper.input);
+        }))
     }
 }
 

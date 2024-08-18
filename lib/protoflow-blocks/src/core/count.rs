@@ -1,5 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
 use protoflow_derive::Block;
 
@@ -52,6 +53,27 @@ impl<T: Message> Block for Count<T> {
         self.count.send(&self.counter)?;
 
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> StdioSystem
+    for Count<T>
+{
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+
+        Ok(System::build(|s| {
+            let stdin = s.read_stdin();
+            let message_decoder = s.decode_with::<T>(config.encoding);
+            let counter = s.count::<T>();
+            let count_encoder = s.encode_with::<u64>(config.encoding);
+            let stdout = s.write_stdout();
+            s.connect(&stdin.output, &message_decoder.input);
+            s.connect(&message_decoder.output, &counter.input);
+            s.connect(&counter.count, &count_encoder.input);
+            s.connect(&count_encoder.output, &stdout.input);
+        }))
     }
 }
 

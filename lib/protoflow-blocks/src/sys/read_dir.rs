@@ -2,6 +2,7 @@
 
 extern crate std;
 
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{String, ToString},
     Block, BlockResult, BlockRuntime, InputPort, OutputPort,
@@ -42,6 +43,27 @@ impl Block for ReadDir {
 
         self.output.close()?;
         Ok(())
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for ReadDir {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+
+        let Some(path) = config.params.get("path").map(String::clone) else {
+            return Err(StdioError::MissingParameter("path"))?;
+        };
+
+        Ok(System::build(|s| {
+            let path_param = s.const_string(path);
+            let dir_reader = s.read_dir();
+            let line_encoder = s.encode_with(config.encoding);
+            let stdout = s.write_stdout();
+            s.connect(&path_param.output, &dir_reader.path);
+            s.connect(&dir_reader.output, &line_encoder.input);
+            s.connect(&line_encoder.output, &stdout.input);
+        }))
     }
 }
 
