@@ -74,12 +74,12 @@ impl StdioSystem for Encode {
 #[cfg(test)]
 mod tests {
     use super::Encode;
-    use protoflow_core::{transports::MockTransport, System};
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
-        let _ = System::<MockTransport>::build(|s| {
+        let _ = System::build(|s| {
             let _ = s.block(Encode::<i32>::new(s.input(), s.output()));
         });
     }

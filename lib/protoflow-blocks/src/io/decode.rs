@@ -57,12 +57,12 @@ impl StdioSystem for Decode {
 #[cfg(test)]
 mod tests {
     use super::Decode;
-    use protoflow_core::{transports::MockTransport, System};
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
-        let _ = System::<MockTransport>::build(|s| {
+        let _ = System::build(|s| {
             let _ = s.block(Decode::<i32>::new(s.input(), s.output()));
         });
     }

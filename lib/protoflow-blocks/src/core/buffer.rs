@@ -55,12 +55,12 @@ impl<T: Message> StdioSystem for Buffer<T> {
 #[cfg(test)]
 mod tests {
     use super::Buffer;
-    use protoflow_core::{transports::MockTransport, System};
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
-        let _ = System::<MockTransport>::build(|s| {
+        let _ = System::build(|s| {
             let _ = s.block(Buffer::<i32>::new(s.input()));
         });
     }

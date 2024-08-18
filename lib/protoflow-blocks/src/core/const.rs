@@ -61,12 +61,12 @@ impl<T: Message> StdioSystem for Const<T> {
 #[cfg(test)]
 mod tests {
     use super::Const;
-    use protoflow_core::{transports::MockTransport, System};
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
-        let _ = System::<MockTransport>::build(|s| {
+        let _ = System::build(|s| {
             let _ = s.block(Const::<i32>::with_params(s.output(), 0x00BAB10C));
         });
     }
