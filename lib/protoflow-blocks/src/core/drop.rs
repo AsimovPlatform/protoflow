@@ -8,6 +8,8 @@ use protoflow_derive::Block;
 ///
 /// # Examples
 ///
+/// ## Using the block in a system
+///
 /// ```rust
 /// # use protoflow_blocks::*;
 /// # fn main() {
@@ -17,6 +19,12 @@ use protoflow_derive::Block;
 ///     s.connect(&stdin.output, &dropper.input);
 /// });
 /// # }
+/// ```
+///
+/// ## Running the block via the CLI
+///
+/// ```console
+/// $ protoflow execute Drop
 /// ```
 ///
 #[derive(Block, Clone)]

@@ -17,6 +17,8 @@ const DEFAULT_BUFFER_SIZE: usize = 1024;
 ///
 /// # Examples
 ///
+/// ## Using the block in a system
+///
 /// ```rust
 /// # use protoflow_blocks::*;
 /// # fn main() {
@@ -26,6 +28,16 @@ const DEFAULT_BUFFER_SIZE: usize = 1024;
 ///     s.connect(&stdin.output, &stdout.input);
 /// });
 /// # }
+/// ```
+///
+/// ## Running the block via the CLI
+///
+/// ```console
+/// $ protoflow execute ReadStdin < input.txt
+/// ```
+///
+/// ```console
+/// $ protoflow execute ReadStdin buffer-size=1024 < input.txt
 /// ```
 ///
 #[derive(Block, Clone)]
