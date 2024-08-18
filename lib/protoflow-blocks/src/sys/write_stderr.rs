@@ -7,6 +7,20 @@ use protoflow_core::{prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort
 use protoflow_derive::Block;
 
 /// A block that writes bytes to standard error (aka stderr).
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let stderr = s.write_stderr();
+///     s.connect(&stdin.output, &stderr.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct WriteStderr {
     /// The input message stream.

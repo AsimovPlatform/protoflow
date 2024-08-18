@@ -5,6 +5,20 @@ use protoflow_core::{prelude::VecDeque, Block, BlockResult, BlockRuntime, InputP
 use protoflow_derive::Block;
 
 /// A block that simply stores all messages it receives.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let buffer = s.buffer();
+///     s.connect(&stdin.output, &buffer.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct Buffer<T: Message> {
     /// The input message stream.

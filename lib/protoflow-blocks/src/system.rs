@@ -72,7 +72,11 @@ impl CoreBlocks for System {
         self.0.block(Drop::<T>::new(self.0.input()))
     }
 
-    fn random<T: Message + 'static>(&self, seed: Option<u64>) -> Random<T> {
+    fn random<T: Message + 'static>(&self) -> Random<T> {
+        self.0.block(Random::<T>::new(self.0.output()))
+    }
+
+    fn random_seeded<T: Message + 'static>(&self, seed: Option<u64>) -> Random<T> {
         self.0
             .block(Random::<T>::with_params(self.0.output(), seed))
     }

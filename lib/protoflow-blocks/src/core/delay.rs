@@ -9,6 +9,28 @@ use protoflow_derive::Block;
 
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # use std::time::Duration;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let line_decoder = s.decode_lines();
+///     let delay = Duration::from_secs(1);
+///     let delayer = s.delay_by_fixed::<String>(delay);
+///     let line_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&stdin.output, &line_decoder.input);
+///     s.connect(&line_decoder.output, &delayer.input);
+///     s.connect(&delayer.output, &line_encoder.input);
+///     s.connect(&line_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct Delay<T: Message> {
     /// The input message stream.

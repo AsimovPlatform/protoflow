@@ -5,6 +5,33 @@ use protoflow_core::{prelude::String, Block, BlockResult, BlockRuntime, Message,
 use protoflow_derive::Block;
 
 /// A block for sending a constant value.
+///
+/// This block sends a constant value on its output port.
+/// It can also be used to send a constant value to multiple blocks.
+///
+/// The value to send is specified as a parameter, and can be of any
+/// type that implements the [`Message`] trait.
+///
+/// The block waits for the output port to be connected before sending
+/// the value, and closes the port after the value is sent.
+///
+/// The block does not have any input ports nor state.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let const_value = s.const_string("Hello, world!");
+///     let line_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&const_value.output, &line_encoder.input);
+///     s.connect(&line_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct Const<T: Message = String> {
     /// The port to send the value on.
@@ -49,10 +76,10 @@ impl<T: Message> StdioSystem for Const<T> {
         };
 
         Ok(System::build(|s| {
-            let const_source = s.const_string(value); // FIXME
+            let const_value = s.const_string(value); // FIXME
             let line_encoder = s.encode_with(config.encoding);
             let stdout = s.write_stdout();
-            s.connect(&const_source.output, &line_encoder.input);
+            s.connect(&const_value.output, &line_encoder.input);
             s.connect(&line_encoder.output, &stdout.input);
         }))
     }

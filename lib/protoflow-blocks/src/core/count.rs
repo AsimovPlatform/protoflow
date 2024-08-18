@@ -6,6 +6,26 @@ use protoflow_derive::Block;
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let message_decoder = s.decode_lines();
+///     let counter = s.count::<String>();
+///     let count_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&stdin.output, &message_decoder.input);
+///     s.connect(&message_decoder.output, &counter.input);
+///     s.connect(&counter.count, &count_encoder.input);
+///     s.connect(&count_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct Count<T: Message> {
     /// The input message stream.

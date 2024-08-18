@@ -14,6 +14,20 @@ use std::io::Read;
 const DEFAULT_BUFFER_SIZE: usize = 1024;
 
 /// A block that reads bytes from standard input (aka stdin).
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let stdout = s.write_stdout();
+///     s.connect(&stdin.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct ReadStdin {
     /// The output message stream.

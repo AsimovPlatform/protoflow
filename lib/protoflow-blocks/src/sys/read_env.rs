@@ -10,6 +10,24 @@ use protoflow_core::{
 use protoflow_derive::Block;
 
 /// A block that reads the value of an environment variable.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let name_param = s.const_string("TERM");
+///     let env_reader = s.read_env();
+///     let line_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&name_param.output, &env_reader.name);
+///     s.connect(&env_reader.output, &line_encoder.input);
+///     s.connect(&line_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct ReadEnv<T: Message + FromStr = String> {
     /// The name of the environment variable to read.
