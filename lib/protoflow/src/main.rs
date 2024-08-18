@@ -103,7 +103,7 @@ pub fn main() -> Sysexits {
             block,
             encoding,
             params,
-        } => commands::execute::execute(block, *encoding, params),
+        } => commands::execute::execute(block, params, *encoding),
         Commands::Generate { path } => commands::generate::generate(path),
     };
     return result.err().unwrap_or_default();

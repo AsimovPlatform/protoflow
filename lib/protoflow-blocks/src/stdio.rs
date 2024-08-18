@@ -16,6 +16,7 @@ pub struct StdioConfig {
 
 #[derive(Clone, Debug)]
 pub enum StdioError {
+    UnknownSystem(String),
     MissingParameter(&'static str),
     InvalidParameter(&'static str),
 }
@@ -24,11 +25,15 @@ impl std::error::Error for StdioError {}
 
 impl std::fmt::Display for StdioError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        use StdioError::*;
         match self {
-            StdioError::MissingParameter(parameter) => {
+            UnknownSystem(system) => {
+                write!(f, "unknown system: {}", system)
+            }
+            MissingParameter(parameter) => {
                 write!(f, "missing parameter: {}", parameter)
             }
-            StdioError::InvalidParameter(parameter) => {
+            InvalidParameter(parameter) => {
                 write!(f, "invalid parameter: {}", parameter)
             }
         }
