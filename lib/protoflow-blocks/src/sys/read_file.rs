@@ -13,6 +13,8 @@ use protoflow_derive::Block;
 ///
 /// # Examples
 ///
+/// ## Using the block in a system
+///
 /// ```rust
 /// # use protoflow_blocks::*;
 /// # fn main() {
@@ -20,6 +22,12 @@ use protoflow_derive::Block;
 ///     // TODO
 /// });
 /// # }
+/// ```
+///
+/// ## Running the block via the CLI
+///
+/// ```console
+/// $ protoflow execute ReadFile path=/tmp/file.txt
 /// ```
 ///
 #[derive(Block, Clone)]

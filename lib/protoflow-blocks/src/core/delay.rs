@@ -12,6 +12,8 @@ use protoflow_derive::Block;
 ///
 /// # Examples
 ///
+/// ## Using the block in a system
+///
 /// ```rust
 /// # use protoflow_blocks::*;
 /// # use std::time::Duration;
@@ -29,6 +31,16 @@ use protoflow_derive::Block;
 ///     s.connect(&line_encoder.output, &stdout.input);
 /// });
 /// # }
+/// ```
+///
+/// ## Running the block via the CLI
+///
+/// ```console
+/// $ protoflow execute Delay fixed=1
+/// ```
+///
+/// ```console
+/// $ protoflow execute Delay random=1..10
 /// ```
 ///
 #[derive(Block, Clone)]
