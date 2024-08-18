@@ -5,6 +5,22 @@ use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 
 /// A block for sending a random value.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let random_generator = s.random::<u64>();
+///     let number_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&random_generator.output, &number_encoder.input);
+///     s.connect(&number_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct Random<T: Message> {
     /// The port to send the value on.
@@ -49,7 +65,7 @@ impl StdioSystem for Random<u64> {
         let seed = seed.map(Result::unwrap);
 
         Ok(System::build(|s| {
-            let random_generator = s.random::<u64>(seed);
+            let random_generator = s.random_seeded::<u64>(seed);
             let number_encoder = s.encode_with::<u64>(config.encoding);
             let stdout = s.write_stdout();
             s.connect(&random_generator.output, &number_encoder.input);

@@ -10,6 +10,18 @@ use protoflow_core::{
 use protoflow_derive::Block;
 
 /// A block that writes or appends to the contents of a file.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     // TODO
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct WriteFile {
     /// The path to the file to write to.
@@ -42,7 +54,7 @@ impl StdioSystem for WriteFile {
     fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
         //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
 
-        Ok(System::build(|_s| todo!()))
+        Ok(System::build(|_s| todo!())) // TODO
     }
 }
 

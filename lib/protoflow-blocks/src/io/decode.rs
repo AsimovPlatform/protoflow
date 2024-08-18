@@ -10,6 +10,26 @@ use protoflow_core::{
 use protoflow_derive::Block;
 
 /// A block that decodes `T` messages from a byte stream.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let message_decoder = s.decode_lines();
+///     let counter = s.count::<String>();
+///     let count_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&stdin.output, &message_decoder.input);
+///     s.connect(&message_decoder.output, &counter.input);
+///     s.connect(&counter.count, &count_encoder.input);
+///     s.connect(&count_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct Decode<T: Message + FromStr = String> {
     /// The input byte stream.

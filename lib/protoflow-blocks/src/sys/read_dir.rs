@@ -10,6 +10,24 @@ use protoflow_core::{
 use protoflow_derive::Block;
 
 /// A block that reads file names from a file system directory.
+///
+/// # Examples
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let path_param = s.const_string("/tmp");
+///     let dir_reader = s.read_dir();
+///     let line_encoder = s.encode_lines();
+///     let stdout = s.write_stdout();
+///     s.connect(&path_param.output, &dir_reader.path);
+///     s.connect(&dir_reader.output, &line_encoder.input);
+///     s.connect(&line_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
 #[derive(Block, Clone)]
 pub struct ReadDir {
     /// The path to the directory to read.
