@@ -46,15 +46,16 @@ impl Block for ReadStdin {
         runtime.wait_for(&self.output)?;
 
         loop {
+            buffer.resize(self.buffer_size, b'\0'); // reinitialize the buffer
+            buffer.fill(b'\0');
             match reader.read(&mut buffer) {
                 Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
                 Err(err) => return Err(err.into()),
                 Ok(0) => break, // EOF
                 Ok(buffer_len) => {
-                    buffer.resize(buffer_len, b'\0');
+                    buffer.resize(buffer_len, b'\0'); // truncate the buffer
                     let bytes = Bytes::from(buffer.clone());
                     self.output.send(&bytes)?;
-                    buffer.clear();
                 }
             }
         }
