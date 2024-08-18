@@ -3,7 +3,7 @@
 use crate::{
     prelude::{Arc, Box, PhantomData, Rc, RefCell, VecDeque},
     runtimes::StdRuntime,
-    transports::MockTransport,
+    transports::MpscTransport,
     Block, BlockResult, InputPort, Message, OutputPort, Process, Runtime, Transport,
 };
 
@@ -29,7 +29,7 @@ pub trait SystemExecution {
 }
 
 /// A system is a collection of blocks that are connected together.
-pub struct System<X: Transport + Default + 'static = MockTransport> {
+pub struct System<X: Transport + Default + 'static = MpscTransport> {
     pub(crate) runtime: Arc<StdRuntime<X>>,
 
     /// The registered blocks in the system.

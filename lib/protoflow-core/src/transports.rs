@@ -1,9 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 #[cfg(feature = "std")]
-mod mock;
-#[cfg(feature = "std")]
-pub use mock::*;
+pub type MockTransport = MpscTransport;
 
 #[cfg(feature = "std")]
 mod mpsc;
