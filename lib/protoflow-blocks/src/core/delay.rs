@@ -99,13 +99,13 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
 #[cfg(test)]
 mod tests {
     use super::{Delay, DelayType};
-    use protoflow_core::{prelude::Duration, transports::MockTransport, System};
+    use crate::{prelude::Duration, System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
-        let _ = System::<MockTransport>::build(|s| {
-            let _ = s.block(Delay::<i32>::new(
+        let _ = System::build(|s| {
+            let _ = s.block(Delay::<i32>::with_params(
                 s.input(),
                 s.output(),
                 DelayType::Fixed(Duration::from_secs(1)),

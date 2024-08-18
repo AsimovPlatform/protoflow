@@ -66,12 +66,12 @@ impl<T: Message + FromStr> StdioSystem for ReadEnv<T> {
 #[cfg(test)]
 mod tests {
     use super::ReadEnv;
-    use protoflow_core::{transports::MockTransport, System};
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
-        let _ = System::<MockTransport>::build(|s| {
+        let _ = System::build(|s| {
             let _ = s.block(ReadEnv::<i32>::new(s.input(), s.output()));
         });
     }

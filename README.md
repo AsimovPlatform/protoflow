@@ -30,12 +30,10 @@ use protoflow::derive::*;
 ### Wiring up a system or subsystem
 
 ```rust
-use protoflow::blocks::{Const, Drop};
-use protoflow::transports::MockTransport;
-use protoflow::System;
+use protoflow::blocks::{Const, Drop, System, SystemBuilding};
 
-let system = System::<MockTransport>::build(|s| {
-    let source = s.block(Const::<i32>::new(s.output(), 42));
+let system = System::build(|s| {
+    let source = s.block(Const::<i32>::with_params(s.output(), 42));
     let sink = s.block(Drop::<i32>::new(s.input()));
     s.connect(&source.output, &sink.input);
 });
@@ -45,21 +43,21 @@ let system = System::<MockTransport>::build(|s| {
 
 ```rust
 use protoflow::runtimes::StdRuntime;
-use protoflow::transports::MockTransport;
+use protoflow::transports::MpscTransport;
 use protoflow::{Runtime, System};
 
-let system = System::<MockTransport>::build(|s| {
+let system = System::<MpscTransport>::build(|s| {
     /* ... build the system here ... */
 });
 
-let transport = MockTransport::new();
+let transport = MpscTransport::new();
 let mut runtime = StdRuntime::new(transport).unwrap();
-let running_system = runtime.execute(system).unwrap();
+let process = runtime.execute(system).unwrap();
 ```
 
 ### Authoring a trivial function block
 
-```rust,ignore
+```rust
 use protoflow::derive::FunctionBlock;
 use protoflow::{BlockResult, FunctionBlock, InputPort, OutputPort};
 
