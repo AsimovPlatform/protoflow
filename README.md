@@ -4,7 +4,7 @@
 [![Compatibility](https://img.shields.io/badge/rust-1.70%2B-blue)](https://rust-lang.org)
 [![Package](https://img.shields.io/crates/v/protoflow)](https://crates.io/crates/protoflow)
 
-🚧 _This is presently under heavy construction._
+🚧 _We are building in public. This is presently under heavy construction._
 
 ## 🛠️ Prerequisites
 
@@ -171,15 +171,15 @@ impl<T: Message> Block for Delay<T> {
 ## 👨‍💻 Development
 
 ```console
-$ git clone https://github.com/artob/protoflow.git
+$ git clone https://github.com/AsimovPlatform/protoflow.git
 ```
 
 - - -
 
-[![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/artob/protoflow&text=Protoflow)
-[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/artob/protoflow&title=Protoflow)
-[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/artob/protoflow&t=Protoflow)
-[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/artob/protoflow)
+[![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/AsimovPlatform/protoflow&text=Protoflow)
+[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/AsimovPlatform/protoflow&title=Protoflow)
+[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/AsimovPlatform/protoflow&t=Protoflow)
+[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/AsimovPlatform/protoflow)
 
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
