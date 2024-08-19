@@ -3,8 +3,10 @@
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block for sending a random value.
+#[doc = mermaid!("../../doc/core/random.mmd")]
 ///
 /// # Examples
 ///

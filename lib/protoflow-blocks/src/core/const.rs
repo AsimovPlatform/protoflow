@@ -3,8 +3,10 @@
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{prelude::String, Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block for sending a constant value.
+#[doc = mermaid!("../../doc/core/const.mmd")]
 ///
 /// This block sends a constant value on its output port.
 /// It can also be used to send a constant value to multiple blocks.

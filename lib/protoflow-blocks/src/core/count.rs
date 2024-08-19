@@ -3,9 +3,11 @@
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
+#[doc = mermaid!("../../doc/core/count.mmd")]
 ///
 /// # Examples
 ///
