@@ -8,8 +8,10 @@ use protoflow_core::{
     Block, BlockResult, BlockRuntime, InputPort, OutputPort,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that reads file names from a file system directory.
+#[doc = mermaid!("../../doc/sys/read_dir.mmd")]
 ///
 /// # Examples
 ///

@@ -5,8 +5,10 @@ extern crate std;
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort};
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that writes bytes to standard output (aka stdout).
+#[doc = mermaid!("../../doc/sys/write_stdout.mmd")]
 ///
 /// # Examples
 ///

@@ -1,0 +1,14 @@
+block-beta
+    columns 4
+    Config space:3
+    space:4
+    space:4
+    ReadEnv space:2 Sink
+    Config-- "name" -->ReadEnv
+    ReadEnv-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadEnv block
+    class Config hidden
+    class Sink hidden

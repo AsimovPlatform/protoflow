@@ -8,12 +8,14 @@ use protoflow_core::{
     Block, BlockResult, BlockRuntime, OutputPort,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 use std::io::Read;
 
 /// The default buffer size for reading from standard input.
 const DEFAULT_BUFFER_SIZE: usize = 1024;
 
 /// A block that reads bytes from standard input (aka stdin).
+#[doc = mermaid!("../../doc/sys/read_stdin.mmd")]
 ///
 /// # Examples
 ///
