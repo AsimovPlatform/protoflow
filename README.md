@@ -4,6 +4,8 @@
 [![Compatibility](https://img.shields.io/badge/rust-1.70%2B-blue)](https://rust-lang.org)
 [![Package](https://img.shields.io/crates/v/protoflow)](https://crates.io/crates/protoflow)
 
+_"Τὰ πάντα ῥεῖ καὶ οὐδὲν μένει" — Heraclitus_
+
 🚧 _We are building in public. This is presently under heavy construction._
 
 ## 🛠️ Prerequisites
@@ -20,119 +22,24 @@ $ cargo install protoflow
 
 ## 👉 Examples
 
-### Importing the library
-
-```rust
-use protoflow::*;
-use protoflow::derive::*;
-```
-
-### Wiring up a system or subsystem
-
-```rust
-use protoflow::blocks::{Const, Drop, System, SystemBuilding};
-
-let system = System::build(|s| {
-    let source = s.block(Const::<i32>::with_params(s.output(), 42));
-    let sink = s.block(Drop::<i32>::new(s.input()));
-    s.connect(&source.output, &sink.input);
-});
-```
-
-### Executing a system or subsystem
-
-```rust
-use protoflow::runtimes::StdRuntime;
-use protoflow::transports::MpscTransport;
-use protoflow::{Runtime, System};
-
-let system = System::<MpscTransport>::build(|s| {
-    /* ... build the system here ... */
-});
-
-let transport = MpscTransport::new();
-let mut runtime = StdRuntime::new(transport).unwrap();
-let process = runtime.execute(system).unwrap();
-```
-
-### Authoring a trivial function block
-
-```rust
-use protoflow::derive::FunctionBlock;
-use protoflow::{BlockResult, FunctionBlock, InputPort, OutputPort};
-
-/// A block that simply echoes inputs to outputs.
-#[derive(FunctionBlock, Clone)]
-pub struct Echo(pub InputPort<i64>, pub OutputPort<i64>);
-
-impl FunctionBlock<i64, i64> for Echo {
-    fn compute(&self, input: i64) -> BlockResult<i64> {
-        Ok(input)
-    }
-}
-```
-
-### Authoring a simple DROP block
-
-```rust,ignore
-use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message};
-
-/// A block that simply discards all messages it receives.
-#[derive(Block, Clone)]
-pub struct Drop<T: Message>(#[input] pub InputPort<T>);
-
-impl<T: Message> Block for Drop<T> {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        while let Some(message) = self.0.recv()? {
-            drop(message);
-        }
-        Ok(())
-    }
-}
-```
-
-### Authoring a simple DELAY block
-
-```rust,ignore
-use protoflow::derive::Block;
-use protoflow::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
-use std::time::Duration;
-
-/// A block that passes messages through while delaying them by a fixed
-/// duration.
-#[derive(Block, Clone)]
-pub struct Delay<T: Message> {
-    /// The input message stream.
-    #[input]
-    pub input: InputPort<T>,
-
-    /// The output target for the stream being passed through.
-    #[output]
-    pub output: OutputPort<T>,
-
-    /// A configuration parameter for how much delay to add.
-    #[parameter]
-    pub delay: Duration,
-}
-
-impl<T: Message> Block for Delay<T> {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
-        while let Some(message) = self.input.recv()? {
-            runtime.sleep_for(self.delay)?;
-
-            if self.output.is_connected() {
-                self.output.send(message)?;
-            }
-        }
-        Ok(())
-    }
-}
-```
+TBD
 
 ## 📚 Reference
 
 ### Glossary
+
+- **System**: A collection of blocks that are connected together.
+  Systems are the top-level entities in a Protoflow program.
+
+- **Block**: An encapsulated system component that processes messages.
+  Blocks are the autonomous units of computation in a system.
+
+- **Port**: A named connection point on a block that sends or receives
+  messages. Ports are the only interfaces through which blocks communicate
+  with each other.
+
+- **Message**: A unit of data that flows between blocks in a system.
+  Messages are Protocol Buffers packets that are processed by blocks.
 
 ### Blocks
 
@@ -154,19 +61,278 @@ impl<T: Message> Block for Delay<T> {
 | [`WriteStderr`] | Writes bytes to standard error (aka stderr).               |
 | [`WriteStdout`] | Writes bytes to standard output (aka stdout).              |
 
-### Features
+#### [`Buffer`]
 
-- [`blocks`](lib/protoflow/Cargo.toml)
-- [`crossbeam`](lib/protoflow/Cargo.toml)
-- [`derive`](lib/protoflow/Cargo.toml)
-- [`flume`](lib/protoflow/Cargo.toml)
-- [`rand`](lib/protoflow/Cargo.toml)
-- [`std`](lib/protoflow/Cargo.toml)
-- [`syntax`](lib/protoflow/Cargo.toml)
-- [`sysml`](lib/protoflow/Cargo.toml)
-- [`tracing`](lib/protoflow/Cargo.toml)
-- [`web`](lib/protoflow/Cargo.toml)
-- [`zeromq`](lib/protoflow/Cargo.toml)
+A block that simply stores all messages it receives.
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 Buffer
+    Source-- "input" -->Buffer
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Buffer block
+    class Source hidden
+```
+
+#### [`Const`]
+
+A block for sending a constant value.
+
+```mermaid
+block-beta
+    columns 4
+    Const space:2 Sink
+    Const-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Const block
+    class Sink hidden
+```
+
+#### [`Count`]
+
+A block that counts the number of messages it receives, while optionally passing them through.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Count space:2 Sink
+    space:7
+    space:7
+    space:3 Result space:3
+    Source-- "input" -->Count
+    Count-- "output" -->Sink
+    Count-- "count" -->Result
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Count block
+    class Source hidden
+    class Sink hidden
+    class Result hidden
+```
+
+#### [`Decode`]
+
+A block that decodes `T` messages from a byte stream.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Decode space:2 Sink
+    Source-- "input" -->Decode
+    Decode-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Decode block
+    class Source hidden
+    class Sink hidden
+```
+
+#### [`Delay`]
+
+A block that passes messages through while delaying them by a fixed or random duration.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Delay space:2 Sink
+    Source-- "input" -->Delay
+    Delay-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Delay block
+    class Source hidden
+    class Sink hidden
+```
+
+#### [`Drop`]
+
+A block that simply discards all messages it receives.
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 Drop
+    Source-- "input" -->Drop
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Drop block
+    class Source hidden
+```
+
+#### [`Encode`]
+
+A block that encodes `T` messages to a byte stream.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Encode space:2 Sink
+    Source-- "input" -->Encode
+    Encode-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Encode block
+    class Source hidden
+    class Sink hidden
+```
+
+#### [`Random`]
+
+A block for generating and sending a random value.
+
+```mermaid
+block-beta
+    columns 4
+    Random space:2 Sink
+    Random-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Random block
+    class Sink hidden
+```
+
+#### [`ReadDir`]
+
+A block that reads file names from a file system directory.
+
+```mermaid
+block-beta
+    columns 4
+    Config space:3
+    space:4
+    space:4
+    ReadDir space:2 Sink
+    Config-- "path" -->ReadDir
+    ReadDir-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadDir block
+    class Config hidden
+    class Sink hidden
+```
+
+#### [`ReadEnv`]
+
+A block that reads the value of an environment variable.
+
+```mermaid
+block-beta
+    columns 4
+    Config space:3
+    space:4
+    space:4
+    ReadEnv space:2 Sink
+    Config-- "name" -->ReadEnv
+    ReadEnv-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadEnv block
+    class Config hidden
+    class Sink hidden
+```
+
+#### [`ReadFile`]
+
+A block that reads bytes from the contents of a file.
+
+```mermaid
+block-beta
+    columns 4
+    Config space:3
+    space:4
+    space:4
+    ReadFile space:2 Sink
+    Config-- "path" -->ReadFile
+    ReadFile-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadFile block
+    class Config hidden
+    class Sink hidden
+```
+
+#### [`ReadStdin`]
+
+A block that reads bytes from standard input (aka stdin).
+
+```mermaid
+block-beta
+    columns 4
+    ReadStdin space:2 Sink
+    ReadStdin-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadStdin block
+    class Sink hidden
+```
+
+#### [`WriteFile`]
+
+A block that writes or appends bytes to the contents of a file.
+
+```mermaid
+block-beta
+    columns 4
+    space:3 Config
+    space:4
+    space:4
+    Source space:2 WriteFile
+    Config-- "path" -->WriteFile
+    Source-- "input" -->WriteFile
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class WriteFile block
+    class Config hidden
+    class Source hidden
+```
+
+#### [`WriteStderr`]
+
+A block that writes bytes to standard error (aka stderr).
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 WriteStderr
+    Source-- "input" -->WriteStderr
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class WriteStderr block
+    class Source hidden
+```
+
+#### [`WriteStdout`]
+
+A block that writes bytes to standard output (aka stdout).
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 WriteStdout
+    Source-- "input" -->WriteStdout
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class WriteStdout block
+    class Source hidden
+```
 
 ## 👨‍💻 Development
 
