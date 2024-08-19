@@ -8,8 +8,10 @@ use protoflow_core::{
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that encodes `T` messages to a byte stream.
+#[doc = mermaid!("../../doc/io/encode.mmd")]
 ///
 /// # Examples
 ///

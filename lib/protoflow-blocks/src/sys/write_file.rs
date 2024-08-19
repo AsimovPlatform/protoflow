@@ -8,8 +8,10 @@ use protoflow_core::{
     Block, BlockResult, BlockRuntime, InputPort,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that writes or appends to the contents of a file.
+#[doc = mermaid!("../../doc/sys/write_file.mmd")]
 ///
 /// # Examples
 ///
