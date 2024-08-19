@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Delay.input as Delay.input port
+    participant Delay as Delay block
+    participant Delay.output as Delay.output port
+    participant BlockB as Another block
+
+    BlockA-->>Delay: Connect
+    Delay-->>BlockB: Connect
+
+    loop Delay process
+        BlockA->>Delay: Message
+        Delay->>Delay: Sleep
+        Delay->>BlockB: Message
+    end
+
+    BlockA-->>Delay: Disconnect
+    Delay-->>Delay.input: Close
+    Delay-->>Delay.output: Close
+    Delay-->>BlockB: Disconnect

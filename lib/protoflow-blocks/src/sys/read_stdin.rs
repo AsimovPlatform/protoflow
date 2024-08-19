@@ -15,7 +15,12 @@ use std::io::Read;
 const DEFAULT_BUFFER_SIZE: usize = 1024;
 
 /// A block that reads bytes from standard input (aka stdin).
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/sys/read_stdin.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/sys/read_stdin.seq.mmd" framed)]
 ///
 /// # Examples
 ///

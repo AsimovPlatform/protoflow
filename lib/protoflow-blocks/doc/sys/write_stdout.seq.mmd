@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant WriteStdout.input as WriteStdout.input port
+    participant WriteStdout as WriteStdout block
+
+    BlockA-->>WriteStdout: Connect
+
+    loop WriteStdout process
+        BlockA->>WriteStdout: Message (Bytes)
+        WriteStdout->>WriteStdout: Write bytes to standard output
+    end
+
+    BlockA-->>WriteStdout: Disconnect
+    WriteStdout-->>WriteStdout.input: Close

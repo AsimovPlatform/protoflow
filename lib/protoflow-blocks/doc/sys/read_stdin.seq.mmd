@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant ReadStdin as ReadStdin block
+    participant ReadStdin.output as ReadStdin.output port
+    participant BlockA as Another block
+
+    ReadStdin-->>BlockA: Connect
+
+    loop ReadStdin process
+        ReadStdin->>ReadStdin: Read bytes from standard input
+        ReadStdin->>BlockA: Message (Bytes)
+    end
+
+    ReadStdin-->>ReadStdin.output: Close
+    ReadStdin-->>BlockA: Disconnect

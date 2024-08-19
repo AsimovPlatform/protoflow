@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Buffer.input as Buffer.input port
+    participant Buffer as Buffer block
+
+    BlockA-->>Buffer: Connect
+
+    loop Buffer process
+        BlockA->>Buffer: Message
+        Buffer->>Buffer: Store message
+    end
+
+    BlockA-->>Buffer: Disconnect
+    Buffer-->>Buffer.input: Close

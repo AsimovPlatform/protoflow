@@ -6,7 +6,6 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block for sending a constant value.
-#[doc = mermaid!("../../doc/core/const.mmd")]
 ///
 /// This block sends a constant value on its output port.
 /// It can also be used to send a constant value to multiple blocks.
@@ -18,6 +17,12 @@ use simple_mermaid::mermaid;
 /// the value, and closes the port after the value is sent.
 ///
 /// The block does not have any input ports nor state.
+///
+/// # Block Diagram
+#[doc = mermaid!("../../doc/core/const.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/core/const.seq.mmd" framed)]
 ///
 /// # Examples
 ///

@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant WriteFile.path as WriteFile.path port
+    participant WriteFile as WriteFile block
+    participant WriteFile.input as WriteFile.input port
+    participant BlockB as Another block
+
+    BlockA-->>WriteFile: Connect
+
+    BlockA->>WriteFile: Message (e.g. "/tmp/file.txt")
+    WriteFile-->>WriteFile.path: Close
+    WriteFile-->>BlockA: Disconnect
+
+    BlockB-->>WriteFile: Connect
+
+    loop WriteFile process
+        BlockB->>WriteFile: Message (Bytes)
+        WriteFile->>WriteFile: Write bytes to the file
+    end
+
+    BlockB-->>WriteFile: Disconnect
+    WriteFile-->>WriteFile.input: Close

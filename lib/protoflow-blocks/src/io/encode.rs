@@ -11,7 +11,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block that encodes `T` messages to a byte stream.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/io/encode.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/io/encode.seq.mmd" framed)]
 ///
 /// # Examples
 ///

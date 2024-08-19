@@ -8,7 +8,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block that writes bytes to standard output (aka stdout).
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/sys/write_stdout.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/sys/write_stdout.seq.mmd" framed)]
 ///
 /// # Examples
 ///

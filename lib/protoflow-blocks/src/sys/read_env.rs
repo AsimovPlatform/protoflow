@@ -11,7 +11,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block that reads the value of an environment variable.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/sys/read_env.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/sys/read_env.seq.mmd" framed)]
 ///
 /// # Examples
 ///
