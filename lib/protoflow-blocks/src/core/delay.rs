@@ -6,9 +6,11 @@ use protoflow_core::{
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
+#[doc = mermaid!("../../doc/core/delay.mmd")]
 ///
 /// # Examples
 ///

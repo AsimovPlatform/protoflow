@@ -3,8 +3,10 @@
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{prelude::VecDeque, Block, BlockResult, BlockRuntime, InputPort, Message};
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
 /// A block that simply stores all messages it receives.
+#[doc = mermaid!("../../doc/core/buffer.mmd")]
 ///
 /// # Examples
 ///
