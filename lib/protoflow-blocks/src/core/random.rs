@@ -5,7 +5,7 @@ use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
-/// A block for sending a random value.
+/// A block for generating and sending a random value.
 ///
 /// # Block Diagram
 #[doc = mermaid!("../../doc/core/random.mmd")]

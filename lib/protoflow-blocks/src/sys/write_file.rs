@@ -10,7 +10,7 @@ use protoflow_core::{
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
-/// A block that writes or appends to the contents of a file.
+/// A block that writes or appends bytes to the contents of a file.
 ///
 /// # Block Diagram
 #[doc = mermaid!("../../doc/sys/write_file.mmd")]

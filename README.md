@@ -15,7 +15,7 @@
 ### Installation via Cargo
 
 ```console
-$ cargo add protoflow
+$ cargo install protoflow
 ```
 
 ## 👉 Examples
@@ -136,12 +136,23 @@ impl<T: Message> Block for Delay<T> {
 
 ### Blocks
 
-- [`Buffer`](lib/protoflow/src/blocks/buffer.rs)
-- [`Const`](lib/protoflow/src/blocks/const.rs)
-- [`Count`](lib/protoflow/src/blocks/count.rs)
-- [`Delay`](lib/protoflow/src/blocks/delay.rs)
-- [`Drop`](lib/protoflow/src/blocks/drop.rs)
-- [`Random`](lib/protoflow/src/blocks/random.rs)
+| Block           | Description                                                |
+| :-------------- | :--------------------------------------------------------- |
+| [`Buffer`]      | Stores all messages it receives.                           |
+| [`Const`]       | Sends a constant value.                                    |
+| [`Count`]       | Counts the number of messages it receives, while optionally passing them through. |
+| [`Decode`]      | Decodes messages from a byte stream.                       |
+| [`Delay`]       | Passes messages through while delaying them by a fixed or random duration. |
+| [`Drop`]        | Discards all messages it receives.                         |
+| [`Encode`]      | Encodes messages to a byte stream.                         |
+| [`Random`]      | Generates and sends a random value.                        |
+| [`ReadDir`]     | Reads file names from a file system directory.             |
+| [`ReadEnv`]     | Reads the value of an environment variable.                |
+| [`ReadFile`]    | Reads bytes from the contents of a file.                   |
+| [`ReadStdin`]   | Reads bytes from standard input (aka stdin).               |
+| [`WriteFile`]   | Writes or appends bytes to the contents of a file.         |
+| [`WriteStderr`] | Writes bytes to standard error (aka stderr).               |
+| [`WriteStdout`] | Writes bytes to standard output (aka stdout).              |
 
 ### Features
 
@@ -169,3 +180,19 @@ $ git clone https://github.com/artob/protoflow.git
 [![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/artob/protoflow&title=Protoflow)
 [![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/artob/protoflow&t=Protoflow)
 [![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/artob/protoflow)
+
+[`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
+[`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
+[`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
+[`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
+[`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
+[`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
+[`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
+[`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
+[`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
+[`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
+[`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadFile.html
+[`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
+[`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
+[`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
+[`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
