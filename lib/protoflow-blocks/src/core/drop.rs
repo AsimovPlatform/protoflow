@@ -6,7 +6,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block that simply discards all messages it receives.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/core/drop.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/core/drop.seq.mmd" framed)]
 ///
 /// # Examples
 ///

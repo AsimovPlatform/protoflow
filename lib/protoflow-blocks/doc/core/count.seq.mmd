@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Count.input as Count.input port
+    participant Count as Count block
+    participant Count.output as Count.output port
+    participant BlockB as Another block
+    participant Count.count as Count.count port
+    participant BlockC as Another block
+
+    BlockA-->>Count: Connect
+    Count-->>BlockB: Connect
+
+    loop Count process
+        BlockA->>Count: Message
+        Count->>Count: Increment counter
+        Count->>BlockB: Message
+    end
+
+    BlockA-->>Count: Disconnect
+    Count-->>Count.input: Close
+    Count-->>Count.output: Close
+    Count-->>BlockB: Disconnect
+
+    Count-->>BlockC: Connect
+    Count->>BlockC: Counter
+    Count-->>Count.count: Close
+    Count-->>BlockC: Disconnect
+
+    %% TODO

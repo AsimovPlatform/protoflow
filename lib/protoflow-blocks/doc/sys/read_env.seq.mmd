@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant ReadEnv.name as ReadEnv.name port
+    participant ReadEnv as ReadEnv block
+    participant ReadEnv.output as ReadEnv.output port
+    participant BlockB as Another block
+
+    BlockA-->>ReadEnv: Connect
+
+    BlockA->>ReadEnv: Message (e.g. "TERM")
+    ReadEnv-->>ReadEnv.name: Close
+    ReadEnv-->>BlockA: Disconnect
+    ReadEnv-->>BlockB: Connect
+
+    ReadEnv->>ReadEnv: Read environment variable
+    ReadEnv->>BlockB: Message (e.g. "xterm-256color")
+
+    ReadEnv-->>ReadEnv.output: Close
+    ReadEnv-->>BlockB: Disconnect

@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Drop.input as Drop.input port
+    participant Drop as Drop block
+
+    BlockA-->>Drop: Connect
+
+    loop Drop process
+        BlockA->>Drop: Message
+        Drop->>Drop: Drop message
+    end
+
+    BlockA-->>Drop: Disconnect
+    Drop-->>Drop.input: Close

@@ -6,7 +6,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block for sending a random value.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/core/random.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/core/random.seq.mmd" framed)]
 ///
 /// # Examples
 ///

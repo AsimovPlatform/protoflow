@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Encode.input as Encode.input port
+    participant Encode as Encode block
+    participant Encode.output as Encode.output port
+    participant BlockB as Another block
+
+    BlockA-->>Encode: Connect
+    Encode-->>BlockB: Connect
+
+    loop Encode process
+        BlockA->>Encode: Message
+        Encode->>Encode: Encode message
+        Encode->>BlockB: Message
+    end
+
+    BlockA-->>Encode: Disconnect
+    Encode-->>Encode.input: Close
+    Encode-->>Encode.output: Close
+    Encode-->>BlockB: Disconnect

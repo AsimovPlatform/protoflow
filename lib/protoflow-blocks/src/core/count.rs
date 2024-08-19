@@ -7,7 +7,12 @@ use simple_mermaid::mermaid;
 
 /// A block that counts the number of messages it receives, while optionally
 /// passing them through.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/core/count.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/core/count.seq.mmd" framed)]
 ///
 /// # Examples
 ///

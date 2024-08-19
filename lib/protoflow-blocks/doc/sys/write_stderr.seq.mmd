@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant WriteStderr.input as WriteStderr.input port
+    participant WriteStderr as WriteStderr block
+
+    BlockA-->>WriteStderr: Connect
+
+    loop WriteStderr process
+        BlockA->>WriteStderr: Message (Bytes)
+        WriteStderr->>WriteStderr: Write bytes to standard error
+    end
+
+    BlockA-->>WriteStderr: Disconnect
+    WriteStderr-->>WriteStderr.input: Close

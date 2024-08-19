@@ -10,7 +10,12 @@ use simple_mermaid::mermaid;
 
 /// A block that passes messages through while delaying them by a fixed or
 /// random duration.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/core/delay.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/core/delay.seq.mmd" framed)]
 ///
 /// # Examples
 ///

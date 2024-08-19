@@ -8,7 +8,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block that writes bytes to standard error (aka stderr).
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/sys/write_stderr.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/sys/write_stderr.seq.mmd" framed)]
 ///
 /// # Examples
 ///

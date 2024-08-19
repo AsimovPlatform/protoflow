@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant ReadDir.path as ReadDir.path port
+    participant ReadDir as ReadDir block
+    participant ReadDir.output as ReadDir.output port
+    participant BlockB as Another block
+
+    BlockA-->>ReadDir: Connect
+
+    BlockA->>ReadDir: Message (e.g. "/tmp")
+    ReadDir-->>ReadDir.path: Close
+    ReadDir-->>BlockA: Disconnect
+    ReadDir-->>BlockB: Connect
+
+    loop ReadDir process
+        ReadDir->>ReadDir: Read directory entries
+        ReadDir->>BlockB: Message (e.g. "/tmp/file.txt")
+    end
+
+    ReadDir-->>ReadDir.output: Close
+    ReadDir-->>BlockB: Disconnect

@@ -1,0 +1,12 @@
+sequenceDiagram
+    autonumber
+    participant Const as Const block
+    participant Const.output as Const.output port
+    participant BlockA as Another block
+
+    Const-->>BlockA: Connect
+
+    Const->>BlockA: Message
+
+    Const-->>Const.output: Close
+    Const-->>BlockA: Disconnect

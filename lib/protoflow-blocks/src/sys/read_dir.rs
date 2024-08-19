@@ -11,7 +11,12 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
 /// A block that reads file names from a file system directory.
+///
+/// # Block Diagram
 #[doc = mermaid!("../../doc/sys/read_dir.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../doc/sys/read_dir.seq.mmd" framed)]
 ///
 /// # Examples
 ///
