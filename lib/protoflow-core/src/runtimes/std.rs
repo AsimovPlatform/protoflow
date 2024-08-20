@@ -95,16 +95,16 @@ impl<T: Transport> BlockRuntime for Arc<StdRuntime<T>> {
         todo!() // TODO
     }
 
-    fn wait_for(&self, _port: &dyn Port) -> BlockResult {
-        // while self.is_alive() && !port.is_connected() {
-        //     self.yield_now()?;
-        // }
-        // if self.is_alive() {
-        //     Ok(())
-        // } else {
-        //     Err(BlockError::Terminated)
-        // }
-        Ok(()) // TODO
+    fn wait_for(&self, port: &dyn Port) -> BlockResult {
+        loop {
+            if !self.is_alive() {
+                return Err(BlockError::Terminated);
+            }
+            if port.is_connected() {
+                return Ok(());
+            }
+            self.yield_now()?;
+        }
     }
 
     fn yield_now(&self) -> Result<(), BlockError> {

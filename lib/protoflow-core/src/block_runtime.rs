@@ -12,6 +12,7 @@ pub trait BlockRuntime: Send + Sync {
 
     fn sleep_until(&self, instant: Instant) -> Result<(), BlockError>; // TODO
 
+    /// Wait for a port to be connected.
     fn wait_for(&self, port: &dyn Port) -> Result<(), BlockError>;
 
     fn yield_now(&self) -> Result<(), BlockError>;

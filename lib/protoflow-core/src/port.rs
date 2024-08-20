@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{prelude::ToString, PortError, PortID, PortResult, PortState};
+use crate::{
+    prelude::{fmt, ToString},
+    PortError, PortID, PortResult, PortState,
+};
 
 /// The common interface for ports, whether for input or output.
 pub trait Port {
@@ -46,5 +49,15 @@ pub trait Port {
     /// Returns `Err(PortError)` if an error occurs.
     fn close(&mut self) -> PortResult<bool> {
         Err(PortError::Other("not implemented".to_string()))
+    }
+}
+
+impl fmt::Debug for &dyn Port {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Port")
+            .field("id", &self.id())
+            .field("name", &self.name())
+            .field("state", &self.state())
+            .finish()
     }
 }
