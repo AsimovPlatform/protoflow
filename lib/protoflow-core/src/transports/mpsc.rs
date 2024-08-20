@@ -135,12 +135,12 @@ impl Transport for MpscTransport {
                         PortState::Connected(PortID::Output(_))
                     ));
                     let sender = state.channels[input_index].0.clone();
+                    sender.send(Bytes::new()).unwrap(); // blocking
                     state.with_upgraded(|state| {
                         state.outputs[output_index] = PortState::Closed;
                         state.inputs[input_index] = PortState::Open;
                     });
                     drop(state);
-                    sender.send(Bytes::new()).unwrap(); // blocking
                     true
                 }
                 PortState::Connected(PortID::Output(_)) => unreachable!(),
