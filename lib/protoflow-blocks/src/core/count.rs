@@ -1,7 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port};
+use protoflow_core::{
+    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port, PortError,
+};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -85,7 +87,13 @@ impl<T: Message> Block for Count<T> {
 
         runtime.wait_for(&self.count)?;
 
-        self.count.send(&self.counter)?;
+        match self.count.send(&self.counter) {
+            Ok(()) => {}
+            Err(PortError::Closed | PortError::Disconnected) => {
+                // TODO: log the error
+            }
+            Err(e) => return Err(e)?,
+        };
 
         Ok(())
     }
