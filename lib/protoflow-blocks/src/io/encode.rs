@@ -96,7 +96,6 @@ impl<T: Message + ToString> Block for Encode<T> {
             self.output.send(&bytes)?;
         }
 
-        self.input.close()?;
         Ok(())
     }
 }

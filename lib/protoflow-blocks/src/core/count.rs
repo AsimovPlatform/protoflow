@@ -84,6 +84,7 @@ impl<T: Message> Block for Count<T> {
                 drop(message);
             }
         }
+        self.output.close()?;
 
         runtime.wait_for(&self.count)?;
 

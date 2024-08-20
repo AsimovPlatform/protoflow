@@ -59,7 +59,6 @@ impl Block for WriteStdout {
             std::io::Write::write_all(&mut stdout, &message)?;
         }
 
-        self.input.close()?;
         Ok(())
     }
 }

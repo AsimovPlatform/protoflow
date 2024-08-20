@@ -66,7 +66,6 @@ impl<T: Message + Default> Block for Random<T> {
         runtime.wait_for(&self.output)?;
 
         self.output.send(&T::default())?; // TODO
-        self.output.close()?;
 
         Ok(())
     }

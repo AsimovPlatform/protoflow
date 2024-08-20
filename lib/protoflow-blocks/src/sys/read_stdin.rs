@@ -82,6 +82,7 @@ impl Block for ReadStdin {
         loop {
             buffer.resize(self.buffer_size, b'\0'); // reinitialize the buffer
             buffer.fill(b'\0');
+
             match reader.read(&mut buffer) {
                 Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
                 Err(err) => return Err(err.into()),
@@ -94,7 +95,6 @@ impl Block for ReadStdin {
             }
         }
 
-        self.output.close()?;
         Ok(())
     }
 }

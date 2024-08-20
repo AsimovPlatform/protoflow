@@ -51,9 +51,8 @@ impl<T: Message> Block for Drop<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
             drop(message);
-            self.input.close()?;
         }
-        self.input.close()?;
+
         Ok(())
     }
 }

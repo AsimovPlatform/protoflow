@@ -75,7 +75,6 @@ impl<T: Message> Block for Const<T> {
         runtime.wait_for(&self.output)?;
 
         self.output.send(&self.value)?;
-        self.output.close()?;
 
         Ok(())
     }

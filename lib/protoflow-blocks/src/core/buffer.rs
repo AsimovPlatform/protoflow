@@ -63,7 +63,6 @@ impl<T: Message> Block for Buffer<T> {
         while let Some(message) = self.input.recv()? {
             self.messages.push_back(message);
         }
-        self.input.close()?;
         Ok(())
     }
 }
