@@ -43,11 +43,11 @@ use simple_mermaid::mermaid;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute Delay fixed=1
+/// $ protoflow execute Delay fixed=2
 /// ```
 ///
 /// ```console
-/// $ protoflow execute Delay random=1..10
+/// $ protoflow execute Delay random=1..5
 /// ```
 ///
 #[derive(Block, Clone)]

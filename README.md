@@ -87,6 +87,10 @@ block-beta
     class Source hidden
 ```
 
+```bash
+protoflow execute Buffer
+```
+
 #### [`Const`]
 
 A block for sending a constant value.
@@ -101,6 +105,10 @@ block-beta
     classDef hidden visibility:none;
     class Const block
     class Sink hidden
+```
+
+```bash
+protoflow execute Const value=Hello
 ```
 
 #### [`Count`]
@@ -126,6 +134,10 @@ block-beta
     class Result hidden
 ```
 
+```bash
+protoflow execute Count
+```
+
 #### [`Decode`]
 
 A block that decodes `T` messages from a byte stream.
@@ -142,6 +154,10 @@ block-beta
     class Decode block
     class Source hidden
     class Sink hidden
+```
+
+```bash
+protoflow execute Decode encoding=text
 ```
 
 #### [`Delay`]
@@ -162,6 +178,10 @@ block-beta
     class Sink hidden
 ```
 
+```bash
+protoflow execute Delay fixed=2
+```
+
 #### [`Drop`]
 
 A block that simply discards all messages it receives.
@@ -176,6 +196,10 @@ block-beta
     classDef hidden visibility:none;
     class Drop block
     class Source hidden
+```
+
+```bash
+protoflow execute Drop
 ```
 
 #### [`Encode`]
@@ -196,6 +220,11 @@ block-beta
     class Sink hidden
 ```
 
+```bash
+protoflow execute Encode encoding=text
+protoflow execute Encode encoding=protobuf
+```
+
 #### [`Random`]
 
 A block for generating and sending a random value.
@@ -210,6 +239,10 @@ block-beta
     classDef hidden visibility:none;
     class Random block
     class Sink hidden
+```
+
+```bash
+protoflow execute Random seed=42
 ```
 
 #### [`ReadDir`]
@@ -233,6 +266,10 @@ block-beta
     class Sink hidden
 ```
 
+```bash
+protoflow execute ReadDir path=/tmp
+```
+
 #### [`ReadEnv`]
 
 A block that reads the value of an environment variable.
@@ -252,6 +289,10 @@ block-beta
     class ReadEnv block
     class Config hidden
     class Sink hidden
+```
+
+```bash
+protoflow execute ReadEnv name=TERM
 ```
 
 #### [`ReadFile`]
@@ -275,6 +316,10 @@ block-beta
     class Sink hidden
 ```
 
+```bash
+protoflow execute ReadFile path=/tmp/file.txt
+```
+
 #### [`ReadStdin`]
 
 A block that reads bytes from standard input (aka stdin).
@@ -289,6 +334,10 @@ block-beta
     classDef hidden visibility:none;
     class ReadStdin block
     class Sink hidden
+```
+
+```bash
+protoflow execute ReadStdin < input.txt
 ```
 
 #### [`WriteFile`]
@@ -312,6 +361,10 @@ block-beta
     class Source hidden
 ```
 
+```bash
+protoflow execute WriteFile path=/tmp/file.txt
+```
+
 #### [`WriteStderr`]
 
 A block that writes bytes to standard error (aka stderr).
@@ -328,6 +381,10 @@ block-beta
     class Source hidden
 ```
 
+```bash
+protoflow execute WriteStderr < input.txt 2> output.txt
+```
+
 #### [`WriteStdout`]
 
 A block that writes bytes to standard output (aka stdout).
@@ -342,6 +399,10 @@ block-beta
     classDef hidden visibility:none;
     class WriteStdout block
     class Source hidden
+```
+
+```bash
+protoflow execute WriteStdout < input.txt > output.txt
 ```
 
 ## 👨‍💻 Development
