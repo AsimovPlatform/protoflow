@@ -1,14 +1,15 @@
 // This is free and unencumbered software released into the public domain.
 
-#![allow(dead_code)]
+extern crate std;
 
 use crate::{Encoding, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
-    prelude::{Bytes, FromStr, String},
-    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+    prelude::{Bytes, FromStr, String, ToString, Vec},
+    Block, BlockError, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
+use std::io::BufRead;
 
 /// A block that decodes `T` messages from a byte stream.
 ///
@@ -80,7 +81,42 @@ impl<T: Message + FromStr> Decode<T> {
 
 impl<T: Message + FromStr> Block for Decode<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        unimplemented!() // TODO
+        let mut buffer = Vec::<u8>::new();
+
+        while let Some(chunk) = self.input.recv()? {
+            buffer.extend_from_slice(&chunk);
+
+            let mut cursor = std::io::Cursor::new(&buffer);
+
+            let _message = match self.encoding {
+                Encoding::ProtobufWithLengthPrefix => todo!(), // TODO
+                Encoding::ProtobufWithoutLengthPrefix => todo!(), // TODO
+                Encoding::TextWithNewlineSuffix => {
+                    if !chunk.contains(&b'\n') {
+                        continue; // skip useless chunks
+                    }
+                    let mut line = String::new();
+                    while cursor.read_line(&mut line)? > 0 {
+                        if !line.ends_with('\n') {
+                            cursor.set_position(cursor.position() - line.len() as u64);
+                            break;
+                        }
+                        match T::from_str(&line) {
+                            Ok(message) => self.output.send(&message)?,
+                            Err(_error) => {
+                                BlockError::Other("decode error".to_string()); // FIXME
+                            }
+                        }
+                        line.clear();
+                    }
+                }
+            };
+
+            buffer.drain(..cursor.position() as usize);
+        }
+
+        self.input.close()?;
+        Ok(())
     }
 }
 
