@@ -23,7 +23,14 @@ pub struct MpscTransport {
 pub struct MpscTransportState {
     outputs: Vec<PortState>,
     inputs: Vec<PortState>,
-    channels: Vec<(SyncSender<Bytes>, Receiver<Bytes>)>,
+    channels: Vec<(SyncSender<MpscTransportEvent>, Receiver<MpscTransportEvent>)>,
+}
+
+#[derive(Debug)]
+pub enum MpscTransportEvent {
+    Connect,
+    Message(Bytes),
+    Disconnect,
 }
 
 unsafe impl Sync for MpscTransportState {}
@@ -106,7 +113,7 @@ impl Transport for MpscTransport {
                         state.inputs[input_index] = PortState::Closed;
                     });
                     drop(state);
-                    sender.send(Bytes::new()).unwrap(); // blocking
+                    sender.send(MpscTransportEvent::Disconnect).unwrap(); // blocking
                     true
                 }
                 PortState::Connected(PortID::Input(_)) => unreachable!(),
@@ -135,7 +142,7 @@ impl Transport for MpscTransport {
                         PortState::Connected(PortID::Output(_))
                     ));
                     let sender = state.channels[input_index].0.clone();
-                    sender.send(Bytes::new()).unwrap(); // blocking
+                    sender.send(MpscTransportEvent::Disconnect).unwrap(); // blocking
                     state.with_upgraded(|state| {
                         state.outputs[output_index] = PortState::Closed;
                         state.inputs[input_index] = PortState::Open;
@@ -176,7 +183,7 @@ impl Transport for MpscTransport {
         };
         let sender = state.channels[input.index()].0.clone();
         drop(state);
-        Ok(sender.send(message).unwrap()) // blocking (TODO: error handling)
+        Ok(sender.send(MpscTransportEvent::Message(message)).unwrap()) // blocking (TODO: error handling)
     }
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
@@ -188,10 +195,15 @@ impl Transport for MpscTransport {
             return Ok(None); // EOS
         }
         let receiver = &state.channels[input.index()].1;
-        let bytes = receiver
+        let event = receiver
             .recv() // blocking
             .map_err(|_| PortError::Disconnected)?;
-        Ok(Some(bytes))
+        use MpscTransportEvent::*;
+        match event {
+            Connect => unreachable!(),
+            Message(bytes) => Ok(Some(bytes)),
+            Disconnect => Ok(None), // EOS
+        }
     }
 
     fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
