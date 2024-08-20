@@ -4,7 +4,16 @@ use crate::{prelude::Bytes, InputPortID, OutputPortID, PortID, PortResult, PortS
 
 #[allow(unused)]
 pub trait Transport: AsTransport + Send + Sync {
-    fn state(&self, port: PortID) -> PortResult<PortState>;
+    fn state(&self, port: PortID) -> PortResult<PortState> {
+        match port {
+            PortID::Input(input) => self.input_state(input),
+            PortID::Output(output) => self.output_state(output),
+        }
+    }
+
+    fn input_state(&self, port: InputPortID) -> PortResult<PortState>;
+    fn output_state(&self, port: OutputPortID) -> PortResult<PortState>;
+
     fn open_input(&self) -> PortResult<InputPortID>;
     fn open_output(&self) -> PortResult<OutputPortID>;
 

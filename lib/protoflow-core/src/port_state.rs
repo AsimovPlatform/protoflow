@@ -1,13 +1,11 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::PortID;
-
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PortState {
     #[default]
     Closed,
     Open,
-    Connected(PortID),
+    Connected,
 }
 
 impl PortState {
@@ -23,7 +21,7 @@ impl PortState {
 
     /// Checks whether the port state is currently connected.
     pub fn is_connected(&self) -> bool {
-        matches!(self, PortState::Connected(_))
+        *self == PortState::Connected
     }
 
     pub fn to_str(&self) -> &str {
@@ -31,7 +29,7 @@ impl PortState {
         match self {
             Closed => "closed",
             Open => "open",
-            Connected(_) => "connected",
+            Connected => "connected",
         }
     }
 }
