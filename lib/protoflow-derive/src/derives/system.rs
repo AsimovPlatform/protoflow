@@ -3,9 +3,9 @@
 use crate::util::protoflow_crate;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{self, Data, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
+use syn::{self, Data, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed, Result};
 
-pub(crate) fn expand_derive_system(input: &DeriveInput) -> Result<TokenStream, syn::Error> {
+pub(crate) fn expand_derive_system(input: &DeriveInput) -> Result<TokenStream> {
     let protoflow = protoflow_crate();
     let ident = &input.ident;
     let generics = &input.generics;

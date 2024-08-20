@@ -3,31 +3,72 @@
 use crate::util::protoflow_crate;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{self, Data, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnnamed};
+use syn::{
+    self, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident, Result,
+};
 
-pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, syn::Error> {
-    let protoflow = protoflow_crate();
-    let ident = &input.ident;
-    let generics = &input.generics;
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    let _fields = match &input.data {
+pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream> {
+    match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(FieldsNamed { named: fields, .. }),
             ..
-        }) => fields.into_iter().collect(),
+        }) => expand_derive_block_for_struct(input, fields.into_iter().collect()),
         Data::Struct(DataStruct {
             fields:
                 Fields::Unnamed(FieldsUnnamed {
                     unnamed: fields, ..
                 }),
             ..
-        }) => fields.into_iter().collect(),
+        }) => expand_derive_block_for_struct(input, fields.into_iter().collect()),
         Data::Struct(DataStruct {
             fields: Fields::Unit,
             ..
-        }) => Vec::new(),
+        }) => expand_derive_block_for_struct(input, Vec::new()),
         _ => panic!("`#[derive(Block)]` only supports structs"),
-    };
+    }
+}
+
+pub(crate) fn expand_derive_block_for_struct(
+    input: &DeriveInput,
+    fields: Vec<&Field>,
+) -> Result<TokenStream> {
+    let protoflow = protoflow_crate();
+
+    let ident = &input.ident;
+    let generics = &input.generics;
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    let fields: Vec<(Ident, String)> = fields
+        .iter()
+        .filter_map(|field| {
+            let Some(field_name) = &field.ident else {
+                return None;
+            };
+            match &field.ty {
+                syn::Type::Path(syn::TypePath { path, .. }) => {
+                    let segment = path.segments.first().unwrap();
+                    let ident = &segment.ident;
+                    Some((field_name.clone(), ident.to_string()))
+                }
+                _ => return None,
+            }
+        })
+        .collect();
+
+    let port_names: Vec<Ident> = fields
+        .into_iter()
+        .filter(|(_, ty)| ty == "InputPort" || ty == "OutputPort")
+        .map(|(name, _)| name)
+        .collect();
+
+    let port_closes: Vec<TokenStream> = port_names
+        .iter()
+        .map(|port| {
+            quote! {
+                self.#port.close()?;
+            }
+        })
+        .collect();
 
     #[cfg(not(feature = "sysml"))]
     let impl_sysml_traits = quote! {};
@@ -52,7 +93,7 @@ pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, sy
         impl #impl_generics #protoflow::prelude::sysml_model::Element for #ident #ty_generics #where_clause {}
     };
 
-    Ok(quote! {
+    let impl_block_descriptor = quote! {
         #[automatically_derived]
         #[allow(
             unused_qualifications,
@@ -67,7 +108,31 @@ pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream, sy
                 #protoflow::prelude::vec![] // TODO
             }
         }
+    };
 
+    let impl_block_hooks = quote! {
+        #[automatically_derived]
+        #[allow(
+            unused_qualifications,
+            clippy::redundant_locals,
+        )]
+        impl #impl_generics #protoflow::BlockHooks for #ident #ty_generics #where_clause {
+            fn pre_execute(&mut self, _runtime: &dyn #protoflow::BlockRuntime) -> #protoflow::BlockResult {
+                Ok(())
+            }
+
+            fn post_execute(&mut self, _runtime: &dyn #protoflow::BlockRuntime) -> #protoflow::BlockResult {
+                #(
+                    #port_closes
+                )*
+                Ok(())
+            }
+        }
+    };
+
+    Ok(quote! {
+        #impl_block_descriptor
+        #impl_block_hooks
         #impl_sysml_traits
     })
 }

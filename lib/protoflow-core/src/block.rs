@@ -8,7 +8,7 @@ use crate::{BlockDescriptor, BlockResult, BlockRuntime};
 pub type BlockID = usize;
 
 /// A block is an autonomous unit of computation in a system.
-pub trait Block: AsBlock + BlockDescriptor + Send + Sync {
+pub trait Block: AsBlock + BlockDescriptor + BlockHooks + Send + Sync {
     /// Prepares this block for execution.
     ///
     /// This is called once before the first call to `execute`.
@@ -19,6 +19,18 @@ pub trait Block: AsBlock + BlockDescriptor + Send + Sync {
 
     /// Executes this block's computation.
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult;
+}
+
+/// Hooks for `#[derive(Block)]` to tap into block execution.
+#[doc(hidden)]
+pub trait BlockHooks {
+    fn pre_execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
+        Ok(()) // implemented by protoflow_derive
+    }
+
+    fn post_execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
+        Ok(()) // implemented by protoflow_derive
+    }
 }
 
 pub trait AsBlock {

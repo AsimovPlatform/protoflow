@@ -43,8 +43,12 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
                     .spawn(move || {
                         let mut block = block;
                         std::thread::park();
-                        Block::prepare(block.as_mut(), block_runtime.as_ref())
-                            .and_then(|_| Block::execute(block.as_mut(), block_runtime.as_ref()))
+                        let block_mut = block.as_mut();
+                        let block_runtime_ref = block_runtime.as_ref();
+                        Block::prepare(block_mut, block_runtime_ref)
+                            .and_then(|_| <dyn Block>::pre_execute(block_mut, block_runtime_ref))
+                            .and_then(|_| Block::execute(block_mut, block_runtime_ref))
+                            .and_then(|_| <dyn Block>::post_execute(block_mut, block_runtime_ref))
                     })
                     .unwrap(),
             )),
