@@ -14,10 +14,16 @@ _"Τὰ πάντα ῥεῖ καὶ οὐδὲν μένει" — Heraclitus_
 
 ## ⬇️ Installation
 
+### Installation via Homebrew
+
+```bash
+brew install protoflow --HEAD
+```
+
 ### Installation via Cargo
 
-```console
-$ cargo install protoflow
+```bash
+cargo install protoflow
 ```
 
 ## 👉 Examples
