@@ -28,7 +28,11 @@ cargo install protoflow
 
 ## 👉 Examples
 
-TBD
+### Examples for Rust
+
+For Rust examples, see the [`examples`](lib/protoflow/examples) directory.
+A good place to start are the [`echo_lines`](lib/protoflow/examples/echo_lines)
+and [`count_lines`](lib/protoflow/examples/count_lines) examples.
 
 ## 📚 Reference
 
