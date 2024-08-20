@@ -18,6 +18,16 @@ type Runtime = protoflow_core::runtimes::StdRuntime<Transport>;
 pub struct System(protoflow_core::System<Transport>);
 
 impl System {
+    /// Builds and executes a system, blocking until completion.
+    pub fn run<F: FnOnce(&mut System)>(f: F) -> BlockResult {
+        Self::build(f).execute()?.join()
+    }
+
+    /// Builds and executes a system, returning immediately.
+    pub fn spawn<F: FnOnce(&mut System)>(f: F) -> BlockResult<Rc<dyn Process>> {
+        Self::build(f).execute()
+    }
+
     /// Builds a new system.
     pub fn build<F: FnOnce(&mut System)>(f: F) -> Self {
         let transport = Transport::default();
