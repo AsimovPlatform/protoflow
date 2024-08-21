@@ -13,7 +13,7 @@ mod sysexits;
 
 use crate::sysexits::Sysexits;
 use clap::{Parser, Subcommand};
-use dotenvy::dotenv;
+use clientele::dotenv;
 use protoflow_blocks::Encoding;
 use std::{error::Error, path::PathBuf, str::FromStr};
 
@@ -83,8 +83,9 @@ pub fn main() -> Sysexits {
     dotenv().ok();
 
     // Expand wildcards and @argfiles:
-    let args = wild::args_os();
-    let args = argfile::expand_args_from(args, argfile::parse_fromfile, argfile::PREFIX).unwrap();
+    let args = clientele::args_os();
+    let args =
+        clientele::expand_args_from(args, clientele::parse_fromfile, clientele::PREFIX).unwrap();
 
     // Parse command-line options:
     let options = Options::parse_from(args);
