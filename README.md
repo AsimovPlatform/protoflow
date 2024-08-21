@@ -17,6 +17,7 @@ _"Τὰ πάντα ῥεῖ καὶ οὐδὲν μένει" — Heraclitus_
 ### Installation via Homebrew
 
 ```bash
+brew tap AsimovPlatform/tap
 brew install protoflow --HEAD
 ```
 
