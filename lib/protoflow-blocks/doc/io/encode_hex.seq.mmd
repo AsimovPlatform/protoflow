@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant EncodeHex.input as EncodeHex.input port
+    participant EncodeHex as EncodeHex block
+    participant EncodeHex.output as EncodeHex.output port
+    participant BlockB as Another block
+
+    BlockA-->>EncodeHex: Connect
+    EncodeHex-->>BlockB: Connect
+
+    loop EncodeHex process
+        BlockA->>EncodeHex: Message (Bytes)
+        EncodeHex->>EncodeHex: Encode into hexadecimal
+        EncodeHex->>BlockB: Message (Bytes)
+    end
+
+    BlockA-->>EncodeHex: Disconnect
+    EncodeHex-->>EncodeHex.input: Close
+    EncodeHex-->>EncodeHex.output: Close
+    EncodeHex-->>BlockB: Disconnect

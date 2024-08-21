@@ -4,9 +4,9 @@
 
 use crate::{
     prelude::{Arc, FromStr, Rc, String, ToString},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, Encoding,
-    FlowBlocks, Hash, HashAlgorithm, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
-    ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, EncodeHex,
+    Encoding, FlowBlocks, Hash, HashAlgorithm, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir,
+    ReadEnv, ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockResult, InputPort, Message, OutputPort, Process, SystemBuilding, SystemExecution,
@@ -134,6 +134,11 @@ impl IoBlocks for System {
             self.0.output(),
             encoding,
         ))
+    }
+
+    fn encode_hex(&self) -> EncodeHex {
+        self.0
+            .block(EncodeHex::new(self.0.input(), self.0.output()))
     }
 }
 

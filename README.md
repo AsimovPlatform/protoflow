@@ -62,6 +62,7 @@ and [`count_lines`](lib/protoflow/examples/count_lines) examples.
 | [`Delay`]       | Passes messages through while delaying them by a fixed or random duration. |
 | [`Drop`]        | Discards all messages it receives.                         |
 | [`Encode`]      | Encodes messages to a byte stream.                         |
+| [`EncodeHex`]   | Encodes a byte stream into hexadecimal form.               |
 | [`Hash`]        | Computes the cryptographic hash of a byte stream.          |
 | [`Random`]      | Generates and sends a random value.                        |
 | [`ReadDir`]     | Reads file names from a file system directory.             |
@@ -224,6 +225,28 @@ block-beta
 ```bash
 protoflow execute Encode encoding=text
 protoflow execute Encode encoding=protobuf
+```
+
+#### [`EncodeHex`]
+
+A block that encodes a byte stream into hexadecimal form.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 EncodeHex space:2 Sink
+    Source-- "input" -->EncodeHex
+    EncodeHex-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class EncodeHex block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute EncodeHex
 ```
 
 #### [`Hash`]
@@ -454,6 +477,7 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
+[`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
 [`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html

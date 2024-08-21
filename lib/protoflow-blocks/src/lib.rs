@@ -72,6 +72,7 @@ pub static BLOCKS: &[(&str, &str)] = &[
     // IoBlocks
     ("io", "Decode"),
     ("io", "Encode"),
+    ("io", "EncodeHex"),
     // MathBlocks
     // SysBlocks
     #[cfg(feature = "std")]
@@ -111,6 +112,9 @@ pub fn build_stdio_system(
         #[cfg(feature = "hash")]
         "Hash" => Hash::build_system(config)?,
         // IoBlocks
+        "Decode" => Decode::build_system(config)?,
+        "Encode" => Encode::build_system(config)?,
+        "EncodeHex" => EncodeHex::build_system(config)?,
         // MathBlocks
         // SysBlocks
         "ReadDir" => ReadDir::build_system(config)?,

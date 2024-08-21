@@ -23,7 +23,13 @@ use simple_mermaid::mermaid;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
-///     // TODO
+///     let stdin = s.read_stdin();
+///     let hasher = s.hash_blake3();
+///     let hex_encoder = s.encode_hex();
+///     let stdout = s.write_stdout();
+///     s.connect(&stdin.output, &hasher.input);
+///     s.connect(&hasher.hash, &hex_encoder.input);
+///     s.connect(&hex_encoder.output, &stdout.input);
 /// });
 /// # }
 /// ```
@@ -120,10 +126,18 @@ impl Block for Hash {
 #[cfg(feature = "std")]
 impl StdioSystem for Hash {
     fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        // use crate::{HashBlocks, IoBlocks, SysBlocks, SystemBuilding};
+        use crate::{HashBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
-        Ok(System::build(|_s| {
-            todo!() // TODO
+        // TODO: parse the algorithm parameter
+
+        Ok(System::build(|s| {
+            let stdin = s.read_stdin();
+            let hasher = s.hash_blake3();
+            let hex_encoder = s.encode_hex();
+            let stdout = s.write_stdout();
+            s.connect(&stdin.output, &hasher.input);
+            s.connect(&hasher.hash, &hex_encoder.input);
+            s.connect(&hex_encoder.output, &stdout.input);
         }))
     }
 }

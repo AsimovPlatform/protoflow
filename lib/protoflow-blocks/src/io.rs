@@ -20,6 +20,8 @@ pub trait IoBlocks {
     fn encode_lines<T: Message + ToString + 'static>(&self) -> Encode<T> {
         self.encode_with::<T>(Encoding::TextWithNewlineSuffix)
     }
+
+    fn encode_hex(&self) -> EncodeHex;
 }
 
 mod decode;
@@ -27,3 +29,6 @@ pub use decode::*;
 
 mod encode;
 pub use encode::*;
+
+mod encode_hex;
+pub use encode_hex::*;
