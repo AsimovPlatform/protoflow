@@ -101,7 +101,9 @@ impl<T: Message + FromStr> Block for Decode<T> {
                             cursor.set_position(cursor.position() - line.len() as u64);
                             break;
                         }
-                        match T::from_str(&line) {
+                        let stripped_line =
+                            line.strip_suffix('\n').expect("line ends with newline");
+                        match T::from_str(stripped_line) {
                             Ok(message) => self.output.send(&message)?,
                             Err(_error) => {
                                 BlockError::Other("decode error".to_string()); // FIXME
