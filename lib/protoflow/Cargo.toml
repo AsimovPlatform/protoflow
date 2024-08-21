@@ -57,6 +57,7 @@ zeromq = ["dep:protoflow-zeromq"]
 
 [build-dependencies]
 cfg_aliases.workspace = true
+shadow-rs.workspace = true
 
 [dependencies]
 argfile = { version = "0.2", optional = true }

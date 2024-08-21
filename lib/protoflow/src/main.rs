@@ -119,7 +119,7 @@ pub fn main() -> Sysexits {
 }
 
 fn version(_options: &Options) -> Result<(), Sysexits> {
-    // TODO
+    println!("protoflow {}", env!("CARGO_PKG_VERSION"));
     Ok(())
 }
 

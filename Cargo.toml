@@ -30,6 +30,9 @@ protoflow-derive = { path = "lib/protoflow-derive" }
 protoflow-flume = { path = "lib/protoflow-flume" }
 protoflow-syntax = { path = "lib/protoflow-syntax" }
 protoflow-zeromq = { path = "lib/protoflow-zeromq" }
+shadow-rs = { version = "0.26.1", features = [
+    "tzdb",
+], default-features = false }
 
 [patch.crates-io]
 protoflow = { path = "lib/protoflow" }
