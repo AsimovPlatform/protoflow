@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.0 - 2024-08-21
+### Added
+- `EncodeHex`: A block for hex encoding.
+- `Hash`: A block for BLAKE3 hashing.
+- Implement `BlockRuntime#wait_for()`.
+- Add shell examples for all blocks.
+### Changed
+- `Count`: Ignore a disconnected port when sending the counter.
+- Close all ports automatically on block exit.
+- Send EOS prior to disconnecting the ports.
+- Rewrite the MPSC transport for robustness.
+### Fixed
+- `Decode`: Fix line decoding to strip off trailing newlines.
+
 ## 0.1.1 - 2024-08-20
 ### Added
 - Implement `System#decode_with::<T>(Encoding::TextWithNewlineSuffix)`
