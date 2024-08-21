@@ -15,9 +15,10 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["rand", "std", "sysml", "tracing"]
+default = ["hash", "rand", "std", "sysml", "tracing"]
+hash = ["dep:blake3"]
 rand = ["protoflow-core/rand"]
-std = ["protoflow-core/std", "sysml-model?/std", "tracing?/std"]
+std = ["blake3?/std", "protoflow-core/std", "sysml-model?/std", "tracing?/std"]
 sysml = ["dep:sysml-model", "protoflow-core/sysml"]
 tracing = ["dep:tracing"]
 
@@ -25,6 +26,7 @@ tracing = ["dep:tracing"]
 cfg_aliases.workspace = true
 
 [dependencies]
+blake3 = { version = "1.5", default-features = false, optional = true }
 protoflow-core = { version = "=0.1.1", default-features = false }
 protoflow-derive = { version = "=0.1.1" }
 tracing = { version = "0.1", default-features = false, optional = true }

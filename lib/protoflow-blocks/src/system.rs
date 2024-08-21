@@ -5,8 +5,8 @@
 use crate::{
     prelude::{Arc, FromStr, Rc, String, ToString},
     AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, Encoding,
-    FlowBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SysBlocks,
-    TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    FlowBlocks, Hash, HashAlgorithm, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
+    ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockResult, InputPort, Message, OutputPort, Process, SystemBuilding, SystemExecution,
@@ -93,6 +93,21 @@ impl CoreBlocks for System {
 }
 
 impl FlowBlocks for System {}
+
+#[cfg(not(feature = "hash"))]
+impl HashBlocks for System {}
+
+#[cfg(feature = "hash")]
+impl HashBlocks for System {
+    fn hash_blake3(&self) -> Hash {
+        self.0.block(Hash::with_params(
+            self.0.input(),
+            self.0.output(),
+            self.0.output(),
+            HashAlgorithm::BLAKE3,
+        ))
+    }
+}
 
 impl IoBlocks for System {
     fn decode<T: Message + FromStr + 'static>(&self) -> Decode<T> {

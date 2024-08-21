@@ -15,6 +15,14 @@ pub use encoding::*;
 mod flow;
 pub use flow::*;
 
+#[cfg(not(feature = "hash"))]
+pub trait HashBlocks {}
+
+#[cfg(feature = "hash")]
+mod hash;
+#[cfg(feature = "hash")]
+pub use hash::*;
+
 mod io;
 pub use io::*;
 
@@ -43,7 +51,7 @@ pub use text::*;
 pub use protoflow_core::{SystemBuilding, SystemExecution};
 
 pub trait AllBlocks:
-    CoreBlocks + FlowBlocks + IoBlocks + MathBlocks + SysBlocks + TextBlocks
+    CoreBlocks + FlowBlocks + HashBlocks + IoBlocks + MathBlocks + SysBlocks + TextBlocks
 {
 }
 
@@ -58,6 +66,9 @@ pub static BLOCKS: &[(&str, &str)] = &[
     ("core", "Drop"),
     ("core", "Random"),
     // FlowBlocks
+    // HashBlocks
+    #[cfg(feature = "hash")]
+    ("hash", "Hash"),
     // IoBlocks
     ("io", "Decode"),
     ("io", "Encode"),
@@ -96,6 +107,9 @@ pub fn build_stdio_system(
         "Drop" => Drop::<String>::build_system(config)?,
         "Random" => Random::<u64>::build_system(config)?,
         // FlowBlocks
+        // HashBlocks
+        #[cfg(feature = "hash")]
+        "Hash" => Hash::build_system(config)?,
         // IoBlocks
         // MathBlocks
         // SysBlocks

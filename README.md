@@ -62,6 +62,7 @@ and [`count_lines`](lib/protoflow/examples/count_lines) examples.
 | [`Delay`]       | Passes messages through while delaying them by a fixed or random duration. |
 | [`Drop`]        | Discards all messages it receives.                         |
 | [`Encode`]      | Encodes messages to a byte stream.                         |
+| [`Hash`]        | Computes the cryptographic hash of a byte stream.          |
 | [`Random`]      | Generates and sends a random value.                        |
 | [`ReadDir`]     | Reads file names from a file system directory.             |
 | [`ReadEnv`]     | Reads the value of an environment variable.                |
@@ -223,6 +224,34 @@ block-beta
 ```bash
 protoflow execute Encode encoding=text
 protoflow execute Encode encoding=protobuf
+```
+
+#### [`Hash`]
+
+A block that computes the cryptographic hash of a byte stream, while optionally
+passing it through.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Hash space:2 Sink
+    space:7
+    space:7
+    space:3 Result space:3
+    Source-- "input" -->Hash
+    Hash-- "output" -->Sink
+    Hash-- "hash" -->Result
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Hash block
+    class Source hidden
+    class Sink hidden
+    class Result hidden
+```
+
+```bash
+protoflow execute Hash algorithm=blake3
 ```
 
 #### [`Random`]
@@ -407,8 +436,8 @@ protoflow execute WriteStdout < input.txt > output.txt
 
 ## 👨‍💻 Development
 
-```console
-$ git clone https://github.com/AsimovPlatform/protoflow.git
+```bash
+git clone https://github.com/AsimovPlatform/protoflow.git
 ```
 
 - - -
@@ -425,6 +454,7 @@ $ git clone https://github.com/AsimovPlatform/protoflow.git
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
+[`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
 [`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html

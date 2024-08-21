@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Hash.input as Hash.input port
+    participant Hash as Hash block
+    participant Hash.output as Hash.output port
+    participant BlockB as Another block
+    participant Hash.hash as Hash.hash port
+    participant BlockC as Another block
+
+    BlockA-->>Hash: Connect
+    Hash-->>BlockB: Connect
+
+    loop Hash process
+        BlockA->>Hash: Message (Bytes)
+        Hash->>Hash: Update state
+        Hash->>BlockB: Message (Bytes)
+    end
+
+    BlockA-->>Hash: Disconnect
+    Hash-->>Hash.input: Close
+    Hash-->>Hash.output: Close
+    Hash-->>BlockB: Disconnect
+
+    Hash-->>BlockC: Connect
+    Hash->>BlockC: Hash
+    Hash-->>Hash.hash: Close
+    Hash-->>BlockC: Disconnect
+
+    %% TODO
