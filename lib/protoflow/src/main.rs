@@ -1,9 +1,12 @@
 // This is free and unencumbered software released into the public domain.
 
 mod commands {
+    #[cfg(feature = "beta")]
     pub mod check;
+    #[cfg(feature = "beta")]
     pub mod config;
     pub mod execute;
+    #[cfg(feature = "beta")]
     pub mod generate;
 }
 mod sysexits;
@@ -42,9 +45,11 @@ struct Options {
 #[derive(Debug, Subcommand)]
 enum Commands {
     /// Show the current configuration
+    #[cfg(feature = "beta")]
     Config {},
 
     /// Check the syntax of a Protoflow system
+    #[cfg(feature = "beta")]
     Check {
         /// Pathnames of Protoflow files to check
         #[clap(default_value = "/dev/stdin")]
@@ -60,12 +65,13 @@ enum Commands {
         #[clap(short = 'e', long, value_parser = parse_encoding, default_value = "text")]
         encoding: Encoding,
 
-        /// TBD
+        /// Specify block parameters in key=value format
         #[clap(value_parser = parse_kv_param::<String, String>)]
         params: Vec<(String, String)>,
     },
 
     /// Generate code from a Protoflow system
+    #[cfg(feature = "beta")]
     Generate {
         /// Pathname of the Protoflow file
         path: PathBuf,
@@ -97,13 +103,16 @@ pub fn main() -> Sysexits {
 
     let subcommand = &options.command;
     let result = match subcommand.as_ref().expect("subcommand is required") {
+        #[cfg(feature = "beta")]
         Commands::Config {} => Ok(()),
+        #[cfg(feature = "beta")]
         Commands::Check { paths } => commands::check::check(paths),
         Commands::Execute {
             block,
             encoding,
             params,
         } => commands::execute::execute(block, params, *encoding),
+        #[cfg(feature = "beta")]
         Commands::Generate { path } => commands::generate::generate(path),
     };
     return result.err().unwrap_or_default();

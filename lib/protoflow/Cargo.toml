@@ -16,6 +16,7 @@ publish.workspace = true
 
 [features]
 all = ["blocks", "derive", "rand", "std", "syntax", "sysml", "tracing"]
+beta = []
 blocks = ["dep:protoflow-blocks"]
 cli = [
     "std",

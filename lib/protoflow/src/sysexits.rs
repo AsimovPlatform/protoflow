@@ -70,13 +70,6 @@ impl From<std::io::Error> for Sysexits {
     }
 }
 
-impl From<protoflow_syntax::ParseError> for Sysexits {
-    fn from(error: protoflow_syntax::ParseError) -> Self {
-        std::eprintln!("{}: {:?}", "protoflow", error);
-        Self::EX_NOINPUT
-    }
-}
-
 impl From<error_stack::Report<protoflow_syntax::AnalysisError>> for Sysexits {
     fn from(error: error_stack::Report<protoflow_syntax::AnalysisError>) -> Self {
         use protoflow_syntax::AnalysisError::*;
@@ -90,6 +83,26 @@ impl From<error_stack::Report<protoflow_syntax::AnalysisError>> for Sysexits {
     }
 }
 
+impl From<protoflow_blocks::StdioError> for Sysexits {
+    fn from(error: protoflow_blocks::StdioError) -> Self {
+        use protoflow_blocks::StdioError::*;
+        std::eprintln!("{}: {}", "protoflow", error);
+        match error {
+            UnknownSystem(system) => Self::EX_UNAVAILABLE,
+            MissingParameter(parameter) => Self::EX_USAGE,
+            InvalidParameter(parameter) => Self::EX_USAGE,
+        }
+    }
+}
+
+impl From<protoflow_syntax::ParseError> for Sysexits {
+    fn from(error: protoflow_syntax::ParseError) -> Self {
+        std::eprintln!("{}: {:?}", "protoflow", error);
+        Self::EX_NOINPUT
+    }
+}
+
+#[cfg(feature = "beta")]
 impl From<crate::commands::check::CheckError> for Sysexits {
     fn from(error: crate::commands::check::CheckError) -> Self {
         use crate::commands::check::CheckError::*;
@@ -113,18 +126,7 @@ impl From<crate::commands::execute::ExecuteError> for Sysexits {
     }
 }
 
-impl From<protoflow_blocks::StdioError> for Sysexits {
-    fn from(error: protoflow_blocks::StdioError) -> Self {
-        use protoflow_blocks::StdioError::*;
-        std::eprintln!("{}: {}", "protoflow", error);
-        match error {
-            UnknownSystem(system) => Self::EX_UNAVAILABLE,
-            MissingParameter(parameter) => Self::EX_USAGE,
-            InvalidParameter(parameter) => Self::EX_USAGE,
-        }
-    }
-}
-
+#[cfg(feature = "beta")]
 impl From<crate::commands::generate::GenerateError> for Sysexits {
     fn from(error: crate::commands::generate::GenerateError) -> Self {
         use crate::commands::generate::GenerateError::*;
