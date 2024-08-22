@@ -15,16 +15,17 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-all = ["blocks", "derive", "rand", "std", "syntax", "sysml", "tracing"]
+default = ["all", "cli", "std"]
+all = ["blocks", "derive", "rand", "syntax", "sysml", "tracing"]
 beta = []
 blocks = ["dep:protoflow-blocks"]
-cli = ["std", "syntax", "dep:bytesize", "dep:clap", "dep:clientele", "dep:dirs"]
+cli = ["std", "syntax", "dep:bytesize", "dep:clap", "dep:clientele"]
 crossbeam = ["dep:protoflow-crossbeam"]
-default = ["all", "cli"]
 derive = ["dep:protoflow-derive"]
 flume = ["dep:protoflow-flume"]
 rand = ["protoflow-blocks?/rand", "protoflow-core/rand"]
 std = [
+    "clientele?/std",
     "protoflow-blocks?/std",
     "protoflow-core/std",
     "protoflow-crossbeam?/std",
@@ -42,7 +43,7 @@ sysml = [
     "protoflow-syntax?/sysml",
 ]
 tokio = []
-tracing = ["dep:tracing"]
+tracing = ["dep:tracing", "clientele?/tracing"] # FIXME
 web = []
 zeromq = ["dep:protoflow-zeromq"]
 
@@ -52,13 +53,14 @@ shadow-rs.workspace = true
 
 [dependencies]
 bytesize = { version = "1.3", optional = true }
-clap = { version = "4.5.13", features = [
-    "derive",
-    "unicode",
-    "wrap_help",
+clap = { version = "4.5", default-features = false, optional = true }
+clientele = { version = "=0.1.0", default-features = false, features = [
+    "argfile",
+    "clap",
+    "dirs",
+    "dotenv",
+    "wild",
 ], optional = true }
-clientele = { version = "0.0.1", default-features = false, optional = true }
-dirs = { version = "5.0", optional = true }
 error-stack = { version = "0.5", default-features = false }
 protoflow-blocks = { version = "=0.2.0", default-features = false, optional = true }
 protoflow-core = { version = "=0.2.0", default-features = false }

@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::sysexits::Sysexits;
+use crate::exit::ExitCode;
 use protoflow_blocks::{build_stdio_system, Encoding, StdioConfig, StdioError};
 use protoflow_core::SystemExecution;
 use std::path::PathBuf;
@@ -50,7 +50,7 @@ pub fn execute(
     system_uri: &PathBuf,
     system_params: &Vec<(String, String)>,
     stdio_encoding: Encoding,
-) -> Result<(), Sysexits> {
+) -> Result<(), ExitCode> {
     let system_uri = system_uri.to_string_lossy().to_string();
     let system_config = StdioConfig {
         encoding: stdio_encoding,

@@ -9,11 +9,10 @@ mod commands {
     #[cfg(feature = "beta")]
     pub mod generate;
 }
-mod sysexits;
+mod exit;
 
-use crate::sysexits::Sysexits;
-use clap::{Parser, Subcommand};
-use clientele::dotenv;
+use crate::exit::ExitCode;
+use clientele::crates::clap::{Parser, Subcommand};
 use protoflow_blocks::Encoding;
 use std::{error::Error, path::PathBuf, str::FromStr};
 
@@ -78,14 +77,12 @@ enum Commands {
     },
 }
 
-pub fn main() -> Sysexits {
+pub fn main() -> ExitCode {
     // Load environment variables from `.env`:
-    dotenv().ok();
+    clientele::dotenv().ok();
 
     // Expand wildcards and @argfiles:
-    let args = clientele::args_os();
-    let args =
-        clientele::expand_args_from(args, clientele::parse_fromfile, clientele::PREFIX).unwrap();
+    let args = clientele::args_os().unwrap();
 
     // Parse command-line options:
     let options = Options::parse_from(args);
@@ -119,12 +116,12 @@ pub fn main() -> Sysexits {
     return result.err().unwrap_or_default();
 }
 
-fn version(_options: &Options) -> Result<(), Sysexits> {
+fn version(_options: &Options) -> Result<(), ExitCode> {
     println!("protoflow {}", env!("CARGO_PKG_VERSION"));
     Ok(())
 }
 
-fn license() -> Result<(), Sysexits> {
+fn license() -> Result<(), ExitCode> {
     println!("This is free and unencumbered software released into the public domain.");
     Ok(())
 }
