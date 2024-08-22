@@ -1,3 +1,5 @@
+# See: https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [package]
 name = "protoflow"
 version.workspace = true

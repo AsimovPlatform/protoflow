@@ -1,16 +1,16 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::sysexits::Sysexits;
+use crate::exit::ExitCode;
 use protoflow_syntax::SystemParser;
 use std::path::PathBuf;
 
-#[derive(Debug)]
-pub enum CheckError {}
-
-pub fn check(paths: &Vec<PathBuf>) -> Result<(), Sysexits> {
+pub fn check(paths: &Vec<PathBuf>) -> Result<(), ExitCode> {
     for path in paths {
         let mut parser = SystemParser::from_file(path)?;
         let _ = parser.check()?;
     }
     Ok(())
 }
+
+#[derive(Clone, Debug)]
+pub enum CheckError {}

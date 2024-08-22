@@ -1,5 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
+#![deny(unsafe_code)]
+#![allow(unused)]
+
 mod commands {
     #[cfg(feature = "beta")]
     pub mod check;
@@ -9,6 +12,7 @@ mod commands {
     #[cfg(feature = "beta")]
     pub mod generate;
 }
+
 mod exit;
 
 use crate::exit::ExitCode;
@@ -77,32 +81,35 @@ enum Commands {
     },
 }
 
-pub fn main() -> ExitCode {
+pub fn main() -> Result<(), ExitCode> {
     // Load environment variables from `.env`:
     clientele::dotenv().ok();
 
     // Expand wildcards and @argfiles:
-    let args = clientele::args_os().unwrap();
+    let args = clientele::args_os()?;
 
     // Parse command-line options:
     let options = Options::parse_from(args);
 
     if options.version {
-        return version(&options).err().unwrap_or_default();
+        println!("protoflow {}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
     }
 
     if options.license {
-        return license().err().unwrap_or_default();
+        println!("This is free and unencumbered software released into the public domain.");
+        return Ok(());
     }
 
+    // Configure verbose/debug output:
     if options.verbose || options.debug {
         // TODO: configure tracing
     }
 
     let subcommand = &options.command;
-    let result = match subcommand.as_ref().expect("subcommand is required") {
+    match subcommand.as_ref().expect("subcommand is required") {
         #[cfg(feature = "beta")]
-        Commands::Config {} => Ok(()),
+        Commands::Config {} => commands::config::config(),
         #[cfg(feature = "beta")]
         Commands::Check { paths } => commands::check::check(paths),
         Commands::Execute {
@@ -112,18 +119,7 @@ pub fn main() -> ExitCode {
         } => commands::execute::execute(block, params, *encoding),
         #[cfg(feature = "beta")]
         Commands::Generate { path } => commands::generate::generate(path),
-    };
-    return result.err().unwrap_or_default();
-}
-
-fn version(_options: &Options) -> Result<(), ExitCode> {
-    println!("protoflow {}", env!("CARGO_PKG_VERSION"));
-    Ok(())
-}
-
-fn license() -> Result<(), ExitCode> {
-    println!("This is free and unencumbered software released into the public domain.");
-    Ok(())
+    }
 }
 
 fn parse_encoding(input: &str) -> Result<Encoding, commands::execute::ExecuteError> {
