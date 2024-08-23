@@ -6,8 +6,8 @@ use protoflow_core::SystemExecution;
 use std::path::PathBuf;
 
 pub fn execute(
-    system_uri: &PathBuf,
-    system_params: &Vec<(String, String)>,
+    system_uri: PathBuf,
+    system_params: Vec<(String, String)>,
     stdio_encoding: Encoding,
 ) -> Result<(), ExitCode> {
     let system_uri = system_uri.to_string_lossy().to_string();

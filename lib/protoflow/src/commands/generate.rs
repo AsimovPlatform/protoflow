@@ -4,7 +4,7 @@ use crate::exit::ExitCode;
 use protoflow_syntax::{Code, SystemParser};
 use std::path::PathBuf;
 
-pub fn generate(path: &PathBuf) -> Result<(), ExitCode> {
+pub fn generate(path: PathBuf) -> Result<(), ExitCode> {
     let mut parser = SystemParser::from_file(path)?;
     let model = parser.check()?;
     let code = Code::try_from(model)?;

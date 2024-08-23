@@ -12,41 +12,32 @@ mod commands {
     #[cfg(feature = "beta")]
     pub mod generate;
 }
+use commands::*;
 
 mod exit;
 
 use crate::exit::ExitCode;
-use clientele::crates::clap::{Parser, Subcommand};
+use clientele::{
+    crates::clap::{Args, Parser, Subcommand},
+    StandardOptions,
+};
 use protoflow_blocks::Encoding;
 use std::{error::Error, path::PathBuf, str::FromStr};
 
-/// Protoflow command-line interface (CLI)
+/// Protoflow Command-Line Interface (CLI)
 #[derive(Debug, Parser)]
-#[command(name = "Protoflow", about)]
+#[command(name = "Protoflow")]
 #[command(arg_required_else_help = true)]
 struct Options {
-    /// Enable debugging output
-    #[clap(short = 'd', long, value_parser, global = true)]
-    debug: bool,
-
-    /// Show license information
-    #[clap(long, value_parser)]
-    license: bool,
-
-    /// Enable verbose output
-    #[clap(short = 'v', long, value_parser, global = true)]
-    verbose: bool,
-
-    /// Print version information
-    #[clap(short = 'V', long, value_parser)]
-    version: bool,
+    #[clap(flatten)]
+    flags: StandardOptions,
 
     #[command(subcommand)]
-    command: Option<Commands>,
+    command: Command,
 }
 
 #[derive(Debug, Subcommand)]
-enum Commands {
+enum Command {
     /// Show the current configuration
     #[cfg(feature = "beta")]
     Config {},
@@ -91,41 +82,40 @@ pub fn main() -> Result<(), ExitCode> {
     // Parse command-line options:
     let options = Options::parse_from(args);
 
-    if options.version {
+    if options.flags.version {
         println!("protoflow {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
 
-    if options.license {
+    if options.flags.license {
         println!("This is free and unencumbered software released into the public domain.");
         return Ok(());
     }
 
     // Configure verbose/debug output:
-    if options.verbose || options.debug {
+    if options.flags.verbose > 0 || options.flags.debug {
         // TODO: configure tracing
     }
 
-    let subcommand = &options.command;
-    match subcommand.as_ref().expect("subcommand is required") {
+    match options.command {
         #[cfg(feature = "beta")]
-        Commands::Config {} => commands::config::config(),
+        Command::Config {} => config::config(),
         #[cfg(feature = "beta")]
-        Commands::Check { paths } => commands::check::check(paths),
-        Commands::Execute {
+        Command::Check { paths } => check::check(paths),
+        Command::Execute {
             block,
             encoding,
             params,
-        } => commands::execute::execute(block, params, *encoding),
+        } => execute::execute(block, params, encoding),
         #[cfg(feature = "beta")]
-        Commands::Generate { path } => commands::generate::generate(path),
+        Command::Generate { path } => generate::generate(path),
     }
 }
 
-fn parse_encoding(input: &str) -> Result<Encoding, commands::execute::ExecuteError> {
+fn parse_encoding(input: &str) -> Result<Encoding, execute::ExecuteError> {
     input
         .parse()
-        .map_err(|e: String| commands::execute::ExecuteError::InvalidEncoding(e))
+        .map_err(|e: String| execute::ExecuteError::InvalidEncoding(e))
 }
 
 fn parse_kv_param<K, V>(input: &str) -> Result<(K, V), Box<dyn Error + Send + Sync + 'static>>
