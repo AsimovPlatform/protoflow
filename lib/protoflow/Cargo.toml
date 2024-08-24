@@ -18,7 +18,7 @@ publish.workspace = true
 
 [features]
 default = ["all", "cli", "std"]
-all = ["blocks", "derive", "rand", "syntax", "sysml", "tracing"]
+all = ["blocks", "derive", "rand", "serde", "syntax", "sysml", "tracing"]
 beta = []
 blocks = ["dep:protoflow-blocks"]
 cli = ["std", "syntax", "dep:clap", "dep:clientele"]
@@ -26,6 +26,7 @@ crossbeam = ["dep:protoflow-crossbeam"]
 derive = ["dep:protoflow-derive"]
 flume = ["dep:protoflow-flume"]
 rand = ["protoflow-blocks?/rand", "protoflow-core/rand"]
+serde = ["protoflow-blocks?/serde"]
 std = [
     "clientele?/std",
     "protoflow-blocks?/std",
