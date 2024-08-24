@@ -65,6 +65,7 @@ pub struct Hash {
 
 /// The cryptographic hash algorithm to use.
 #[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum HashAlgorithm {
     #[default]
     BLAKE3,

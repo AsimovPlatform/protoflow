@@ -11,6 +11,16 @@ impl core::fmt::Display for ExitCode {
     }
 }
 
+impl std::process::Termination for ExitCode {
+    fn report(self) -> std::process::ExitCode {
+        self.0.report()
+    }
+}
+
+impl std::error::Error for ExitCode {}
+
+impl error_stack::Context for ExitCode {}
+
 impl From<std::boxed::Box<dyn std::error::Error>> for ExitCode {
     fn from(error: std::boxed::Box<dyn std::error::Error>) -> Self {
         std::eprintln!("{}: {:?}", "protoflow", error);
@@ -91,13 +101,3 @@ impl From<crate::commands::generate::GenerateError> for ExitCode {
         }
     }
 }
-
-impl std::process::Termination for ExitCode {
-    fn report(self) -> std::process::ExitCode {
-        self.0.report()
-    }
-}
-
-impl std::error::Error for ExitCode {}
-
-impl error_stack::Context for ExitCode {}

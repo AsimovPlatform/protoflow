@@ -67,6 +67,7 @@ pub struct Delay<T: Message> {
 
 /// The type of delay (fixed or random) to apply to message relay.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum DelayType {
     Fixed(Duration),
     Random(Range<Duration>),
