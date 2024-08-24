@@ -29,4 +29,4 @@ quote = { version = "1", default-features = false }
 syn = { version = "2", default-features = true }
 
 [dev-dependencies]
-protoflow-core = { version = "=0.2.0", default-features = false }
+protoflow-core = { version = "=0.2.1", default-features = false }

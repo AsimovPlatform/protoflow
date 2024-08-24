@@ -35,8 +35,8 @@ cfg_aliases.workspace = true
 
 [dependencies]
 blake3 = { version = "1.5", default-features = false, optional = true }
-protoflow-core = { version = "=0.2.0", default-features = false }
-protoflow-derive = { version = "=0.2.0" }
+protoflow-core = { version = "=0.2.1", default-features = false }
+protoflow-derive = { version = "=0.2.1" }
 tracing = { version = "0.1", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, features = [
     "derive",
@@ -45,4 +45,4 @@ simple-mermaid = "0.1"
 sysml-model = { version = "=0.2.1", default-features = false, optional = true }
 
 [dev-dependencies]
-protoflow-derive = { version = "=0.2.0" }
+protoflow-derive = { version = "=0.2.1" }
