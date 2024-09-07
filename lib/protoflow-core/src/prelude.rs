@@ -24,6 +24,7 @@ pub use alloc::{
 
 #[allow(unused)]
 pub use core::{
+    any::type_name,
     cell::RefCell,
     convert::{AsRef, TryFrom},
     fmt,

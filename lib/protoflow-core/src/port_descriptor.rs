@@ -1,17 +1,42 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{String, ToString},
+    prelude::{type_name, String, ToString},
     InputPort, Message, OutputPort, Port, PortID, PortState,
 };
 
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PortDirection {
+    Input,
+    Output,
+}
+
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PortDescriptor {
-    /// The current state of this port.
-    state: PortState,
+    /// The direction of this port.
+    direction: PortDirection,
+
+    /// The type of data that this port carries.
+    r#type: Option<String>,
+
     /// The machine-readable name of this port.
     name: Option<String>,
+
     /// A human-readable label for this port.
     label: Option<String>,
+
+    /// The current state of this port.
+    state: PortState,
+}
+
+impl PortDescriptor {
+    pub fn is_input(&self) -> bool {
+        self.direction == PortDirection::Input
+    }
+
+    pub fn is_output(&self) -> bool {
+        self.direction == PortDirection::Output
+    }
 }
 
 impl Port for PortDescriptor {
@@ -35,9 +60,11 @@ impl Port for PortDescriptor {
 impl<T: Message> From<&InputPort<T>> for PortDescriptor {
     fn from(port: &InputPort<T>) -> Self {
         Self {
-            state: port.state(),
+            direction: PortDirection::Input,
+            r#type: Some(type_name::<T>().to_string()),
             name: port.name().map(|s| s.to_string()),
             label: port.label().map(|s| s.to_string()),
+            state: port.state(),
         }
     }
 }
@@ -45,9 +72,11 @@ impl<T: Message> From<&InputPort<T>> for PortDescriptor {
 impl<T: Message> From<&OutputPort<T>> for PortDescriptor {
     fn from(port: &OutputPort<T>) -> Self {
         Self {
-            state: port.state(),
+            direction: PortDirection::Output,
+            r#type: Some(type_name::<T>().to_string()),
             name: port.name().map(|s| s.to_string()),
             label: port.label().map(|s| s.to_string()),
+            state: port.state(),
         }
     }
 }
