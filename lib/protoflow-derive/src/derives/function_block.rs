@@ -7,9 +7,11 @@ use syn::{self, Data, DataStruct, DeriveInput, Fields, FieldsNamed, FieldsUnname
 
 pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenStream> {
     let protoflow = protoflow_crate();
+
     let ident = &input.ident;
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     let _fields = match &input.data {
         Data::Struct(DataStruct {
             fields: Fields::Named(FieldsNamed { named: fields, .. }),
@@ -52,7 +54,7 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
         impl #impl_generics #protoflow::prelude::sysml_model::Element for #ident #ty_generics #where_clause {}
     };
 
-    Ok(quote! {
+    let impl_block_descriptor = quote! {
         #[automatically_derived]
         #[allow(
             unused_qualifications,
@@ -67,7 +69,28 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
                 #protoflow::prelude::vec![#protoflow::PortDescriptor::from(&self.1)]
             }
         }
+    };
 
+    let impl_block_hooks = quote! {
+        #[automatically_derived]
+        #[allow(
+            unused_qualifications,
+            clippy::redundant_locals,
+        )]
+        impl #impl_generics #protoflow::BlockHooks for #ident #ty_generics #where_clause {
+            fn pre_execute(&mut self, _runtime: &dyn #protoflow::BlockRuntime) -> #protoflow::BlockResult {
+                Ok(())
+            }
+
+            fn post_execute(&mut self, _runtime: &dyn #protoflow::BlockRuntime) -> #protoflow::BlockResult {
+                self.0.close()?;
+                self.1.close()?;
+                Ok(())
+            }
+        }
+    };
+
+    let impl_block_execute = quote! {
         #[automatically_derived]
         #[allow(
             unused_qualifications,
@@ -86,7 +109,12 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
                 Ok(())
             }
         }
+    };
 
+    Ok(quote! {
+        #impl_block_descriptor
+        #impl_block_hooks
+        #impl_block_execute
         #impl_sysml_traits
     })
 }
