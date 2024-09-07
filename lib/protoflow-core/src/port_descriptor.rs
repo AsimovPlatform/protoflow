@@ -14,19 +14,19 @@ pub enum PortDirection {
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PortDescriptor {
     /// The direction of this port.
-    direction: PortDirection,
+    pub direction: PortDirection,
 
     /// The type of data that this port carries.
-    r#type: Option<String>,
+    pub r#type: Option<String>,
 
     /// The machine-readable name of this port.
-    name: Option<String>,
+    pub name: Option<String>,
 
     /// A human-readable label for this port.
-    label: Option<String>,
+    pub label: Option<String>,
 
     /// The current state of this port.
-    state: PortState,
+    pub state: PortState,
 }
 
 impl PortDescriptor {
