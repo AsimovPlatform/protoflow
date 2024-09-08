@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{vec, String, Vec},
-    PortDescriptor,
+    ParameterDescriptor, PortDescriptor,
 };
 
 /// A block is an autonomous unit of computation in a system.
@@ -24,6 +24,11 @@ pub trait BlockDescriptor {
 
     /// A description of this block's output ports.
     fn outputs(&self) -> Vec<PortDescriptor> {
+        vec![]
+    }
+
+    /// A description of this block's parameters.
+    fn parameters(&self) -> Vec<ParameterDescriptor> {
         vec![]
     }
 }

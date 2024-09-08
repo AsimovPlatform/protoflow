@@ -47,6 +47,9 @@ pub use output_port::*;
 mod output_ports;
 pub use output_ports::*;
 
+mod parameter_descriptor;
+pub use parameter_descriptor::*;
+
 mod port;
 pub use port::*;
 
