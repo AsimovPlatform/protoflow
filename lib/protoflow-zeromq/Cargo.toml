@@ -15,9 +15,11 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["std", "tracing"]
+default = ["all", "std"]
+all = ["tracing"]
 std = ["protoflow-core/std", "tracing?/std", "zeromq/default"]
-tracing = ["dep:tracing"]
+tracing = ["protoflow-core/tracing", "dep:tracing"]
+unstable = ["protoflow-core/unstable"]
 
 [build-dependencies]
 cfg_aliases.workspace = true

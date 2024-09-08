@@ -15,7 +15,8 @@ categories.workspace = true
 publish.workspace = true
 
 [features]
-default = ["std", "sysml", "tracing"]
+default = ["all", "std"]
+all = ["sysml", "tracing"]
 std = [
     "protoflow-blocks/std",
     "protoflow-core/std",
@@ -35,6 +36,7 @@ tracing = [
     "protoflow-core/tracing",
     "sysml-parser?/tracing",
 ]
+unstable = ["protoflow-blocks/unstable", "protoflow-core/unstable"]
 
 [build-dependencies]
 cfg_aliases.workspace = true

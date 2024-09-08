@@ -19,7 +19,7 @@ publish.workspace = true
 [features]
 default = ["all", "cli", "std"]
 all = ["blocks", "derive", "rand", "serde", "syntax", "sysml", "tracing"]
-beta = []
+beta = ["unstable"] # deprecated
 blocks = ["dep:protoflow-blocks"]
 cli = ["std", "syntax", "dep:clap", "dep:clientele"]
 crossbeam = ["dep:protoflow-crossbeam"]
@@ -47,6 +47,12 @@ sysml = [
 ]
 tokio = []
 tracing = ["dep:tracing", "clientele?/tracing"] # FIXME
+unstable = [
+    "protoflow-blocks?/unstable",
+    "protoflow-core/unstable",
+    "protoflow-derive?/unstable",
+    "protoflow-syntax?/unstable",
+]
 web = []
 zeromq = ["dep:protoflow-zeromq"]
 

@@ -18,9 +18,11 @@ publish.workspace = true
 proc-macro = true
 
 [features]
-default = ["std", "sysml"]
+default = ["all", "std"]
+all = ["sysml"]
 std = ["protoflow-core/std"]
 sysml = ["protoflow-core/sysml"]
+unstable = ["protoflow-core/unstable"]
 
 [dependencies]
 proc-macro2 = { version = "1", default-features = false }

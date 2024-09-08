@@ -27,8 +27,9 @@ std = [
     "tracing?/std",
 ]
 serde = ["dep:serde"]
-sysml = ["dep:sysml-model", "protoflow-core/sysml"]
-tracing = ["dep:tracing"]
+sysml = ["protoflow-core/sysml", "dep:sysml-model"]
+tracing = ["protoflow-core/tracing", "dep:tracing"]
+unstable = ["protoflow-core/unstable", "protoflow-derive/unstable"]
 
 [build-dependencies]
 cfg_aliases.workspace = true
