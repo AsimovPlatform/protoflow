@@ -19,6 +19,7 @@ default = ["all", "std"]
 all = ["sysml", "tracing"]
 rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
 std = [
+    "dogma/std",
     "futures/std",
     "getrandom?/std",
     "prost/std",
@@ -37,6 +38,7 @@ cfg_aliases.workspace = true
 
 [dependencies]
 bytes = { version = "1", default-features = false }
+dogma = { version = "0.1", default-features = false }
 futures = { version = "0.3", default-features = false }
 getrandom = { version = "0.2", optional = true, default-features = false }
 parking_lot = "0.12"
