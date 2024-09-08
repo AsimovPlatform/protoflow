@@ -56,7 +56,7 @@ shadow-rs.workspace = true
 
 [dependencies]
 clap = { version = "4.5", default-features = false, optional = true }
-clientele = { version = "=0.1.3", default-features = false, features = [
+clientele = { version = "=0.1.4", default-features = false, features = [
     "argfile",
     "clap",
     "color",

@@ -50,8 +50,8 @@ protoflow-blocks = { version = "=0.2.2", default-features = false, features = [
 protoflow-core = { version = "=0.2.2", default-features = false }
 quote = { version = "1", default-features = false }
 syn = { version = "2", default-features = true }
-sysml-model = { version = "=0.2.1", default-features = false, optional = true }
-sysml-parser = { version = "=0.2.1", default-features = false, features = [
+sysml-model = { version = "=0.2.2", default-features = false, optional = true }
+sysml-parser = { version = "=0.2.2", default-features = false, features = [
     "error-stack",
 ], optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
