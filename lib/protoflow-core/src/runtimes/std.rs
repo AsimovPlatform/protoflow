@@ -2,7 +2,7 @@
 
 use crate::{
     prelude::{
-        Arc, AtomicBool, AtomicUsize, Box, Duration, Instant, Ordering, Range, Rc, RefCell,
+        Arc, AtomicBool, AtomicUsize, Box, Cow, Duration, Instant, Ordering, Range, Rc, RefCell,
         ToString, Vec,
     },
     transport::Transport,
@@ -39,7 +39,12 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
             runtime: self.clone(),
             handle: RefCell::new(Some(
                 std::thread::Builder::new()
-                    .name(block.name().unwrap_or_else(|| "<unnamed>".to_string()))
+                    .name(
+                        block
+                            .name()
+                            .unwrap_or_else(|| Cow::Borrowed("<unnamed>"))
+                            .to_string(),
+                    )
                     .spawn(move || {
                         let mut block = block;
                         std::thread::park();

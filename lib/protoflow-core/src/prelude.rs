@@ -11,6 +11,7 @@ use std as alloc;
 
 #[allow(unused)]
 pub use alloc::{
+    borrow::Cow,
     boxed::Box,
     collections::btree_set::Iter as BTreeSetIter,
     collections::{BTreeMap, BTreeSet, VecDeque},
@@ -30,6 +31,7 @@ pub use core::{
     fmt,
     marker::PhantomData,
     ops::{Deref, Index, Range},
+    option::Option,
     result::Result,
     slice,
     str::FromStr,
@@ -56,3 +58,5 @@ pub use prost_types;
 #[cfg(feature = "sysml")]
 #[doc(hidden)]
 pub use sysml_model;
+
+pub use dogma::traits::{MaybeLabeled, MaybeNamed};

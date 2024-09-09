@@ -70,6 +70,30 @@ pub(crate) fn expand_derive_block_for_struct(
         })
         .collect();
 
+    let impl_dogma_traits = quote! {
+        #[automatically_derived]
+        #[allow(
+            unused_qualifications,
+            clippy::redundant_locals,
+        )]
+        impl #impl_generics #protoflow::prelude::MaybeNamed for #ident #ty_generics #where_clause {
+            fn name(&self) -> #protoflow::prelude::Option<#protoflow::prelude::Cow<str>> {
+                None // TODO
+            }
+        }
+
+        #[automatically_derived]
+        #[allow(
+            unused_qualifications,
+            clippy::redundant_locals,
+        )]
+        impl #impl_generics #protoflow::prelude::MaybeLabeled for #ident #ty_generics #where_clause {
+            fn label(&self) -> #protoflow::prelude::Option<#protoflow::prelude::Cow<str>> {
+                None // TODO
+            }
+        }
+    };
+
     #[cfg(not(feature = "sysml"))]
     let impl_sysml_traits = quote! {};
 
@@ -131,8 +155,9 @@ pub(crate) fn expand_derive_block_for_struct(
     };
 
     Ok(quote! {
-        #impl_block_descriptor
         #impl_block_hooks
+        #impl_block_descriptor
         #impl_sysml_traits
+        #impl_dogma_traits
     })
 }
