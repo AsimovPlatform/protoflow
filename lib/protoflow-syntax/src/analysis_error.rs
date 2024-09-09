@@ -25,4 +25,5 @@ pub enum AnalysisError {
 #[cfg(feature = "std")]
 impl std::error::Error for AnalysisError {}
 
+#[cfg(not(feature = "std"))]
 impl error_stack::Context for AnalysisError {}

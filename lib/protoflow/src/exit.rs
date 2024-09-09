@@ -19,6 +19,7 @@ impl std::process::Termination for ExitCode {
 
 impl std::error::Error for ExitCode {}
 
+#[cfg(not(feature = "std"))]
 impl error_stack::Context for ExitCode {}
 
 impl From<std::boxed::Box<dyn std::error::Error>> for ExitCode {
