@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, PhantomData},
+    prelude::{fmt, Arc, Cow, MaybeLabeled, MaybeNamed, PhantomData},
     InputPortID, Message, MessageReceiver, Port, PortID, PortResult, PortState, System, Transport,
 };
 
@@ -51,6 +51,18 @@ impl<T: Message> InputPort<T> {
                 Err(err) => Err(err.into()),
             },
         }
+    }
+}
+
+impl<T: Message> MaybeNamed for InputPort<T> {
+    fn name(&self) -> Option<Cow<str>> {
+        None // TODO
+    }
+}
+
+impl<T: Message> MaybeLabeled for InputPort<T> {
+    fn label(&self) -> Option<Cow<str>> {
+        None // TODO
     }
 }
 

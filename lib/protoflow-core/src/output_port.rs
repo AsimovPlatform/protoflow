@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, Bytes, PhantomData},
+    prelude::{fmt, Arc, Bytes, Cow, MaybeLabeled, MaybeNamed, PhantomData},
     Message, MessageSender, OutputPortID, Port, PortID, PortResult, PortState, System, Transport,
 };
 
@@ -34,6 +34,18 @@ impl<T: Message> OutputPort<T> {
         let message: &T = message.into();
         let bytes = Bytes::from(message.encode_length_delimited_to_vec());
         self.transport.send(self.id, bytes)
+    }
+}
+
+impl<T: Message> MaybeNamed for OutputPort<T> {
+    fn name(&self) -> Option<Cow<str>> {
+        None // TODO
+    }
+}
+
+impl<T: Message> MaybeLabeled for OutputPort<T> {
+    fn label(&self) -> Option<Cow<str>> {
+        None // TODO
     }
 }
 

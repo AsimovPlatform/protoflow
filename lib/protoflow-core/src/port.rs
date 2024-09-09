@@ -1,27 +1,17 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, ToString},
+    prelude::{fmt, MaybeLabeled, MaybeNamed, ToString},
     PortError, PortID, PortResult, PortState,
 };
 
 /// The common interface for ports, whether for input or output.
-pub trait Port {
+pub trait Port: MaybeNamed + MaybeLabeled {
     /// A unique identifier for this port.
     fn id(&self) -> Option<PortID>;
 
     /// The current state of this port.
     fn state(&self) -> PortState;
-
-    /// The machine-readable name of this port.
-    fn name(&self) -> Option<&str> {
-        None
-    }
-
-    /// A human-readable label for this port.
-    fn label(&self) -> Option<&str> {
-        None
-    }
 
     /// Checks whether this port is currently closed.
     fn is_closed(&self) -> bool {

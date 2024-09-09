@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{type_name, String, ToString},
+    prelude::{type_name, Cow, MaybeLabeled, MaybeNamed, String, ToString},
     InputPort, Message, OutputPort, Port, PortID, PortState,
 };
 
@@ -41,6 +41,18 @@ impl PortDescriptor {
     }
 }
 
+impl MaybeNamed for PortDescriptor {
+    fn name(&self) -> Option<Cow<str>> {
+        self.name.as_deref().map(Cow::Borrowed)
+    }
+}
+
+impl MaybeLabeled for PortDescriptor {
+    fn label(&self) -> Option<Cow<str>> {
+        self.label.as_deref().map(Cow::Borrowed)
+    }
+}
+
 impl Port for PortDescriptor {
     fn id(&self) -> Option<PortID> {
         None
@@ -48,14 +60,6 @@ impl Port for PortDescriptor {
 
     fn state(&self) -> PortState {
         self.state
-    }
-
-    fn name(&self) -> Option<&str> {
-        self.name.as_deref()
-    }
-
-    fn label(&self) -> Option<&str> {
-        self.label.as_deref()
     }
 }
 
