@@ -15,3 +15,11 @@ impl Message for String {} // google.protobuf.StringValue
 impl Message for Vec<u8> {} // google.protobuf.BytesValue
 impl Message for Bytes {} // google.protobuf.BytesValue
 impl Message for () {} // google.protobuf.Empty
+
+impl Message for prost_types::Any {} // google.protobuf.Any
+impl Message for prost_types::Duration {} // google.protobuf.Duration
+impl Message for prost_types::ListValue {} // google.protobuf.ListValue
+impl Message for prost_types::Option {} // google.protobuf.Option
+impl Message for prost_types::Struct {} // google.protobuf.Struct
+impl Message for prost_types::Timestamp {} // google.protobuf.Timestamp
+impl Message for prost_types::Value {} // google.protobuf.Value
