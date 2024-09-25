@@ -25,7 +25,7 @@ unstable = ["protoflow-core/unstable"]
 cfg_aliases.workspace = true
 
 [dependencies]
-protoflow-core = { version = "=0.3.0", default-features = false }
+protoflow-core = { version = "=0.3.1", default-features = false }
 tracing = { version = "0.1", default-features = false, optional = true }
 zeromq = { version = "0.4", default-features = false }
 

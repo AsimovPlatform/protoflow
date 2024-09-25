@@ -46,10 +46,10 @@ displaydoc = { version = "0.2", default-features = false }
 error-stack = { version = "0.5", default-features = false }
 prettyplease = "0.2"
 proc-macro2 = { version = "1", default-features = false }
-protoflow-blocks = { version = "=0.3.0", default-features = false, features = [
+protoflow-blocks = { version = "=0.3.1", default-features = false, features = [
     "hash",
 ] }
-protoflow-core = { version = "=0.3.0", default-features = false }
+protoflow-core = { version = "=0.3.1", default-features = false }
 quote = { version = "1", default-features = false }
 syn = { version = "2", default-features = true }
 sysml-model = { version = "=0.2.3", default-features = false, optional = true }
