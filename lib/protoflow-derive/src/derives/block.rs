@@ -56,9 +56,21 @@ pub(crate) fn expand_derive_block_for_struct(
         .collect();
 
     let port_names: Vec<Ident> = fields
-        .into_iter()
-        .filter(|(_, ty)| ty == "InputPort" || ty == "OutputPort")
-        .map(|(name, _)| name)
+        .iter()
+        .filter(|(_, ty)| ty == "InputPort" || ty == "OutputPort") // FIXME: this is a hack
+        .map(|(name, _)| name.clone())
+        .collect();
+
+    let input_port_names: Vec<Ident> = fields
+        .iter()
+        .filter(|(_, ty)| ty == "InputPort") // FIXME: this is a hack
+        .map(|(name, _)| name.clone())
+        .collect();
+
+    let output_port_names: Vec<Ident> = fields
+        .iter()
+        .filter(|(_, ty)| ty == "OutputPort") // FIXME: this is a hack
+        .map(|(name, _)| name.clone())
         .collect();
 
     let port_closes: Vec<TokenStream> = port_names
@@ -66,6 +78,42 @@ pub(crate) fn expand_derive_block_for_struct(
         .map(|port| {
             quote! {
                 self.#port.close()?;
+            }
+        })
+        .collect();
+
+    let input_port_descriptors: Vec<TokenStream> = input_port_names
+        .iter()
+        .map(|port| {
+            // TODO: mandatory name, ID; implement label, type
+            let port_name = port.to_string();
+            quote! {
+                #protoflow::PortDescriptor {
+                    direction: #protoflow::PortDirection::Input,
+                    name: Some(#protoflow::prelude::String::from(#port_name)),
+                    label: None,
+                    r#type: None,
+                    id: #protoflow::Port::id(&self.#port).unwrap(),
+                    state: #protoflow::Port::state(&self.#port),
+                }
+            }
+        })
+        .collect();
+
+    let output_port_descriptors: Vec<TokenStream> = output_port_names
+        .iter()
+        .map(|port| {
+            // TODO: mandatory name, ID; implement label, type
+            let port_name = port.to_string();
+            quote! {
+                #protoflow::PortDescriptor {
+                    direction: #protoflow::PortDirection::Output,
+                    name: Some(#protoflow::prelude::String::from(#port_name)),
+                    label: None,
+                    r#type: None,
+                    id: #protoflow::Port::id(&self.#port).unwrap(),
+                    state: #protoflow::Port::state(&self.#port),
+                }
             }
         })
         .collect();
@@ -125,11 +173,15 @@ pub(crate) fn expand_derive_block_for_struct(
         )]
         impl #impl_generics #protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
             fn inputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
-                #protoflow::prelude::vec![] // TODO
+                #protoflow::prelude::vec![
+                    #(#input_port_descriptors,)*
+                ]
             }
 
             fn outputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
-                #protoflow::prelude::vec![] // TODO
+                #protoflow::prelude::vec![
+                    #(#output_port_descriptors,)*
+                ]
             }
         }
     };

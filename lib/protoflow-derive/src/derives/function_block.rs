@@ -86,11 +86,15 @@ pub(crate) fn expand_derive_function_block(input: &DeriveInput) -> Result<TokenS
         )]
         impl #impl_generics #protoflow::BlockDescriptor for #ident #ty_generics #where_clause {
             fn inputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
-                #protoflow::prelude::vec![#protoflow::PortDescriptor::from(&self.0)]
+                #protoflow::prelude::vec![
+                    #protoflow::PortDescriptor::from(&self.0),
+                ]
             }
 
             fn outputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
-                #protoflow::prelude::vec![#protoflow::PortDescriptor::from(&self.1)]
+                #protoflow::prelude::vec![
+                    #protoflow::PortDescriptor::from(&self.1),
+                ]
             }
         }
     };
