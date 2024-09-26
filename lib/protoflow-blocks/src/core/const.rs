@@ -85,9 +85,7 @@ impl<T: Message> StdioSystem for Const<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
-        let Some(value) = config.params.get("value").map(String::clone) else {
-            return Err(StdioError::MissingParameter("value"))?;
-        };
+        let value = config.get_string("value")?;
 
         Ok(System::build(|s| {
             let const_value = s.const_string(value); // FIXME

@@ -76,11 +76,7 @@ impl StdioSystem for Random<u64> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
-        let seed = config.params.get("seed").map(|v| v.as_str().parse::<u64>());
-        if let Some(Err(_)) = seed {
-            return Err(StdioError::InvalidParameter("seed"));
-        }
-        let seed = seed.map(Result::unwrap);
+        let seed = config.get_opt::<u64>("seed")?;
 
         Ok(System::build(|s| {
             let random_generator = s.random_seeded::<u64>(seed);

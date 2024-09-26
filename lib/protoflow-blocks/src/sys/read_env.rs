@@ -80,9 +80,7 @@ impl<T: Message + FromStr> StdioSystem for ReadEnv<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
-        let Some(name) = config.params.get("name").map(String::clone) else {
-            return Err(StdioError::MissingParameter("name"))?;
-        };
+        let name = config.get_string("name")?;
 
         Ok(System::build(|s| {
             let name_param = s.const_string(name);

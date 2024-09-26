@@ -114,15 +114,9 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
-        let fixed_delay = config
-            .params
-            .get("fixed")
-            .map(|v| v.as_str().parse::<f64>());
-        if let Some(Err(_)) = fixed_delay {
-            return Err(StdioError::InvalidParameter("fixed"))?;
-        }
-        let fixed_delay = fixed_delay.map(Result::unwrap);
-        let delay = DelayType::Fixed(Duration::from_secs_f64(fixed_delay.unwrap()));
+        let fixed_delay = config.get_opt::<f64>("fixed")?;
+        // TODO: parse "random" parameter as well.
+        let delay = DelayType::Fixed(Duration::from_secs_f64(fixed_delay.unwrap_or(1.)));
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);

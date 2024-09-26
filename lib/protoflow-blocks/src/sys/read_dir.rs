@@ -84,9 +84,7 @@ impl StdioSystem for ReadDir {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
-        let Some(path) = config.params.get("path").map(String::clone) else {
-            return Err(StdioError::MissingParameter("path"))?;
-        };
+        let path = config.get_string("path")?;
 
         Ok(System::build(|s| {
             let path_param = s.const_string(path);
