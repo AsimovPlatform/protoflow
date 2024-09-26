@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{BlockDescriptor, BlockResult, BlockRuntime};
+use crate::{prelude::fmt, BlockDescriptor, BlockResult, BlockRuntime};
 
 /// A machine-readable identifier for a block in a system.
 ///
@@ -40,5 +40,17 @@ pub trait AsBlock {
 impl<T: Block + Sized> AsBlock for T {
     fn as_block(&self) -> &dyn Block {
         self
+    }
+}
+
+impl fmt::Debug for dyn Block {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Block")
+            //.field("name", &self.name())
+            //.field("label", &self.label())
+            .field("inputs", &self.inputs())
+            .field("outputs", &self.outputs())
+            .field("parameters", &self.parameters())
+            .finish()
     }
 }
