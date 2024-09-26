@@ -75,13 +75,13 @@ impl Block for EncodeHex {
 
 #[cfg(feature = "std")]
 impl StdioSystem for EncodeHex {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{SysBlocks, SystemBuilding};
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::SystemBuilding;
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
+            let stdin = config.read_stdin(s);
             let hex_encoder = s.encode_hex();
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &hex_encoder.input);
             s.connect(&hex_encoder.output, &stdout.input);
         }))

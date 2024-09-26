@@ -74,7 +74,7 @@ impl<T: Message + Default> Block for Random<T> {
 #[cfg(feature = "std")]
 impl StdioSystem for Random<u64> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+        use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
         let seed = config.params.get("seed").map(|v| v.as_str().parse::<u64>());
         if let Some(Err(_)) = seed {
@@ -85,7 +85,7 @@ impl StdioSystem for Random<u64> {
         Ok(System::build(|s| {
             let random_generator = s.random_seeded::<u64>(seed);
             let number_encoder = s.encode_with::<u64>(config.encoding);
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&random_generator.output, &number_encoder.input);
             s.connect(&number_encoder.output, &stdout.input);
         }))

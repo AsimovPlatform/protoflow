@@ -112,7 +112,7 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
     for Delay<T>
 {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+        use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
         let fixed_delay = config
             .params
@@ -125,11 +125,11 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
         let delay = DelayType::Fixed(Duration::from_secs_f64(fixed_delay.unwrap()));
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
+            let stdin = config.read_stdin(s);
             let message_decoder = s.decode_with::<T>(config.encoding);
             let delayer = s.delay_by(delay);
             let message_encoder = s.encode_with::<T>(config.encoding);
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &message_decoder.input);
             s.connect(&message_decoder.output, &delayer.input);
             s.connect(&delayer.output, &message_encoder.input);

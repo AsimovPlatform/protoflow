@@ -59,11 +59,11 @@ impl<T: Message> Block for Drop<T> {
 
 #[cfg(feature = "std")]
 impl<T: Message> StdioSystem for Drop<T> {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, SystemBuilding};
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
+            let stdin = config.read_stdin(s);
             let dropper = s.drop();
             s.connect(&stdin.output, &dropper.input);
         }))

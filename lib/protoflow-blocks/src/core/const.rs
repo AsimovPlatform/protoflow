@@ -83,7 +83,7 @@ impl<T: Message> Block for Const<T> {
 #[cfg(feature = "std")]
 impl<T: Message> StdioSystem for Const<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+        use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
         let Some(value) = config.params.get("value").map(String::clone) else {
             return Err(StdioError::MissingParameter("value"))?;
@@ -92,7 +92,7 @@ impl<T: Message> StdioSystem for Const<T> {
         Ok(System::build(|s| {
             let const_value = s.const_string(value); // FIXME
             let line_encoder = s.encode_with(config.encoding);
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&const_value.output, &line_encoder.input);
             s.connect(&line_encoder.output, &stdout.input);
         }))

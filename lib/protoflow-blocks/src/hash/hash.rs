@@ -126,16 +126,16 @@ impl Block for Hash {
 
 #[cfg(feature = "std")]
 impl StdioSystem for Hash {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{HashBlocks, IoBlocks, SysBlocks, SystemBuilding};
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{HashBlocks, IoBlocks, SystemBuilding};
 
         // TODO: parse the algorithm parameter
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
+            let stdin = config.read_stdin(s);
             let hasher = s.hash_blake3();
             let hex_encoder = s.encode_hex();
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &hasher.input);
             s.connect(&hasher.hash, &hex_encoder.input);
             s.connect(&hex_encoder.output, &stdout.input);

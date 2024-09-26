@@ -105,14 +105,14 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
     for Count<T>
 {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
+        use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
+            let stdin = config.read_stdin(s);
             let message_decoder = s.decode_with::<T>(config.encoding);
             let counter = s.count::<T>();
             let count_encoder = s.encode_with::<u64>(config.encoding);
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &message_decoder.input);
             s.connect(&message_decoder.output, &counter.input);
             s.connect(&counter.count, &count_encoder.input);

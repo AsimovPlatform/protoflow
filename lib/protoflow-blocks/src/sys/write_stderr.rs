@@ -66,12 +66,12 @@ impl Block for WriteStderr {
 
 #[cfg(feature = "std")]
 impl StdioSystem for WriteStderr {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{SysBlocks, SystemBuilding};
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::SystemBuilding;
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
-            let stderr = s.write_stderr();
+            let stdin = config.read_stdin(s);
+            let stderr = config.write_stderr(s);
             s.connect(&stdin.output, &stderr.input);
         }))
     }

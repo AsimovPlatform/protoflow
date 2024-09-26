@@ -88,7 +88,7 @@ impl<T: Message + FromStr> StdioSystem for ReadEnv<T> {
             let name_param = s.const_string(name);
             let env_reader = s.read_env();
             let line_encoder = s.encode_with(config.encoding);
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&name_param.output, &env_reader.name);
             s.connect(&env_reader.output, &line_encoder.input);
             s.connect(&line_encoder.output, &stdout.input);

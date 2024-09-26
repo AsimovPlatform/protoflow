@@ -101,12 +101,12 @@ impl Block for ReadStdin {
 
 #[cfg(feature = "std")]
 impl StdioSystem for ReadStdin {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{SysBlocks, SystemBuilding};
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::SystemBuilding;
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
-            let stdout = s.write_stdout();
+            let stdin = config.read_stdin(s);
+            let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &stdout.input);
         }))
     }

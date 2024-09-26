@@ -69,11 +69,11 @@ impl<T: Message> Block for Buffer<T> {
 
 #[cfg(feature = "std")]
 impl<T: Message> StdioSystem for Buffer<T> {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{CoreBlocks, SystemBuilding};
 
         Ok(System::build(|s| {
-            let stdin = s.read_stdin();
+            let stdin = config.read_stdin(s);
             let buffer = s.buffer();
             s.connect(&stdin.output, &buffer.input);
         }))

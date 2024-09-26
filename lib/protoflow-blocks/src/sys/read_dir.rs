@@ -92,7 +92,7 @@ impl StdioSystem for ReadDir {
             let path_param = s.const_string(path);
             let dir_reader = s.read_dir();
             let line_encoder = s.encode_with(config.encoding);
-            let stdout = s.write_stdout();
+            let stdout = config.write_stdout(s);
             s.connect(&path_param.output, &dir_reader.path);
             s.connect(&dir_reader.output, &line_encoder.input);
             s.connect(&line_encoder.output, &stdout.input);
