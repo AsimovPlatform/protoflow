@@ -18,14 +18,17 @@ pub struct PortDescriptor {
     /// The dataflow direction of this port.
     pub direction: PortDirection,
 
-    /// The machine-readable name of this port.
+    /// The machine-readable name of this port, if any.
     pub name: Option<String>,
 
-    /// A human-readable label for this port.
+    /// A human-readable label for this port, if any.
     pub label: Option<String>,
 
     /// The data type for messages on this port.
     pub r#type: Option<String>,
+
+    /// The unique identifier for this port.
+    pub id: PortID,
 
     /// The current state of this port.
     pub state: PortState,
@@ -55,7 +58,7 @@ impl MaybeLabeled for PortDescriptor {
 
 impl Port for PortDescriptor {
     fn id(&self) -> Option<PortID> {
-        None
+        Some(self.id)
     }
 
     fn state(&self) -> PortState {
@@ -70,6 +73,7 @@ impl<T: Message> From<&InputPort<T>> for PortDescriptor {
             name: port.name().map(|s| s.to_string()),
             label: port.label().map(|s| s.to_string()),
             r#type: Some(type_name::<T>().to_string()),
+            id: port.id().expect("input port must have an ID"),
             state: port.state(),
         }
     }
@@ -82,6 +86,7 @@ impl<T: Message> From<&OutputPort<T>> for PortDescriptor {
             name: port.name().map(|s| s.to_string()),
             label: port.label().map(|s| s.to_string()),
             r#type: Some(type_name::<T>().to_string()),
+            id: port.id().expect("output port must have an ID"),
             state: port.state(),
         }
     }
