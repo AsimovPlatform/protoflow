@@ -8,6 +8,19 @@ pub enum PortID {
     Output(OutputPortID),
 }
 
+impl PortID {
+    pub fn as_isize(&self) -> isize {
+        match self {
+            PortID::Input(id) => id.0,
+            PortID::Output(id) => id.0,
+        }
+    }
+
+    pub fn as_usize(&self) -> usize {
+        self.as_isize() as _
+    }
+}
+
 impl TryFrom<isize> for PortID {
     type Error = &'static str;
 
@@ -36,19 +49,13 @@ impl From<OutputPortID> for PortID {
 
 impl From<PortID> for isize {
     fn from(port_id: PortID) -> isize {
-        match port_id {
-            PortID::Input(id) => id.into(),
-            PortID::Output(id) => id.into(),
-        }
+        port_id.as_isize()
     }
 }
 
 impl From<PortID> for usize {
     fn from(port_id: PortID) -> usize {
-        match port_id {
-            PortID::Input(id) => id.into(),
-            PortID::Output(id) => id.into(),
-        }
+        port_id.as_usize()
     }
 }
 
@@ -62,7 +69,7 @@ impl fmt::Display for PortID {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct InputPortID(isize);
+pub struct InputPortID(pub(crate) isize);
 
 impl InputPortID {
     #[doc(hidden)]
@@ -102,7 +109,7 @@ impl fmt::Display for InputPortID {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct OutputPortID(isize);
+pub struct OutputPortID(pub(crate) isize);
 
 impl OutputPortID {
     #[doc(hidden)]

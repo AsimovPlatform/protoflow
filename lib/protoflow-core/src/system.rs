@@ -4,8 +4,8 @@ use crate::{
     prelude::{Arc, Box, PhantomData, Rc, RefCell, VecDeque},
     runtimes::StdRuntime,
     transports::MpscTransport,
-    Block, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortResult,
-    Process, Runtime, Transport,
+    Block, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
+    PortResult, Process, Runtime, Transport,
 };
 
 pub trait SystemBuilding {
@@ -79,18 +79,18 @@ impl<X: Transport + Default + 'static> System<X> {
     }
 
     pub fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
-        self.connect_by_id(source.id, target.id).unwrap()
+        self.connect_by_id(PortID::Output(source.id), PortID::Input(target.id))
+            .unwrap()
     }
 
     #[doc(hidden)]
-    pub fn connect_by_id(
-        &self,
-        source_id: OutputPortID,
-        target_id: InputPortID,
-    ) -> PortResult<bool> {
+    pub fn connect_by_id(&self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
         let runtime = self.runtime.as_ref();
         let transport = runtime.transport.as_ref();
-        transport.connect(source_id, target_id)
+        transport.connect(
+            OutputPortID(source_id.into()),
+            InputPortID(target_id.into()),
+        )
     }
 }
 
