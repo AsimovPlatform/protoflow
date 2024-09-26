@@ -9,7 +9,8 @@ use crate::{
     ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
-    Block, BlockResult, InputPort, Message, OutputPort, Process, SystemBuilding, SystemExecution,
+    Block, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortResult,
+    Process, SystemBuilding, SystemExecution,
 };
 
 #[cfg(feature = "hash")]
@@ -43,6 +44,15 @@ impl System {
     /// Instantiates a new system.
     pub fn new(runtime: &Arc<Runtime>) -> Self {
         Self(protoflow_core::System::<Transport>::new(runtime))
+    }
+
+    #[doc(hidden)]
+    pub fn connect_by_id(
+        &self,
+        source_id: OutputPortID,
+        target_id: InputPortID,
+    ) -> PortResult<bool> {
+        self.0.connect_by_id(source_id, target_id)
     }
 }
 
