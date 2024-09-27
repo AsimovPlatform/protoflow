@@ -59,4 +59,4 @@ pub use prost_types;
 #[doc(hidden)]
 pub use sysml_model;
 
-pub use dogma::traits::{MaybeLabeled, MaybeNamed};
+pub use dogma::traits::{Labeled, MaybeLabeled, MaybeNamed, Named};

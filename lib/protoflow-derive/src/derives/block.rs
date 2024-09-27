@@ -85,7 +85,7 @@ pub(crate) fn expand_derive_block_for_struct(
     let input_port_descriptors: Vec<TokenStream> = input_port_names
         .iter()
         .map(|port| {
-            // TODO: mandatory name, ID; implement label, type
+            // TODO: mandatory name; implement label, type
             let port_name = port.to_string();
             quote! {
                 #protoflow::PortDescriptor {
@@ -93,7 +93,7 @@ pub(crate) fn expand_derive_block_for_struct(
                     name: Some(#protoflow::prelude::String::from(#port_name)),
                     label: None,
                     r#type: None,
-                    id: #protoflow::Port::id(&self.#port).unwrap(),
+                    id: #protoflow::Port::id(&self.#port),
                     state: #protoflow::Port::state(&self.#port),
                 }
             }
@@ -103,7 +103,7 @@ pub(crate) fn expand_derive_block_for_struct(
     let output_port_descriptors: Vec<TokenStream> = output_port_names
         .iter()
         .map(|port| {
-            // TODO: mandatory name, ID; implement label, type
+            // TODO: mandatory name; implement label, type
             let port_name = port.to_string();
             quote! {
                 #protoflow::PortDescriptor {
@@ -111,7 +111,7 @@ pub(crate) fn expand_derive_block_for_struct(
                     name: Some(#protoflow::prelude::String::from(#port_name)),
                     label: None,
                     r#type: None,
-                    id: #protoflow::Port::id(&self.#port).unwrap(),
+                    id: #protoflow::Port::id(&self.#port),
                     state: #protoflow::Port::state(&self.#port),
                 }
             }

@@ -8,7 +8,7 @@ use crate::{
 /// The common interface for ports, whether for input or output.
 pub trait Port: MaybeNamed + MaybeLabeled {
     /// A unique identifier for this port.
-    fn id(&self) -> Option<PortID>;
+    fn id(&self) -> PortID;
 
     /// The current state of this port.
     fn state(&self) -> PortState;

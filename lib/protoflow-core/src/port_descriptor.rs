@@ -57,8 +57,8 @@ impl MaybeLabeled for PortDescriptor {
 }
 
 impl Port for PortDescriptor {
-    fn id(&self) -> Option<PortID> {
-        Some(self.id)
+    fn id(&self) -> PortID {
+        self.id
     }
 
     fn state(&self) -> PortState {
@@ -73,7 +73,7 @@ impl<T: Message> From<&InputPort<T>> for PortDescriptor {
             name: port.name().map(|s| s.to_string()),
             label: port.label().map(|s| s.to_string()),
             r#type: Some(type_name::<T>().to_string()),
-            id: port.id().expect("input port must have an ID"),
+            id: port.id(),
             state: port.state(),
         }
     }
@@ -86,7 +86,7 @@ impl<T: Message> From<&OutputPort<T>> for PortDescriptor {
             name: port.name().map(|s| s.to_string()),
             label: port.label().map(|s| s.to_string()),
             r#type: Some(type_name::<T>().to_string()),
-            id: port.id().expect("output port must have an ID"),
+            id: port.id(),
             state: port.state(),
         }
     }

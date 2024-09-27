@@ -50,8 +50,8 @@ impl<T: Message> MaybeLabeled for OutputPort<T> {
 }
 
 impl<T: Message> Port for OutputPort<T> {
-    fn id(&self) -> Option<PortID> {
-        Some(PortID::Output(self.id))
+    fn id(&self) -> PortID {
+        PortID::Output(self.id)
     }
 
     fn state(&self) -> PortState {
