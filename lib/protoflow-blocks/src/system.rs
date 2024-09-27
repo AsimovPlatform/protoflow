@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{Arc, Box, FromStr, Rc, String, ToString},
+    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, EncodeHex,
     Encoding, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile,
     ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
@@ -59,6 +59,12 @@ impl System {
     #[doc(hidden)]
     pub fn connect_by_id(&mut self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
         self.0.connect_by_id(source_id, target_id)
+    }
+}
+
+impl fmt::Debug for System {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
     }
 }
 

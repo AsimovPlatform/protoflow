@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Arc, Box, PhantomData, Rc, VecDeque},
+    prelude::{fmt, Arc, Box, PhantomData, Rc, VecDeque},
     runtimes::StdRuntime,
     transports::MpscTransport,
     Block, BlockID, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
@@ -40,6 +40,14 @@ pub struct System<X: Transport + Default + 'static = MpscTransport> {
 }
 
 pub type Subsystem<X> = System<X>;
+
+impl fmt::Debug for System {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("System")
+            .field("blocks", &self.blocks)
+            .finish()
+    }
+}
 
 impl<X: Transport + Default + 'static> System<X> {
     /// Builds a new system.
