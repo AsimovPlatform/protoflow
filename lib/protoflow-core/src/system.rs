@@ -1,10 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Arc, Box, PhantomData, Rc, RefCell, VecDeque},
+    prelude::{Arc, Box, PhantomData, Rc, VecDeque},
     runtimes::StdRuntime,
     transports::MpscTransport,
-    Block, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
+    Block, BlockID, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
     PortResult, Process, Runtime, Transport,
 };
 
@@ -74,8 +74,20 @@ impl<X: Transport + Default + 'static> System<X> {
     }
 
     pub fn block<B: Block + Clone + 'static>(&mut self, block: B) -> B {
-        self.blocks.push_back(Box::new(block.clone()));
+        self.add_block(Box::new(block.clone()));
         block
+    }
+
+    #[doc(hidden)]
+    pub fn add_block(&mut self, block: Box<dyn Block>) -> BlockID {
+        let block_id = BlockID::from(self.blocks.len());
+        self.blocks.push_back(block);
+        block_id
+    }
+
+    #[doc(hidden)]
+    pub fn get_block(&self, block_id: BlockID) -> Option<&Box<dyn Block>> {
+        self.blocks.get(block_id.into())
     }
 
     pub fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {

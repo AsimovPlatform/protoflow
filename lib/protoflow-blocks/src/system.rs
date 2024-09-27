@@ -3,13 +3,13 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{Arc, FromStr, Rc, String, ToString},
+    prelude::{Arc, Box, FromStr, Rc, String, ToString},
     AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, EncodeHex,
     Encoding, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile,
     ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
-    Block, BlockResult, InputPort, Message, OutputPort, PortID, PortResult, Process,
+    Block, BlockID, BlockResult, InputPort, Message, OutputPort, PortID, PortResult, Process,
     SystemBuilding, SystemExecution,
 };
 
@@ -44,6 +44,16 @@ impl System {
     /// Instantiates a new system.
     pub fn new(runtime: &Arc<Runtime>) -> Self {
         Self(protoflow_core::System::<Transport>::new(runtime))
+    }
+
+    #[doc(hidden)]
+    pub fn add_block(&mut self, block: Box<dyn Block>) -> BlockID {
+        self.0.add_block(block)
+    }
+
+    #[doc(hidden)]
+    pub fn get_block(&self, block_id: BlockID) -> Option<&Box<dyn Block>> {
+        self.0.get_block(block_id)
     }
 
     #[doc(hidden)]
