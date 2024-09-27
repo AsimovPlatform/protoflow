@@ -1,13 +1,13 @@
 // This is free and unencumbered software released into the public domain.
 
 pub trait SysBlocks {
-    fn read_dir(&self) -> ReadDir;
-    fn read_env(&self) -> ReadEnv;
-    fn read_file(&self) -> ReadFile;
-    fn read_stdin(&self) -> ReadStdin;
-    fn write_file(&self) -> WriteFile;
-    fn write_stderr(&self) -> WriteStderr;
-    fn write_stdout(&self) -> WriteStdout;
+    fn read_dir(&mut self) -> ReadDir;
+    fn read_env(&mut self) -> ReadEnv;
+    fn read_file(&mut self) -> ReadFile;
+    fn read_stdin(&mut self) -> ReadStdin;
+    fn write_file(&mut self) -> WriteFile;
+    fn write_stderr(&mut self) -> WriteStderr;
+    fn write_stdout(&mut self) -> WriteStdout;
 }
 
 mod read_dir;

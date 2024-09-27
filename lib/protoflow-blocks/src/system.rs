@@ -47,7 +47,7 @@ impl System {
     }
 
     #[doc(hidden)]
-    pub fn connect_by_id(&self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
+    pub fn connect_by_id(&mut self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
         self.0.connect_by_id(source_id, target_id)
     }
 }
@@ -55,18 +55,18 @@ impl System {
 impl AllBlocks for System {}
 
 impl CoreBlocks for System {
-    fn buffer<T: Message + Into<T> + 'static>(&self) -> Buffer<T> {
+    fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
         self.0.block(Buffer::<T>::new(self.0.input()))
     }
 
-    fn const_string(&self, value: impl ToString) -> Const<String> {
+    fn const_string(&mut self, value: impl ToString) -> Const<String> {
         self.0.block(Const::<String>::with_params(
             self.0.output(),
             value.to_string(),
         ))
     }
 
-    fn count<T: Message + 'static>(&self) -> Count<T> {
+    fn count<T: Message + 'static>(&mut self) -> Count<T> {
         self.0.block(Count::<T>::new(
             self.0.input(),
             self.0.output(),
@@ -74,12 +74,12 @@ impl CoreBlocks for System {
         ))
     }
 
-    fn delay<T: Message + 'static>(&self) -> Delay<T> {
+    fn delay<T: Message + 'static>(&mut self) -> Delay<T> {
         self.0
             .block(Delay::<T>::new(self.0.input(), self.0.output()))
     }
 
-    fn delay_by<T: Message + 'static>(&self, delay: DelayType) -> Delay<T> {
+    fn delay_by<T: Message + 'static>(&mut self, delay: DelayType) -> Delay<T> {
         self.0.block(Delay::<T>::with_params(
             self.0.input(),
             self.0.output(),
@@ -87,15 +87,15 @@ impl CoreBlocks for System {
         ))
     }
 
-    fn drop<T: Message + 'static>(&self) -> Drop<T> {
+    fn drop<T: Message + 'static>(&mut self) -> Drop<T> {
         self.0.block(Drop::<T>::new(self.0.input()))
     }
 
-    fn random<T: Message + 'static>(&self) -> Random<T> {
+    fn random<T: Message + 'static>(&mut self) -> Random<T> {
         self.0.block(Random::<T>::new(self.0.output()))
     }
 
-    fn random_seeded<T: Message + 'static>(&self, seed: Option<u64>) -> Random<T> {
+    fn random_seeded<T: Message + 'static>(&mut self, seed: Option<u64>) -> Random<T> {
         self.0
             .block(Random::<T>::with_params(self.0.output(), seed))
     }
@@ -108,7 +108,7 @@ impl HashBlocks for System {}
 
 #[cfg(feature = "hash")]
 impl HashBlocks for System {
-    fn hash_blake3(&self) -> Hash {
+    fn hash_blake3(&mut self) -> Hash {
         self.0.block(Hash::with_params(
             self.0.input(),
             self.0.output(),
@@ -119,12 +119,12 @@ impl HashBlocks for System {
 }
 
 impl IoBlocks for System {
-    fn decode<T: Message + FromStr + 'static>(&self) -> Decode<T> {
+    fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
         self.0
             .block(Decode::<T>::new(self.0.input(), self.0.output()))
     }
 
-    fn decode_with<T: Message + FromStr + 'static>(&self, encoding: Encoding) -> Decode<T> {
+    fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T> {
         self.0.block(Decode::<T>::with_params(
             self.0.input(),
             self.0.output(),
@@ -132,12 +132,12 @@ impl IoBlocks for System {
         ))
     }
 
-    fn encode<T: Message + ToString + 'static>(&self) -> Encode<T> {
+    fn encode<T: Message + ToString + 'static>(&mut self) -> Encode<T> {
         self.0
             .block(Encode::<T>::new(self.0.input(), self.0.output()))
     }
 
-    fn encode_with<T: Message + ToString + 'static>(&self, encoding: Encoding) -> Encode<T> {
+    fn encode_with<T: Message + ToString + 'static>(&mut self, encoding: Encoding) -> Encode<T> {
         self.0.block(Encode::<T>::with_params(
             self.0.input(),
             self.0.output(),
@@ -145,7 +145,7 @@ impl IoBlocks for System {
         ))
     }
 
-    fn encode_hex(&self) -> EncodeHex {
+    fn encode_hex(&mut self) -> EncodeHex {
         self.0
             .block(EncodeHex::new(self.0.input(), self.0.output()))
     }
@@ -158,31 +158,31 @@ impl SysBlocks for System {}
 
 #[cfg(feature = "std")]
 impl SysBlocks for System {
-    fn read_dir(&self) -> ReadDir {
+    fn read_dir(&mut self) -> ReadDir {
         self.0.block(ReadDir::new(self.0.input(), self.0.output()))
     }
 
-    fn read_env(&self) -> ReadEnv {
+    fn read_env(&mut self) -> ReadEnv {
         self.0.block(ReadEnv::new(self.0.input(), self.0.output()))
     }
 
-    fn read_file(&self) -> ReadFile {
+    fn read_file(&mut self) -> ReadFile {
         self.0.block(ReadFile::new(self.0.input(), self.0.output()))
     }
 
-    fn read_stdin(&self) -> ReadStdin {
+    fn read_stdin(&mut self) -> ReadStdin {
         self.0.block(ReadStdin::new(self.0.output()))
     }
 
-    fn write_file(&self) -> WriteFile {
+    fn write_file(&mut self) -> WriteFile {
         self.0.block(WriteFile::new(self.0.input(), self.0.input()))
     }
 
-    fn write_stderr(&self) -> WriteStderr {
+    fn write_stderr(&mut self) -> WriteStderr {
         self.0.block(WriteStderr::new(self.0.input()))
     }
 
-    fn write_stdout(&self) -> WriteStdout {
+    fn write_stdout(&mut self) -> WriteStdout {
         self.0.block(WriteStdout::new(self.0.input()))
     }
 }
@@ -198,11 +198,11 @@ impl SystemBuilding for System {
         self.0.output()
     }
 
-    fn block<B: Block + Clone + 'static>(&self, block: B) -> B {
+    fn block<B: Block + Clone + 'static>(&mut self, block: B) -> B {
         self.0.block(block)
     }
 
-    fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
+    fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         self.0.connect(source, target)
     }
 }

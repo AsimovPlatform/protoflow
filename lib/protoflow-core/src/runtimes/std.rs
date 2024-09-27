@@ -70,7 +70,7 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
 
     fn execute<X: Transport + Default>(
         &mut self,
-        system: System<X>,
+        mut system: System<X>,
     ) -> BlockResult<Rc<dyn Process>> {
         let mut system_process = RunningSystem {
             id: self.process_id.fetch_add(1, Ordering::SeqCst),
@@ -79,7 +79,7 @@ impl<T: Transport + 'static> Runtime for Arc<StdRuntime<T>> {
             blocks: Vec::new(),
         };
 
-        while let Some(block) = system.blocks.borrow_mut().pop_front() {
+        while let Some(block) = system.blocks.pop_front() {
             system_process.blocks.push(self.execute_block(block)?);
         }
 

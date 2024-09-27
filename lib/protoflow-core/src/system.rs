@@ -16,12 +16,12 @@ pub trait SystemBuilding {
     fn output<M: Message + 'static>(&self) -> OutputPort<M>;
 
     /// Instantiates a block inside the system.
-    fn block<B: Block + Clone + 'static>(&self, block: B) -> B;
+    fn block<B: Block + Clone + 'static>(&mut self, block: B) -> B;
 
     /// Connects two ports of two blocks in the system.
     ///
     /// Both ports must be of the same message type.
-    fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool;
+    fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool;
 }
 
 pub trait SystemExecution {
@@ -34,7 +34,7 @@ pub struct System<X: Transport + Default + 'static = MpscTransport> {
     pub(crate) runtime: Arc<StdRuntime<X>>,
 
     /// The registered blocks in the system.
-    pub(crate) blocks: RefCell<VecDeque<Box<dyn Block>>>,
+    pub(crate) blocks: VecDeque<Box<dyn Block>>,
 
     _phantom: PhantomData<X>,
 }
@@ -55,7 +55,7 @@ impl<X: Transport + Default + 'static> System<X> {
     pub fn new(runtime: &Arc<StdRuntime<X>>) -> Self {
         Self {
             runtime: runtime.clone(),
-            blocks: RefCell::new(VecDeque::new()),
+            blocks: VecDeque::new(),
             _phantom: PhantomData,
         }
     }
@@ -73,8 +73,8 @@ impl<X: Transport + Default + 'static> System<X> {
         OutputPort::new(self)
     }
 
-    pub fn block<B: Block + Clone + 'static>(&self, block: B) -> B {
-        self.blocks.borrow_mut().push_back(Box::new(block.clone()));
+    pub fn block<B: Block + Clone + 'static>(&mut self, block: B) -> B {
+        self.blocks.push_back(Box::new(block.clone()));
         block
     }
 
@@ -103,11 +103,11 @@ impl SystemBuilding for System {
         System::output(self)
     }
 
-    fn block<B: Block + Clone + 'static>(&self, block: B) -> B {
+    fn block<B: Block + Clone + 'static>(&mut self, block: B) -> B {
         System::block(self, block)
     }
 
-    fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
+    fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         System::connect(self, source, target)
     }
 }

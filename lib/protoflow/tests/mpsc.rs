@@ -11,7 +11,7 @@ use protoflow::{
 fn execute_mpsc_transport() -> Result<(), ()> {
     let transport = MpscTransport::new();
     let mut runtime = StdRuntime::new(transport).unwrap();
-    let system = System::new(&runtime);
+    let mut system = System::new(&runtime);
     let constant = system.block(Const {
         output: system.output(),
         value: 42,

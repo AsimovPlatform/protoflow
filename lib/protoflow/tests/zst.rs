@@ -7,7 +7,7 @@ fn const_with_numeric_zero() -> Result<(), ()> {
     let transport = MpscTransport::new();
     let mut runtime = StdRuntime::new(transport).unwrap();
 
-    let system = System::new(&runtime);
+    let mut system = System::new(&runtime);
     let constant: Const<i32> = system.block(Const {
         output: system.output(),
         value: 0,
