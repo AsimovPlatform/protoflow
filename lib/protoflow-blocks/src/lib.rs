@@ -6,6 +6,9 @@
 #[doc(hidden)]
 pub use protoflow_core::prelude;
 
+mod config;
+pub use config::*;
+
 mod core;
 pub use core::*;
 
