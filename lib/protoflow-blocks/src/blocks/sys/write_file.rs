@@ -52,6 +52,11 @@ impl WriteFile {
     pub fn new(path: InputPort<String>, input: InputPort<Bytes>) -> Self {
         Self { path, input }
     }
+
+    pub fn with_system(system: &mut System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input(), system.input())
+    }
 }
 
 impl Block for WriteFile {

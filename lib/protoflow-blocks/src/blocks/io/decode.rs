@@ -79,6 +79,13 @@ impl<T: Message + FromStr> Decode<T> {
     }
 }
 
+impl<T: Message + FromStr + 'static> Decode<T> {
+    pub fn with_system(system: &mut System, encoding: Encoding) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.input(), system.output(), encoding)
+    }
+}
+
 impl<T: Message + FromStr> Block for Decode<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         let mut buffer = Vec::<u8>::new();

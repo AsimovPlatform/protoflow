@@ -73,6 +73,13 @@ impl<T: Message> Count<T> {
     }
 }
 
+impl<T: Message + 'static> Count<T> {
+    pub fn with_system(system: &mut System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input(), system.output(), system.output())
+    }
+}
+
 impl<T: Message> Block for Count<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {

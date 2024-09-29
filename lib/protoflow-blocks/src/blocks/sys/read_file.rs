@@ -52,6 +52,11 @@ impl ReadFile {
     pub fn new(path: InputPort<String>, output: OutputPort<Bytes>) -> Self {
         Self { path, output }
     }
+
+    pub fn with_system(system: &mut System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input(), system.output())
+    }
 }
 
 impl Block for ReadFile {

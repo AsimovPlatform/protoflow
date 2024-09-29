@@ -94,6 +94,11 @@ impl Hash {
             hasher: Hasher::new(),
         }
     }
+
+    pub fn with_system(system: &mut System, algorithm: HashAlgorithm) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.input(), system.output(), system.output(), algorithm)
+    }
 }
 
 impl Block for Hash {

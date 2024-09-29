@@ -61,6 +61,13 @@ impl<T: Message> Random<T> {
     }
 }
 
+impl<T: Message + 'static> Random<T> {
+    pub fn with_system(system: &mut System, seed: Option<u64>) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.output(), seed)
+    }
+}
+
 impl<T: Message + Default> Block for Random<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.output)?;

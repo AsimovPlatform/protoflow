@@ -58,6 +58,13 @@ impl<T: Message> Buffer<T> {
     }
 }
 
+impl<T: Message + 'static> Buffer<T> {
+    pub fn with_system(system: &mut System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input())
+    }
+}
+
 impl<T: Message> Block for Buffer<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {

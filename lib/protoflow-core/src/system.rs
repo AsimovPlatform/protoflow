@@ -1,16 +1,41 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, Box, PhantomData, Rc, VecDeque},
+    prelude::{fmt, Arc, Box, Bytes, PhantomData, Rc, String, VecDeque},
     runtimes::StdRuntime,
     transports::MpscTransport,
+    types::Any,
     Block, BlockID, BlockResult, InputPort, InputPortID, Message, OutputPort, OutputPortID, PortID,
     PortResult, Process, Runtime, Transport,
 };
 
 pub trait SystemBuilding {
+    fn input_any(&self) -> InputPort<Any> {
+        self.input()
+    }
+
+    fn input_bytes(&self) -> InputPort<Bytes> {
+        self.input()
+    }
+
+    fn input_string(&self) -> InputPort<String> {
+        self.input()
+    }
+
     /// Creates a new input port inside the system.
     fn input<M: Message + 'static>(&self) -> InputPort<M>;
+
+    fn output_any(&self) -> OutputPort<Any> {
+        self.output()
+    }
+
+    fn output_bytes(&self) -> OutputPort<Bytes> {
+        self.output()
+    }
+
+    fn output_string(&self) -> OutputPort<String> {
+        self.output()
+    }
 
     /// Creates a new output port inside the system.
     fn output<M: Message + 'static>(&self) -> OutputPort<M>;

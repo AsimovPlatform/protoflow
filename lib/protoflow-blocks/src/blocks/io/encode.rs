@@ -78,6 +78,13 @@ impl<T: Message + ToString> Encode<T> {
     }
 }
 
+impl<T: Message + ToString + 'static> Encode<T> {
+    pub fn with_system(system: &mut System, encoding: Encoding) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.input(), system.output(), encoding)
+    }
+}
+
 impl<T: Message + ToString> Block for Encode<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.input)?;

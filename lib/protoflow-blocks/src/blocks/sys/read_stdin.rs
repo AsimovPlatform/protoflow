@@ -69,6 +69,11 @@ impl ReadStdin {
             buffer_size: buffer_size.unwrap_or(DEFAULT_BUFFER_SIZE),
         }
     }
+
+    pub fn with_system(system: &mut System, buffer_size: Option<usize>) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.output(), buffer_size)
+    }
 }
 
 impl Block for ReadStdin {

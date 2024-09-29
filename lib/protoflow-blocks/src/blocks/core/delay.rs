@@ -87,6 +87,13 @@ impl<T: Message> Delay<T> {
     }
 }
 
+impl<T: Message + 'static> Delay<T> {
+    pub fn with_system(system: &mut System, delay: DelayType) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.input(), system.output(), delay)
+    }
+}
+
 impl<T: Message> Block for Delay<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {

@@ -47,6 +47,11 @@ impl WriteStderr {
     pub fn new(input: InputPort<Bytes>) -> Self {
         Self { input }
     }
+
+    pub fn with_system(system: &mut System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input())
+    }
 }
 
 impl Block for WriteStderr {

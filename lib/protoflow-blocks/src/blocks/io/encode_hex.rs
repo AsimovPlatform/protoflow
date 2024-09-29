@@ -54,6 +54,11 @@ impl EncodeHex {
     pub fn new(input: InputPort<Bytes>, output: OutputPort<Bytes>) -> Self {
         Self { input, output }
     }
+
+    pub fn with_system(system: &mut System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input(), system.output())
+    }
 }
 
 impl Block for EncodeHex {
