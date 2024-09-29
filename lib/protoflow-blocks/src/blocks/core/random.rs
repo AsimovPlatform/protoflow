@@ -41,7 +41,7 @@ use simple_mermaid::mermaid;
 /// ```
 ///
 #[derive(Block, Clone)]
-pub struct Random<T: Message> {
+pub struct Random<T: Message = u64> {
     /// The port to send the value on.
     #[output]
     pub output: OutputPort<T>,

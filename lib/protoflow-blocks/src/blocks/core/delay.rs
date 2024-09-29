@@ -3,6 +3,7 @@
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Duration, Range},
+    types::Any,
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
 };
 use protoflow_derive::Block;
@@ -51,7 +52,7 @@ use simple_mermaid::mermaid;
 /// ```
 ///
 #[derive(Block, Clone)]
-pub struct Delay<T: Message> {
+pub struct Delay<T: Message = Any> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,

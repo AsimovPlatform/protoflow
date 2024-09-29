@@ -2,7 +2,7 @@
 
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
-    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port, PortError,
+    types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port, PortError,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -44,7 +44,7 @@ use simple_mermaid::mermaid;
 /// ```
 ///
 #[derive(Block, Clone)]
-pub struct Count<T: Message> {
+pub struct Count<T: Message = Any> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
