@@ -2,8 +2,8 @@
 
 pub mod io {
     use super::{
-        prelude::{Cow, Named},
-        InputPortName, OutputPortName,
+        prelude::{vec, Cow, Named, Vec},
+        BlockConfigConnections, InputPortName, OutputPortName,
     };
     use crate::{
         prelude::{FromStr, ToString},
@@ -59,6 +59,17 @@ pub mod io {
                 Encode { .. } => "Encode",
                 EncodeHex { .. } => "EncodeHex",
             })
+        }
+    }
+
+    impl BlockConfigConnections for IoBlocksConfig {
+        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
+            use IoBlocksConfig::*;
+            match self {
+                Decode { output, .. } | Encode { output, .. } | EncodeHex { output, .. } => {
+                    vec![("output", Some(output.clone()))]
+                }
+            }
         }
     }
 

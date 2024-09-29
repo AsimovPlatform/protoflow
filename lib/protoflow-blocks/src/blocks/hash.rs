@@ -9,8 +9,8 @@ pub mod hash {
 #[cfg(feature = "hash")]
 pub mod hash {
     use super::{
-        prelude::{Cow, Named},
-        InputPortName, OutputPortName,
+        prelude::{vec, Cow, Named, Vec},
+        BlockConfigConnections, InputPortName, OutputPortName,
     };
 
     pub trait HashBlocks {
@@ -34,6 +34,17 @@ pub mod hash {
             Cow::Borrowed(match self {
                 Hash { .. } => "Hash",
             })
+        }
+    }
+
+    impl BlockConfigConnections for HashBlocksConfig {
+        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
+            use HashBlocksConfig::*;
+            match self {
+                Hash { output, hash, .. } => {
+                    vec![("output", output.clone()), ("hash", Some(hash.clone()))]
+                }
+            }
         }
     }
 

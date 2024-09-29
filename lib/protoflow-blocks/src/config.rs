@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use super::prelude::{Cow, Named, String};
+use super::prelude::{Cow, Named, String, Vec};
 use crate::{
     CoreBlocksConfig, FlowBlocksConfig, HashBlocksConfig, IoBlocksConfig, MathBlocksConfig,
     SysBlocksConfig, TextBlocksConfig,
@@ -22,6 +22,16 @@ pub enum BlockConfig {
     #[cfg(feature = "std")]
     Sys(SysBlocksConfig),
     Text(TextBlocksConfig),
+}
+
+pub trait BlockConfigConnections {
+    fn input_connections(&self) -> Vec<(&'static str, Option<InputPortName>)> {
+        Vec::new()
+    }
+
+    fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
+        Vec::new()
+    }
 }
 
 #[cfg(feature = "serde")]

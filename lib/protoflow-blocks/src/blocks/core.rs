@@ -2,8 +2,8 @@
 
 pub mod core {
     use super::{
-        prelude::{Cow, Named},
-        InputPortName, OutputPortName,
+        prelude::{vec, Cow, Named, Vec},
+        BlockConfigConnections, InputPortName, OutputPortName,
     };
     use crate::prelude::{Duration, Range, String, ToString};
     use protoflow_core::Message;
@@ -79,6 +79,22 @@ pub mod core {
                 Drop { .. } => "Drop",
                 Random { .. } => "Random",
             })
+        }
+    }
+
+    impl BlockConfigConnections for CoreBlocksConfig {
+        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
+            use CoreBlocksConfig::*;
+            match self {
+                Buffer { .. } => vec![],
+                Const { output, .. } => vec![("output", Some(output.clone()))],
+                Count { output, count, .. } => {
+                    vec![("output", output.clone()), ("count", Some(count.clone()))]
+                }
+                Delay { output, .. } => vec![("output", Some(output.clone()))],
+                Drop { .. } => vec![],
+                Random { output, .. } => vec![("output", Some(output.clone()))],
+            }
         }
     }
 

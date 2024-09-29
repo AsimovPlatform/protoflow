@@ -9,8 +9,8 @@ pub mod sys {
 #[cfg(feature = "std")]
 pub mod sys {
     use super::{
-        prelude::{Cow, Named},
-        InputPortName, OutputPortName,
+        prelude::{vec, Cow, Named, Vec},
+        BlockConfigConnections, InputPortName, OutputPortName,
     };
 
     pub trait SysBlocks {
@@ -72,6 +72,21 @@ pub mod sys {
                 WriteStderr { .. } => "WriteStderr",
                 WriteStdout { .. } => "WriteStdout",
             })
+        }
+    }
+
+    impl BlockConfigConnections for SysBlocksConfig {
+        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
+            use SysBlocksConfig::*;
+            match self {
+                ReadDir { output, .. }
+                | ReadEnv { output, .. }
+                | ReadFile { output, .. }
+                | ReadStdin { output, .. } => {
+                    vec![("output", Some(output.clone()))]
+                }
+                WriteFile { .. } | WriteStderr { .. } | WriteStdout { .. } => vec![],
+            }
         }
     }
 
