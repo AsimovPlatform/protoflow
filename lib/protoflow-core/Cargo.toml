@@ -16,8 +16,9 @@ publish.workspace = true
 
 [features]
 default = ["all", "std"]
-all = ["sysml", "tracing"]
+all = ["serde", "sysml", "tracing"]
 rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
+serde = []
 std = [
     "dogma/std",
     "futures/std",

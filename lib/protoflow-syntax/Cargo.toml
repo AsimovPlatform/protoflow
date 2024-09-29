@@ -25,16 +25,16 @@ std = [
     "tracing?/std",
 ]
 sysml = [
-    "dep:sysml-model",
-    "dep:sysml-parser",
     "protoflow-blocks/sysml",
     "protoflow-core/sysml",
+    "dep:sysml-model",
+    "dep:sysml-parser",
 ]
 tracing = [
-    "dep:tracing",
     "protoflow-blocks/tracing",
     "protoflow-core/tracing",
     "sysml-parser?/tracing",
+    "dep:tracing",
 ]
 unstable = ["protoflow-blocks/unstable", "protoflow-core/unstable"]
 

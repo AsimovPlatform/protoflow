@@ -9,103 +9,40 @@ use crate::{
 pub type InputPortName = String;
 pub type OutputPortName = String;
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum BlockConfig {
-    Buffer {
-        input: InputPortName,
-    },
-
-    Const {
-        output: OutputPortName,
-        value: String,
-    },
-
-    Count {
-        input: InputPortName,
-        output: Option<OutputPortName>,
-        count: OutputPortName,
-    },
-
-    Decode {
-        input: InputPortName,
-        output: OutputPortName,
-        encoding: Encoding,
-    },
-
-    Delay {
-        input: InputPortName,
-        output: OutputPortName,
-        delay: DelayType,
-    },
-
-    Drop {
-        input: InputPortName,
-    },
-
-    Encode {
-        input: InputPortName,
-        output: OutputPortName,
-        encoding: Encoding,
-    },
-
-    EncodeHex {
-        input: InputPortName,
-        output: OutputPortName,
-    },
-
+    Core(CoreBlocksConfig),
+    Flow(FlowBlocksConfig),
     #[cfg(feature = "hash")]
-    Hash {
-        input: InputPortName,
-        output: Option<OutputPortName>,
-        hash: OutputPortName,
-        algorithm: HashAlgorithm,
-    },
-
-    Random {
-        output: OutputPortName,
-        seed: Option<u64>,
-    },
-
+    Hash(HashBlocksConfig),
+    Io(IoBlocksConfig),
+    Math(MathBlocksConfig),
     #[cfg(feature = "std")]
-    ReadDir {
-        path: InputPortName,
-        output: OutputPortName,
-    },
+    Sys(SysBlocksConfig),
+    Text(TextBlocksConfig),
+}
 
-    #[cfg(feature = "std")]
-    ReadEnv {
-        name: InputPortName,
-        output: OutputPortName,
-    },
-
-    #[cfg(feature = "std")]
-    ReadFile {
-        path: InputPortName,
-        output: OutputPortName,
-    },
-
-    #[cfg(feature = "std")]
-    ReadStdin {
-        output: OutputPortName,
-        buffer_size: Option<usize>,
-    },
-
-    #[cfg(feature = "std")]
-    WriteFile {
-        path: InputPortName,
-        input: InputPortName,
-    },
-
-    #[cfg(feature = "std")]
-    WriteStderr {
-        input: InputPortName,
-    },
-
-    #[cfg(feature = "std")]
-    WriteStdout {
-        input: InputPortName,
-    },
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for BlockConfig {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde_yml::{value::TaggedValue, Value};
+        let value = TaggedValue::deserialize(deserializer)?;
+        match &value {
+            TaggedValue {
+                tag: _,
+                value: Value::Mapping(_mapping),
+            } => {
+                let result = BlockConfig::deserialize(value.clone());
+                Ok(result.unwrap()) // FIXME
+            }
+            _ => unimplemented!(), // TODO
+        }
+    }
 }
 
 impl Named for BlockConfig {
