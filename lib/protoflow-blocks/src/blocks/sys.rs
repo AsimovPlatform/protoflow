@@ -10,6 +10,7 @@ pub mod sys {
 pub mod sys {
     use super::{
         prelude::{vec, Box, Cow, Named, String, Vec},
+        types::ByteSize,
         BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
     use protoflow_core::Block;
@@ -44,7 +45,7 @@ pub mod sys {
 
         ReadStdin {
             output: OutputPortName,
-            buffer_size: Option<usize>,
+            buffer_size: Option<ByteSize>,
         },
 
         WriteFile {

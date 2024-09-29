@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::prelude::{FromStr, String};
+use crate::prelude::{fmt, FromStr, String};
 
 /// The cryptographic hash algorithm to use.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -14,9 +14,19 @@ impl FromStr for HashAlgorithm {
     type Err = String;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        match input {
-            "blake3" => Ok(Self::BLAKE3),
-            _ => Err(String::from(input)),
+        use HashAlgorithm::*;
+        Ok(match input {
+            "blake3" | "b3" => BLAKE3,
+            _ => return Err(String::from(input)),
+        })
+    }
+}
+
+impl fmt::Display for HashAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use HashAlgorithm::*;
+        match self {
+            BLAKE3 => write!(f, "blake3"),
         }
     }
 }

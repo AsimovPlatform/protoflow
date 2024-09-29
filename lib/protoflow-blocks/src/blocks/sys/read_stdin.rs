@@ -12,7 +12,7 @@ use simple_mermaid::mermaid;
 use std::io::Read;
 
 /// The default buffer size for reading from standard input.
-const DEFAULT_BUFFER_SIZE: usize = 1024;
+const DEFAULT_BUFFER_SIZE: ByteSize = ByteSize::new(1024);
 
 /// A block that reads bytes from standard input (aka stdin).
 ///
@@ -63,14 +63,14 @@ impl ReadStdin {
         Self::with_params(output, None)
     }
 
-    pub fn with_params(output: OutputPort<Bytes>, buffer_size: Option<usize>) -> Self {
+    pub fn with_params(output: OutputPort<Bytes>, buffer_size: Option<ByteSize>) -> Self {
         Self {
             output,
             buffer_size: buffer_size.unwrap_or(DEFAULT_BUFFER_SIZE),
         }
     }
 
-    pub fn with_system(system: &System, buffer_size: Option<usize>) -> Self {
+    pub fn with_system(system: &System, buffer_size: Option<ByteSize>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.output(), buffer_size)
     }
@@ -80,12 +80,12 @@ impl Block for ReadStdin {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         let stdin = std::io::stdin().lock();
         let mut reader = std::io::BufReader::new(stdin);
-        let mut buffer = vec![0; self.buffer_size];
+        let mut buffer = vec![0; self.buffer_size.into()];
 
         runtime.wait_for(&self.output)?;
 
         loop {
-            buffer.resize(self.buffer_size, b'\0'); // reinitialize the buffer
+            buffer.resize(self.buffer_size.into(), b'\0'); // reinitialize the buffer
             buffer.fill(b'\0');
 
             match reader.read(&mut buffer) {
