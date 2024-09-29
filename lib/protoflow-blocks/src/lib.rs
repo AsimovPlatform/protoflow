@@ -9,49 +9,26 @@ pub use protoflow_core::prelude;
 mod config;
 pub use config::*;
 
-mod core;
-pub use core::*;
-
 mod encoding;
 pub use encoding::*;
-
-mod flow;
-pub use flow::*;
-
-#[cfg(not(feature = "hash"))]
-pub trait HashBlocks {}
-
-#[cfg(feature = "hash")]
-mod hash;
-#[cfg(feature = "hash")]
-pub use hash::*;
-
-mod io;
-pub use io::*;
-
-mod math;
-pub use math::*;
 
 #[cfg(feature = "std")]
 mod stdio;
 #[cfg(feature = "std")]
 pub use stdio::*;
 
-#[cfg(not(feature = "std"))]
-pub trait SysBlocks {}
-
-#[cfg(feature = "std")]
-mod sys;
-#[cfg(feature = "std")]
-pub use sys::*;
-
 mod system;
 pub use system::*;
 
-mod text;
-pub use text::*;
-
 pub use protoflow_core::{SystemBuilding, SystemExecution};
+
+include!("core.rs"); // CoreBlocks
+include!("flow.rs"); // FlowBlocks
+include!("hash.rs"); // HashBlocks
+include!("io.rs"); // IoBlocks
+include!("math.rs"); // MathBlocks
+include!("sys.rs"); // SysBlocks
+include!("text.rs"); // TextBlocks
 
 pub trait AllBlocks:
     CoreBlocks + FlowBlocks + HashBlocks + IoBlocks + MathBlocks + SysBlocks + TextBlocks

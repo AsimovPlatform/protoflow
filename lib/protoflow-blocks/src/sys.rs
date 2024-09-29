@@ -1,32 +1,82 @@
 // This is free and unencumbered software released into the public domain.
 
-pub trait SysBlocks {
-    fn read_dir(&mut self) -> ReadDir;
-    fn read_env(&mut self) -> ReadEnv;
-    fn read_file(&mut self) -> ReadFile;
-    fn read_stdin(&mut self) -> ReadStdin;
-    fn write_file(&mut self) -> WriteFile;
-    fn write_stderr(&mut self) -> WriteStderr;
-    fn write_stdout(&mut self) -> WriteStdout;
+#[cfg(not(feature = "std"))]
+pub mod sys {
+    pub trait SysBlocks {}
+    pub enum SysBlocksConfig {}
 }
 
-mod read_dir;
-pub use read_dir::*;
+#[cfg(feature = "std")]
+pub mod sys {
+    use super::{InputPortName, OutputPortName};
 
-mod read_env;
-pub use read_env::*;
+    pub trait SysBlocks {
+        fn read_dir(&mut self) -> ReadDir;
+        fn read_env(&mut self) -> ReadEnv;
+        fn read_file(&mut self) -> ReadFile;
+        fn read_stdin(&mut self) -> ReadStdin;
+        fn write_file(&mut self) -> WriteFile;
+        fn write_stderr(&mut self) -> WriteStderr;
+        fn write_stdout(&mut self) -> WriteStdout;
+    }
 
-mod read_file;
-pub use read_file::*;
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(Clone, Debug)]
+    pub enum SysBlocksConfig {
+        ReadDir {
+            path: InputPortName,
+            output: OutputPortName,
+        },
 
-mod read_stdin;
-pub use read_stdin::*;
+        ReadEnv {
+            name: InputPortName,
+            output: OutputPortName,
+        },
 
-mod write_file;
-pub use write_file::*;
+        ReadFile {
+            path: InputPortName,
+            output: OutputPortName,
+        },
 
-mod write_stderr;
-pub use write_stderr::*;
+        ReadStdin {
+            output: OutputPortName,
+            buffer_size: Option<usize>,
+        },
 
-mod write_stdout;
-pub use write_stdout::*;
+        WriteFile {
+            path: InputPortName,
+            input: InputPortName,
+        },
+
+        WriteStderr {
+            input: InputPortName,
+        },
+
+        WriteStdout {
+            input: InputPortName,
+        },
+    }
+
+    mod read_dir;
+    pub use read_dir::*;
+
+    mod read_env;
+    pub use read_env::*;
+
+    mod read_file;
+    pub use read_file::*;
+
+    mod read_stdin;
+    pub use read_stdin::*;
+
+    mod write_file;
+    pub use write_file::*;
+
+    mod write_stderr;
+    pub use write_stderr::*;
+
+    mod write_stdout;
+    pub use write_stdout::*;
+}
+
+pub use sys::*;
