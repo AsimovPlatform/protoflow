@@ -22,13 +22,13 @@ pub use system::*;
 
 pub use protoflow_core::{SystemBuilding, SystemExecution};
 
-include!("core.rs"); // CoreBlocks
-include!("flow.rs"); // FlowBlocks
-include!("hash.rs"); // HashBlocks
-include!("io.rs"); // IoBlocks
-include!("math.rs"); // MathBlocks
-include!("sys.rs"); // SysBlocks
-include!("text.rs"); // TextBlocks
+include!("blocks/core.rs"); // CoreBlocks
+include!("blocks/flow.rs"); // FlowBlocks
+include!("blocks/hash.rs"); // HashBlocks
+include!("blocks/io.rs"); // IoBlocks
+include!("blocks/math.rs"); // MathBlocks
+include!("blocks/sys.rs"); // SysBlocks
+include!("blocks/text.rs"); // TextBlocks
 
 pub trait AllBlocks:
     CoreBlocks + FlowBlocks + HashBlocks + IoBlocks + MathBlocks + SysBlocks + TextBlocks

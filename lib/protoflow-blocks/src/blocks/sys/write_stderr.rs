@@ -10,10 +10,10 @@ use simple_mermaid::mermaid;
 /// A block that writes bytes to standard error (aka stderr).
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/sys/write_stderr.mmd")]
+#[doc = mermaid!("../../../doc/sys/write_stderr.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/sys/write_stderr.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/sys/write_stderr.seq.mmd" framed)]
 ///
 /// # Examples
 ///

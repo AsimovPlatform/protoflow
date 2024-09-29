@@ -19,10 +19,10 @@ use simple_mermaid::mermaid;
 /// The block does not have any input ports nor state.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/core/const.mmd")]
+#[doc = mermaid!("../../../doc/core/const.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/core/const.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/const.seq.mmd" framed)]
 ///
 /// # Examples
 ///

@@ -11,10 +11,10 @@ use simple_mermaid::mermaid;
 /// A block that encodes a byte stream into hexadecimal form.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/io/encode_hex.mmd")]
+#[doc = mermaid!("../../../doc/io/encode_hex.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/io/encode_hex.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/io/encode_hex.seq.mmd" framed)]
 ///
 /// # Examples
 ///

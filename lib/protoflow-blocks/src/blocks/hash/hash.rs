@@ -10,10 +10,10 @@ use simple_mermaid::mermaid;
 /// passing it through.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/hash/hash.mmd")]
+#[doc = mermaid!("../../../doc/hash/hash.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/hash/hash.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/hash/hash.seq.mmd" framed)]
 ///
 /// # Examples
 ///

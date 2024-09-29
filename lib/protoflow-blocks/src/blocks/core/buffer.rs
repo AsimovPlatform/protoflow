@@ -8,10 +8,10 @@ use simple_mermaid::mermaid;
 /// A block that simply stores all messages it receives.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/core/buffer.mmd")]
+#[doc = mermaid!("../../../doc/core/buffer.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/core/buffer.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/buffer.seq.mmd" framed)]
 ///
 /// # Examples
 ///

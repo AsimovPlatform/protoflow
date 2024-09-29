@@ -11,10 +11,10 @@ use simple_mermaid::mermaid;
 /// passing them through.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/core/count.mmd")]
+#[doc = mermaid!("../../../doc/core/count.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/core/count.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/count.seq.mmd" framed)]
 ///
 /// # Examples
 ///

@@ -8,10 +8,10 @@ use simple_mermaid::mermaid;
 /// A block for generating and sending a random value.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/core/random.mmd")]
+#[doc = mermaid!("../../../doc/core/random.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/core/random.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/random.seq.mmd" framed)]
 ///
 /// # Examples
 ///

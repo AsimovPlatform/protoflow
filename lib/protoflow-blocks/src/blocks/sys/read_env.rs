@@ -13,10 +13,10 @@ use simple_mermaid::mermaid;
 /// A block that reads the value of an environment variable.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/sys/read_env.mmd")]
+#[doc = mermaid!("../../../doc/sys/read_env.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/sys/read_env.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/sys/read_env.seq.mmd" framed)]
 ///
 /// # Examples
 ///

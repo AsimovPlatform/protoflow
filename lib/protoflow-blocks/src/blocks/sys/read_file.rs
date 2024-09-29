@@ -13,10 +13,10 @@ use simple_mermaid::mermaid;
 /// A block that reads bytes from the contents of a file.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/sys/read_file.mmd")]
+#[doc = mermaid!("../../../doc/sys/read_file.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/sys/read_file.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/sys/read_file.seq.mmd" framed)]
 ///
 /// # Examples
 ///

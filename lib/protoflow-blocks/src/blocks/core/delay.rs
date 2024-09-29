@@ -12,10 +12,10 @@ use simple_mermaid::mermaid;
 /// random duration.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../doc/core/delay.mmd")]
+#[doc = mermaid!("../../../doc/core/delay.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../doc/core/delay.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/delay.seq.mmd" framed)]
 ///
 /// # Examples
 ///
