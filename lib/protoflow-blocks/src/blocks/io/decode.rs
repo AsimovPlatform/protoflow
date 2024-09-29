@@ -67,20 +67,24 @@ pub struct Decode<T: Message + FromStr = String> {
 
 impl<T: Message + FromStr> Decode<T> {
     pub fn new(input: InputPort<Bytes>, output: OutputPort<T>) -> Self {
-        Self::with_params(input, output, Encoding::default())
+        Self::with_params(input, output, None)
     }
 
-    pub fn with_params(input: InputPort<Bytes>, output: OutputPort<T>, encoding: Encoding) -> Self {
+    pub fn with_params(
+        input: InputPort<Bytes>,
+        output: OutputPort<T>,
+        encoding: Option<Encoding>,
+    ) -> Self {
         Self {
             input,
             output,
-            encoding,
+            encoding: encoding.unwrap_or_default(),
         }
     }
 }
 
 impl<T: Message + FromStr + 'static> Decode<T> {
-    pub fn with_system(system: &mut System, encoding: Encoding) -> Self {
+    pub fn with_system(system: &System, encoding: Option<Encoding>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.input(), system.output(), encoding)
     }

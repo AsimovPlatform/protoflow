@@ -66,20 +66,24 @@ pub struct Encode<T: Message + ToString = String> {
 
 impl<T: Message + ToString> Encode<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<Bytes>) -> Self {
-        Self::with_params(input, output, Encoding::default())
+        Self::with_params(input, output, None)
     }
 
-    pub fn with_params(input: InputPort<T>, output: OutputPort<Bytes>, encoding: Encoding) -> Self {
+    pub fn with_params(
+        input: InputPort<T>,
+        output: OutputPort<Bytes>,
+        encoding: Option<Encoding>,
+    ) -> Self {
         Self {
             input,
             output,
-            encoding,
+            encoding: encoding.unwrap_or_default(),
         }
     }
 }
 
 impl<T: Message + ToString + 'static> Encode<T> {
-    pub fn with_system(system: &mut System, encoding: Encoding) -> Self {
+    pub fn with_system(system: &System, encoding: Option<Encoding>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.input(), system.output(), encoding)
     }

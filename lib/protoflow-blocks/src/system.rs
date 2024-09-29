@@ -68,142 +68,11 @@ impl fmt::Debug for System {
     }
 }
 
-impl AllBlocks for System {}
-
-impl CoreBlocks for System {
-    fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
-        self.0.block(Buffer::<T>::new(self.0.input()))
-    }
-
-    fn const_string(&mut self, value: impl ToString) -> Const<String> {
-        self.0.block(Const::<String>::with_params(
-            self.0.output(),
-            value.to_string(),
-        ))
-    }
-
-    fn count<T: Message + 'static>(&mut self) -> Count<T> {
-        self.0.block(Count::<T>::new(
-            self.0.input(),
-            self.0.output(),
-            self.0.output(),
-        ))
-    }
-
-    fn delay<T: Message + 'static>(&mut self) -> Delay<T> {
-        self.0
-            .block(Delay::<T>::new(self.0.input(), self.0.output()))
-    }
-
-    fn delay_by<T: Message + 'static>(&mut self, delay: DelayType) -> Delay<T> {
-        self.0.block(Delay::<T>::with_params(
-            self.0.input(),
-            self.0.output(),
-            delay,
-        ))
-    }
-
-    fn drop<T: Message + 'static>(&mut self) -> Drop<T> {
-        self.0.block(Drop::<T>::new(self.0.input()))
-    }
-
-    fn random<T: Message + 'static>(&mut self) -> Random<T> {
-        self.0.block(Random::<T>::new(self.0.output()))
-    }
-
-    fn random_seeded<T: Message + 'static>(&mut self, seed: Option<u64>) -> Random<T> {
-        self.0
-            .block(Random::<T>::with_params(self.0.output(), seed))
+impl SystemExecution for System {
+    fn execute(self) -> BlockResult<Rc<dyn Process>> {
+        self.0.execute()
     }
 }
-
-impl FlowBlocks for System {}
-
-#[cfg(not(feature = "hash"))]
-impl HashBlocks for System {}
-
-#[cfg(feature = "hash")]
-impl HashBlocks for System {
-    fn hash_blake3(&mut self) -> Hash {
-        self.0.block(Hash::with_params(
-            self.0.input(),
-            self.0.output(),
-            self.0.output(),
-            HashAlgorithm::BLAKE3,
-        ))
-    }
-}
-
-impl IoBlocks for System {
-    fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
-        self.0
-            .block(Decode::<T>::new(self.0.input(), self.0.output()))
-    }
-
-    fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T> {
-        self.0.block(Decode::<T>::with_params(
-            self.0.input(),
-            self.0.output(),
-            encoding,
-        ))
-    }
-
-    fn encode<T: Message + ToString + 'static>(&mut self) -> Encode<T> {
-        self.0
-            .block(Encode::<T>::new(self.0.input(), self.0.output()))
-    }
-
-    fn encode_with<T: Message + ToString + 'static>(&mut self, encoding: Encoding) -> Encode<T> {
-        self.0.block(Encode::<T>::with_params(
-            self.0.input(),
-            self.0.output(),
-            encoding,
-        ))
-    }
-
-    fn encode_hex(&mut self) -> EncodeHex {
-        self.0
-            .block(EncodeHex::new(self.0.input(), self.0.output()))
-    }
-}
-
-impl MathBlocks for System {}
-
-#[cfg(not(feature = "std"))]
-impl SysBlocks for System {}
-
-#[cfg(feature = "std")]
-impl SysBlocks for System {
-    fn read_dir(&mut self) -> ReadDir {
-        self.0.block(ReadDir::new(self.0.input(), self.0.output()))
-    }
-
-    fn read_env(&mut self) -> ReadEnv {
-        self.0.block(ReadEnv::new(self.0.input(), self.0.output()))
-    }
-
-    fn read_file(&mut self) -> ReadFile {
-        self.0.block(ReadFile::new(self.0.input(), self.0.output()))
-    }
-
-    fn read_stdin(&mut self) -> ReadStdin {
-        self.0.block(ReadStdin::new(self.0.output()))
-    }
-
-    fn write_file(&mut self) -> WriteFile {
-        self.0.block(WriteFile::new(self.0.input(), self.0.input()))
-    }
-
-    fn write_stderr(&mut self) -> WriteStderr {
-        self.0.block(WriteStderr::new(self.0.input()))
-    }
-
-    fn write_stdout(&mut self) -> WriteStdout {
-        self.0.block(WriteStdout::new(self.0.input()))
-    }
-}
-
-impl TextBlocks for System {}
 
 impl SystemBuilding for System {
     fn input<M: Message + 'static>(&self) -> InputPort<M> {
@@ -223,8 +92,112 @@ impl SystemBuilding for System {
     }
 }
 
-impl SystemExecution for System {
-    fn execute(self) -> BlockResult<Rc<dyn Process>> {
-        self.0.execute()
+impl AllBlocks for System {}
+
+impl CoreBlocks for System {
+    fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
+        self.0.block(Buffer::<T>::with_system(self))
+    }
+
+    fn const_string(&mut self, value: impl ToString) -> Const<String> {
+        self.0
+            .block(Const::<String>::with_system(self, value.to_string()))
+    }
+
+    fn count<T: Message + 'static>(&mut self) -> Count<T> {
+        self.0.block(Count::<T>::with_system(self))
+    }
+
+    fn delay<T: Message + 'static>(&mut self) -> Delay<T> {
+        self.0.block(Delay::<T>::with_system(self, None))
+    }
+
+    fn delay_by<T: Message + 'static>(&mut self, delay: DelayType) -> Delay<T> {
+        self.0.block(Delay::<T>::with_system(self, Some(delay)))
+    }
+
+    fn drop<T: Message + 'static>(&mut self) -> Drop<T> {
+        self.0.block(Drop::<T>::with_system(self))
+    }
+
+    fn random<T: Message + 'static>(&mut self) -> Random<T> {
+        self.0.block(Random::<T>::with_system(self, None))
+    }
+
+    fn random_seeded<T: Message + 'static>(&mut self, seed: Option<u64>) -> Random<T> {
+        self.0.block(Random::<T>::with_system(self, seed))
     }
 }
+
+impl FlowBlocks for System {}
+
+#[cfg(not(feature = "hash"))]
+impl HashBlocks for System {}
+
+#[cfg(feature = "hash")]
+impl HashBlocks for System {
+    fn hash_blake3(&mut self) -> Hash {
+        self.0
+            .block(Hash::with_system(self, Some(HashAlgorithm::BLAKE3)))
+    }
+}
+
+impl IoBlocks for System {
+    fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
+        self.0.block(Decode::<T>::with_system(self, None))
+    }
+
+    fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T> {
+        self.0.block(Decode::<T>::with_system(self, Some(encoding)))
+    }
+
+    fn encode<T: Message + ToString + 'static>(&mut self) -> Encode<T> {
+        self.0.block(Encode::<T>::with_system(self, None))
+    }
+
+    fn encode_with<T: Message + ToString + 'static>(&mut self, encoding: Encoding) -> Encode<T> {
+        self.0.block(Encode::<T>::with_system(self, Some(encoding)))
+    }
+
+    fn encode_hex(&mut self) -> EncodeHex {
+        self.0.block(EncodeHex::with_system(self))
+    }
+}
+
+impl MathBlocks for System {}
+
+#[cfg(not(feature = "std"))]
+impl SysBlocks for System {}
+
+#[cfg(feature = "std")]
+impl SysBlocks for System {
+    fn read_dir(&mut self) -> ReadDir {
+        self.0.block(ReadDir::with_system(self))
+    }
+
+    fn read_env(&mut self) -> ReadEnv {
+        self.0.block(ReadEnv::with_system(self))
+    }
+
+    fn read_file(&mut self) -> ReadFile {
+        self.0.block(ReadFile::with_system(self))
+    }
+
+    fn read_stdin(&mut self) -> ReadStdin {
+        self.0.block(ReadStdin::with_system(self, None))
+    }
+
+    fn write_file(&mut self) -> WriteFile {
+        self.0.block(WriteFile::with_system(self))
+    }
+
+    fn write_stderr(&mut self) -> WriteStderr {
+        self.0.block(WriteStderr::with_system(self))
+    }
+
+    fn write_stdout(&mut self) -> WriteStdout {
+        self.0.block(WriteStdout::with_system(self))
+    }
+}
+
+impl TextBlocks for System {}

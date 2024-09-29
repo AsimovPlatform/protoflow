@@ -73,22 +73,32 @@ pub enum DelayType {
     Random(Range<Duration>),
 }
 
+impl Default for DelayType {
+    fn default() -> Self {
+        Self::Fixed(Duration::from_secs(1))
+    }
+}
+
 impl<T: Message> Delay<T> {
     pub fn new(input: InputPort<T>, output: OutputPort<T>) -> Self {
-        Self::with_params(input, output, DelayType::Fixed(Duration::from_secs(1)))
+        Self::with_params(input, output, None)
     }
 
-    pub fn with_params(input: InputPort<T>, output: OutputPort<T>, delay: DelayType) -> Self {
+    pub fn with_params(
+        input: InputPort<T>,
+        output: OutputPort<T>,
+        delay: Option<DelayType>,
+    ) -> Self {
         Self {
             input,
             output,
-            delay,
+            delay: delay.unwrap_or_default(),
         }
     }
 }
 
 impl<T: Message + 'static> Delay<T> {
-    pub fn with_system(system: &mut System, delay: DelayType) -> Self {
+    pub fn with_system(system: &System, delay: Option<DelayType>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.input(), system.output(), delay)
     }
@@ -141,18 +151,14 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
 
 #[cfg(test)]
 mod tests {
-    use super::{Delay, DelayType};
-    use crate::{prelude::Duration, System, SystemBuilding};
+    use super::Delay;
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(Delay::<i32>::with_params(
-                s.input(),
-                s.output(),
-                DelayType::Fixed(Duration::from_secs(1)),
-            ));
+            let _ = s.block(Delay::<i32>::with_system(s, None));
         });
     }
 }

@@ -62,7 +62,7 @@ impl<T: Message> Random<T> {
 }
 
 impl<T: Message + 'static> Random<T> {
-    pub fn with_system(system: &mut System, seed: Option<u64>) -> Self {
+    pub fn with_system(system: &System, seed: Option<u64>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.output(), seed)
     }

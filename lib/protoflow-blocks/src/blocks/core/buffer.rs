@@ -59,7 +59,7 @@ impl<T: Message> Buffer<T> {
 }
 
 impl<T: Message + 'static> Buffer<T> {
-    pub fn with_system(system: &mut System) -> Self {
+    pub fn with_system(system: &System) -> Self {
         use crate::SystemBuilding;
         Self::new(system.input())
     }

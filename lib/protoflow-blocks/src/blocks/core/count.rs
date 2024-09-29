@@ -74,7 +74,7 @@ impl<T: Message> Count<T> {
 }
 
 impl<T: Message + 'static> Count<T> {
-    pub fn with_system(system: &mut System) -> Self {
+    pub fn with_system(system: &System) -> Self {
         use crate::SystemBuilding;
         Self::new(system.input(), system.output(), system.output())
     }

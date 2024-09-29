@@ -71,7 +71,7 @@ impl<T: Message> Const<T> {
 }
 
 impl<T: Message + 'static> Const<T> {
-    pub fn with_system(system: &mut System, value: T) -> Self {
+    pub fn with_system(system: &System, value: T) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.output(), value)
     }

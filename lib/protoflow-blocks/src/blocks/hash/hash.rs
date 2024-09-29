@@ -77,25 +77,25 @@ impl Hash {
         output: OutputPort<Bytes>,
         hash: OutputPort<Bytes>,
     ) -> Self {
-        Self::with_params(input, output, hash, HashAlgorithm::default())
+        Self::with_params(input, output, hash, None)
     }
 
     pub fn with_params(
         input: InputPort<Bytes>,
         output: OutputPort<Bytes>,
         hash: OutputPort<Bytes>,
-        algorithm: HashAlgorithm,
+        algorithm: Option<HashAlgorithm>,
     ) -> Self {
         Self {
             input,
             output,
             hash,
-            algorithm,
+            algorithm: algorithm.unwrap_or_default(),
             hasher: Hasher::new(),
         }
     }
 
-    pub fn with_system(system: &mut System, algorithm: HashAlgorithm) -> Self {
+    pub fn with_system(system: &System, algorithm: Option<HashAlgorithm>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.input(), system.output(), system.output(), algorithm)
     }

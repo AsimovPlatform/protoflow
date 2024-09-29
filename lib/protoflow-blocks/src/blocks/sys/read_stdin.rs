@@ -70,7 +70,7 @@ impl ReadStdin {
         }
     }
 
-    pub fn with_system(system: &mut System, buffer_size: Option<usize>) -> Self {
+    pub fn with_system(system: &System, buffer_size: Option<usize>) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.output(), buffer_size)
     }
