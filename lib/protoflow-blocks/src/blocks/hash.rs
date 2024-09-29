@@ -8,7 +8,10 @@ pub mod hash {
 
 #[cfg(feature = "hash")]
 pub mod hash {
-    use super::{InputPortName, OutputPortName};
+    use super::{
+        prelude::{Cow, Named},
+        InputPortName, OutputPortName,
+    };
 
     pub trait HashBlocks {
         fn hash_blake3(&mut self) -> Hash;
@@ -23,6 +26,15 @@ pub mod hash {
             hash: OutputPortName,
             algorithm: HashAlgorithm,
         },
+    }
+
+    impl Named for HashBlocksConfig {
+        fn name(&self) -> Cow<str> {
+            use HashBlocksConfig::*;
+            Cow::Borrowed(match self {
+                Hash { .. } => "Hash",
+            })
+        }
     }
 
     mod hash;

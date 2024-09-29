@@ -1,7 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 pub mod core {
-    use super::{InputPortName, OutputPortName};
+    use super::{
+        prelude::{Cow, Named},
+        InputPortName, OutputPortName,
+    };
     use crate::prelude::{Duration, Range, String, ToString};
     use protoflow_core::Message;
 
@@ -63,6 +66,20 @@ pub mod core {
             output: OutputPortName,
             seed: Option<u64>,
         },
+    }
+
+    impl Named for CoreBlocksConfig {
+        fn name(&self) -> Cow<str> {
+            use CoreBlocksConfig::*;
+            Cow::Borrowed(match self {
+                Buffer { .. } => "Buffer",
+                Const { .. } => "Const",
+                Count { .. } => "Count",
+                Delay { .. } => "Delay",
+                Drop { .. } => "Drop",
+                Random { .. } => "Random",
+            })
+        }
     }
 
     mod buffer;

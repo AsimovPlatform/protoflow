@@ -1,6 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use super::{prelude::String, DelayType, Encoding, HashAlgorithm};
+use super::prelude::{Cow, Named, String};
+use crate::{
+    CoreBlocksConfig, FlowBlocksConfig, HashBlocksConfig, IoBlocksConfig, MathBlocksConfig,
+    SysBlocksConfig, TextBlocksConfig,
+};
 
 pub type InputPortName = String;
 pub type OutputPortName = String;
@@ -104,27 +108,19 @@ pub enum BlockConfig {
     },
 }
 
-impl BlockConfig {
-    pub fn r#type(&self) -> &'static str {
+impl Named for BlockConfig {
+    fn name(&self) -> Cow<str> {
         use BlockConfig::*;
         match self {
-            Buffer { .. } => "Buffer",
-            Const { .. } => "Const",
-            Count { .. } => "Count",
-            Decode { .. } => "Decode",
-            Delay { .. } => "Delay",
-            Drop { .. } => "Drop",
-            Encode { .. } => "Encode",
-            EncodeHex { .. } => "EncodeHex",
-            Hash { .. } => "Hash",
-            Random { .. } => "Random",
-            ReadDir { .. } => "ReadDir",
-            ReadEnv { .. } => "ReadEnv",
-            ReadFile { .. } => "ReadFile",
-            ReadStdin { .. } => "ReadStdin",
-            WriteFile { .. } => "WriteFile",
-            WriteStderr { .. } => "WriteStderr",
-            WriteStdout { .. } => "WriteStdout",
+            Core(config) => config.name(),
+            Flow(config) => config.name(),
+            #[cfg(feature = "hash")]
+            Hash(config) => config.name(),
+            Io(config) => config.name(),
+            Math(config) => config.name(),
+            #[cfg(feature = "std")]
+            Sys(config) => config.name(),
+            Text(config) => config.name(),
         }
     }
 }

@@ -8,7 +8,10 @@ pub mod sys {
 
 #[cfg(feature = "std")]
 pub mod sys {
-    use super::{InputPortName, OutputPortName};
+    use super::{
+        prelude::{Cow, Named},
+        InputPortName, OutputPortName,
+    };
 
     pub trait SysBlocks {
         fn read_dir(&mut self) -> ReadDir;
@@ -55,6 +58,21 @@ pub mod sys {
         WriteStdout {
             input: InputPortName,
         },
+    }
+
+    impl Named for SysBlocksConfig {
+        fn name(&self) -> Cow<str> {
+            use SysBlocksConfig::*;
+            Cow::Borrowed(match self {
+                ReadDir { .. } => "ReadDir",
+                ReadEnv { .. } => "ReadEnv",
+                ReadFile { .. } => "ReadFile",
+                ReadStdin { .. } => "ReadStdin",
+                WriteFile { .. } => "WriteFile",
+                WriteStderr { .. } => "WriteStderr",
+                WriteStdout { .. } => "WriteStdout",
+            })
+        }
     }
 
     mod read_dir;

@@ -1,7 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 pub mod io {
-    use super::{InputPortName, OutputPortName};
+    use super::{
+        prelude::{Cow, Named},
+        InputPortName, OutputPortName,
+    };
     use crate::{
         prelude::{FromStr, ToString},
         Encoding,
@@ -46,6 +49,17 @@ pub mod io {
             input: InputPortName,
             output: OutputPortName,
         },
+    }
+
+    impl Named for IoBlocksConfig {
+        fn name(&self) -> Cow<str> {
+            use IoBlocksConfig::*;
+            Cow::Borrowed(match self {
+                Decode { .. } => "Decode",
+                Encode { .. } => "Encode",
+                EncodeHex { .. } => "EncodeHex",
+            })
+        }
     }
 
     mod decode;
