@@ -51,11 +51,33 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
         let value = TaggedValue::deserialize(deserializer)?;
         match &value {
             TaggedValue {
-                tag: _,
+                tag,
                 value: Value::Mapping(_mapping),
             } => {
-                let result = BlockConfig::deserialize(value.clone());
-                Ok(result.unwrap()) // FIXME
+                Ok(match tag.string.as_str() {
+                    "Buffer" | "Const" | "Count" | "Delay" | "Drop" | "Random" => {
+                        CoreBlocksConfig::deserialize(value.clone())
+                            .map(BlockConfig::Core)
+                            .unwrap()
+                    }
+
+                    #[cfg(feature = "hash")]
+                    "Hash" => HashBlocksConfig::deserialize(value.clone())
+                        .map(BlockConfig::Hash)
+                        .unwrap(),
+
+                    "Decode" | "Encode" | "EncodeHex" => IoBlocksConfig::deserialize(value.clone())
+                        .map(BlockConfig::Io)
+                        .unwrap(),
+
+                    #[cfg(feature = "std")]
+                    "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile"
+                    | "WriteStderr" | "WriteStdout" => SysBlocksConfig::deserialize(value.clone())
+                        .map(BlockConfig::Sys)
+                        .unwrap(),
+
+                    _ => unimplemented!(), // TODO
+                })
             }
             _ => unimplemented!(), // TODO
         }
@@ -75,6 +97,40 @@ impl Named for BlockConfig {
             #[cfg(feature = "std")]
             Sys(config) => config.name(),
             Text(config) => config.name(),
+        }
+    }
+}
+
+impl BlockConfigConnections for BlockConfig {
+    fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
+        use BlockConfig::*;
+        match self {
+            Core(config) => config.output_connections(),
+            Flow(config) => config.output_connections(),
+            #[cfg(feature = "hash")]
+            Hash(config) => config.output_connections(),
+            Io(config) => config.output_connections(),
+            Math(config) => config.output_connections(),
+            #[cfg(feature = "std")]
+            Sys(config) => config.output_connections(),
+            Text(config) => config.output_connections(),
+        }
+    }
+}
+
+impl BlockConfigInstantiation for BlockConfig {
+    fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
+        use BlockConfig::*;
+        match self {
+            Core(config) => config.instantiate(system),
+            Flow(config) => config.instantiate(system),
+            #[cfg(feature = "hash")]
+            Hash(config) => config.instantiate(system),
+            Io(config) => config.instantiate(system),
+            Math(config) => config.instantiate(system),
+            #[cfg(feature = "std")]
+            Sys(config) => config.instantiate(system),
+            Text(config) => config.instantiate(system),
         }
     }
 }
