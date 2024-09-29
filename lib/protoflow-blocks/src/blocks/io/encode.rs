@@ -2,7 +2,7 @@
 
 extern crate std;
 
-use crate::{Encoding, StdioConfig, StdioError, StdioSystem, System};
+use crate::{types::Encoding, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{Bytes, String, ToString},
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,

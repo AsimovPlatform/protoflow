@@ -9,9 +9,6 @@ pub use protoflow_core::prelude;
 mod config;
 pub use config::*;
 
-mod encoding;
-pub use encoding::*;
-
 #[cfg(feature = "std")]
 mod stdio;
 #[cfg(feature = "std")]
@@ -19,6 +16,9 @@ pub use stdio::*;
 
 mod system;
 pub use system::*;
+
+pub mod types;
+pub use types::*;
 
 pub use protoflow_core::{SystemBuilding, SystemExecution};
 

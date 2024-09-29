@@ -5,7 +5,10 @@ pub mod core {
         prelude::{vec, Box, Cow, Named, Vec},
         BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
-    use crate::prelude::{Duration, Range, String, ToString};
+    use crate::{
+        prelude::{Duration, Range, String, ToString},
+        types::DelayType,
+    };
     use protoflow_core::{Block, Message};
 
     pub trait CoreBlocks {

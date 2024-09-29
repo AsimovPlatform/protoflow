@@ -15,12 +15,12 @@ pub enum Encoding {
 impl FromStr for Encoding {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        match input {
             "protobuf-with-length-prefix" | "protobuf" => Ok(Self::ProtobufWithLengthPrefix),
             "protobuf-without-length-prefix" => Ok(Self::ProtobufWithoutLengthPrefix),
             "text-with-newline-suffix" | "text" => Ok(Self::TextWithNewlineSuffix),
-            _ => Err(String::from(s)),
+            _ => Err(String::from(input)),
         }
     }
 }

@@ -4,9 +4,10 @@
 
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, DelayType, Drop, Encode, EncodeHex,
-    Encoding, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile,
-    ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    types::{DelayType, Encoding},
+    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, Drop, Encode, EncodeHex,
+    FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin,
+    SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, InputPort, Message, OutputPort, PortID, PortResult, Process,
@@ -14,7 +15,7 @@ use protoflow_core::{
 };
 
 #[cfg(feature = "hash")]
-use crate::{Hash, HashAlgorithm};
+use crate::{types::HashAlgorithm, Hash};
 
 type Transport = protoflow_core::transports::MpscTransport;
 type Runtime = protoflow_core::runtimes::StdRuntime<Transport>;

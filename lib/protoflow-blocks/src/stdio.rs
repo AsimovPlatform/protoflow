@@ -2,7 +2,7 @@
 
 extern crate std;
 
-use crate::{Encoding, ReadStdin, SysBlocks, System, WriteStderr, WriteStdout};
+use crate::{types::Encoding, ReadStdin, SysBlocks, System, WriteStderr, WriteStdout};
 use protoflow_core::prelude::{BTreeMap, FromStr, String};
 
 pub trait StdioSystem {

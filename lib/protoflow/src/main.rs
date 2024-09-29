@@ -21,7 +21,7 @@ use clientele::{
     crates::clap::{Args, Parser, Subcommand},
     StandardOptions,
 };
-use protoflow_blocks::Encoding;
+use protoflow_blocks::types::Encoding;
 use std::{error::Error, path::PathBuf, str::FromStr};
 
 /// Protoflow Command-Line Interface (CLI)

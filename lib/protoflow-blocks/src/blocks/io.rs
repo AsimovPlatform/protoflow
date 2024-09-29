@@ -7,7 +7,7 @@ pub mod io {
     };
     use crate::{
         prelude::{FromStr, ToString},
-        Encoding,
+        types::Encoding,
     };
     use protoflow_core::{Block, Message};
 

@@ -2,7 +2,7 @@
 
 extern crate std;
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
+use crate::{types::ByteSize, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::{vec, Bytes},
     Block, BlockResult, BlockRuntime, OutputPort,
@@ -55,7 +55,7 @@ pub struct ReadStdin {
 
     /// The maximum number of bytes to read at a time.
     #[parameter]
-    pub buffer_size: usize,
+    pub buffer_size: ByteSize,
 }
 
 impl ReadStdin {

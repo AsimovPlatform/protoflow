@@ -10,6 +10,7 @@ pub mod hash {
 pub mod hash {
     use super::{
         prelude::{vec, Box, Cow, Named, Vec},
+        types::HashAlgorithm,
         BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
     use protoflow_core::Block;

@@ -1,10 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
+use crate::{types::DelayType, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
-    prelude::{Duration, Range},
-    types::Any,
-    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
+    prelude::Duration, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message,
+    OutputPort, Port,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -64,20 +63,6 @@ pub struct Delay<T: Message = Any> {
     /// A configuration parameter for which type of delay to add.
     #[parameter]
     pub delay: DelayType,
-}
-
-/// The type of delay (fixed or random) to apply to message relay.
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum DelayType {
-    Fixed(Duration),
-    Random(Range<Duration>),
-}
-
-impl Default for DelayType {
-    fn default() -> Self {
-        Self::Fixed(Duration::from_secs(1))
-    }
 }
 
 impl<T: Message> Delay<T> {

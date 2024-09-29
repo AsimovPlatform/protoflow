@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::exit::ExitCode;
-use protoflow_blocks::{build_stdio_system, Encoding, StdioConfig, StdioError};
+use protoflow_blocks::{build_stdio_system, types::Encoding, StdioConfig, StdioError};
 use protoflow_core::SystemExecution;
 use std::path::PathBuf;
 
