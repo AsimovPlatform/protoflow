@@ -2,8 +2,8 @@
 
 pub mod flow {
     use super::{
-        prelude::{Cow, Named, Vec},
-        BlockConfigConnections, OutputPortName,
+        prelude::{Cow, Named},
+        BlockConfigConnections, BlockConfigInstantiation,
     };
 
     pub trait FlowBlocks {}
@@ -18,11 +18,9 @@ pub mod flow {
         }
     }
 
-    impl BlockConfigConnections for FlowBlocksConfig {
-        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            unreachable!()
-        }
-    }
+    impl BlockConfigConnections for FlowBlocksConfig {}
+
+    impl BlockConfigInstantiation for FlowBlocksConfig {}
 }
 
 pub use flow::*;

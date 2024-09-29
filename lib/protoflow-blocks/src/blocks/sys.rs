@@ -9,9 +9,10 @@ pub mod sys {
 #[cfg(feature = "std")]
 pub mod sys {
     use super::{
-        prelude::{vec, Cow, Named, Vec},
-        BlockConfigConnections, InputPortName, OutputPortName,
+        prelude::{vec, Box, Cow, Named, String, Vec},
+        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
+    use protoflow_core::Block;
 
     pub trait SysBlocks {
         fn read_dir(&mut self) -> ReadDir;
@@ -86,6 +87,23 @@ pub mod sys {
                     vec![("output", Some(output.clone()))]
                 }
                 WriteFile { .. } | WriteStderr { .. } | WriteStdout { .. } => vec![],
+            }
+        }
+    }
+
+    impl BlockConfigInstantiation for SysBlocksConfig {
+        fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
+            use SysBlocksConfig::*;
+            match self {
+                ReadDir { .. } => Box::new(super::ReadDir::with_system(system)),
+                ReadEnv { .. } => Box::new(super::ReadEnv::<String>::with_system(system)),
+                ReadFile { .. } => Box::new(super::ReadFile::with_system(system)),
+                ReadStdin { buffer_size, .. } => {
+                    Box::new(super::ReadStdin::with_system(system, *buffer_size))
+                }
+                WriteFile { .. } => Box::new(super::WriteFile::with_system(system)),
+                WriteStderr { .. } => Box::new(super::WriteStderr::with_system(system)),
+                WriteStdout { .. } => Box::new(super::WriteStdout::with_system(system)),
             }
         }
     }

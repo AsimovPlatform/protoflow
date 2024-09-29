@@ -2,8 +2,8 @@
 
 pub mod math {
     use super::{
-        prelude::{Cow, Named, Vec},
-        BlockConfigConnections, OutputPortName,
+        prelude::{Cow, Named},
+        BlockConfigConnections, BlockConfigInstantiation,
     };
 
     pub trait MathBlocks {}
@@ -18,11 +18,9 @@ pub mod math {
         }
     }
 
-    impl BlockConfigConnections for MathBlocksConfig {
-        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            unreachable!()
-        }
-    }
+    impl BlockConfigConnections for MathBlocksConfig {}
+
+    impl BlockConfigInstantiation for MathBlocksConfig {}
 }
 
 pub use math::*;

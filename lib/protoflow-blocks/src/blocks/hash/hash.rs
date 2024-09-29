@@ -64,7 +64,7 @@ pub struct Hash {
 }
 
 /// The cryptographic hash algorithm to use.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum HashAlgorithm {
     #[default]

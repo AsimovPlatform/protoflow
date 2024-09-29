@@ -2,11 +2,11 @@
 
 pub mod core {
     use super::{
-        prelude::{vec, Cow, Named, Vec},
-        BlockConfigConnections, InputPortName, OutputPortName,
+        prelude::{vec, Box, Cow, Named, Vec},
+        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
     use crate::prelude::{Duration, Range, String, ToString};
-    use protoflow_core::Message;
+    use protoflow_core::{Block, Message};
 
     pub trait CoreBlocks {
         fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T>;
@@ -55,7 +55,7 @@ pub mod core {
         Delay {
             input: InputPortName,
             output: OutputPortName,
-            delay: DelayType,
+            delay: Option<DelayType>,
         },
 
         Drop {
@@ -94,6 +94,35 @@ pub mod core {
                 Delay { output, .. } => vec![("output", Some(output.clone()))],
                 Drop { .. } => vec![],
                 Random { output, .. } => vec![("output", Some(output.clone()))],
+            }
+        }
+    }
+
+    impl BlockConfigInstantiation for CoreBlocksConfig {
+        fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
+            use super::SystemBuilding;
+            use CoreBlocksConfig::*;
+            match self {
+                Buffer { .. } => Box::new(super::Buffer::new(system.input_any())), // TODO: Buffer::with_system(system)
+                Const { value, .. } => Box::new(super::Const::with_system(system, value.clone())),
+                Count { .. } => Box::new(super::Count::new(
+                    system.input_any(),
+                    system.output(),
+                    system.output(),
+                )), // TODO: Count::with_system(system)
+                Delay { delay, .. } => {
+                    Box::new(super::Delay::with_params(
+                        system.input_any(),
+                        system.output(),
+                        delay.clone(),
+                    ))
+                    // TODO: Delay::with_system(system, Some(delay.clone())))
+                }
+                Drop { .. } => Box::new(super::Drop::new(system.input_any())), // TODO: Drop::with_system(system)
+                Random { seed, .. } => {
+                    Box::new(super::Random::with_params(system.output::<u64>(), *seed))
+                    // TODO: Random::with_system(system, *seed))
+                }
             }
         }
     }

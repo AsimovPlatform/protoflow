@@ -1,10 +1,11 @@
 // This is free and unencumbered software released into the public domain.
 
-use super::prelude::{Cow, Named, String, Vec};
+use super::prelude::{Box, Cow, Named, String, Vec};
 use crate::{
     CoreBlocksConfig, FlowBlocksConfig, HashBlocksConfig, IoBlocksConfig, MathBlocksConfig,
-    SysBlocksConfig, TextBlocksConfig,
+    SysBlocksConfig, System, TextBlocksConfig,
 };
+use protoflow_core::Block;
 
 pub type InputPortName = String;
 pub type OutputPortName = String;
@@ -26,11 +27,17 @@ pub enum BlockConfig {
 
 pub trait BlockConfigConnections {
     fn input_connections(&self) -> Vec<(&'static str, Option<InputPortName>)> {
-        Vec::new()
+        unimplemented!()
     }
 
     fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-        Vec::new()
+        unimplemented!()
+    }
+}
+
+pub trait BlockConfigInstantiation {
+    fn instantiate(&self, _system: &mut System) -> Box<dyn Block> {
+        unimplemented!()
     }
 }
 

@@ -2,8 +2,8 @@
 
 pub mod text {
     use super::{
-        prelude::{Cow, Named, Vec},
-        BlockConfigConnections, OutputPortName,
+        prelude::{Cow, Named},
+        BlockConfigConnections, BlockConfigInstantiation,
     };
 
     pub trait TextBlocks {}
@@ -18,11 +18,9 @@ pub mod text {
         }
     }
 
-    impl BlockConfigConnections for TextBlocksConfig {
-        fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            unreachable!()
-        }
-    }
+    impl BlockConfigConnections for TextBlocksConfig {}
+
+    impl BlockConfigInstantiation for TextBlocksConfig {}
 }
 
 pub use text::*;

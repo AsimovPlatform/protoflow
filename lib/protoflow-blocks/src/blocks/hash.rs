@@ -9,9 +9,10 @@ pub mod hash {
 #[cfg(feature = "hash")]
 pub mod hash {
     use super::{
-        prelude::{vec, Cow, Named, Vec},
-        BlockConfigConnections, InputPortName, OutputPortName,
+        prelude::{vec, Box, Cow, Named, Vec},
+        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
+    use protoflow_core::Block;
 
     pub trait HashBlocks {
         fn hash_blake3(&mut self) -> Hash;
@@ -24,7 +25,7 @@ pub mod hash {
             input: InputPortName,
             output: Option<OutputPortName>,
             hash: OutputPortName,
-            algorithm: HashAlgorithm,
+            algorithm: Option<HashAlgorithm>,
         },
     }
 
@@ -44,6 +45,15 @@ pub mod hash {
                 Hash { output, hash, .. } => {
                     vec![("output", output.clone()), ("hash", Some(hash.clone()))]
                 }
+            }
+        }
+    }
+
+    impl BlockConfigInstantiation for HashBlocksConfig {
+        fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
+            use HashBlocksConfig::*;
+            match self {
+                Hash { algorithm, .. } => Box::new(super::Hash::with_system(system, *algorithm)),
             }
         }
     }

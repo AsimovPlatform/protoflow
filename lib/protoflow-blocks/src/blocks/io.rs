@@ -2,14 +2,14 @@
 
 pub mod io {
     use super::{
-        prelude::{vec, Cow, Named, Vec},
-        BlockConfigConnections, InputPortName, OutputPortName,
+        prelude::{vec, Box, Cow, Named, String, Vec},
+        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
     };
     use crate::{
         prelude::{FromStr, ToString},
         Encoding,
     };
-    use protoflow_core::Message;
+    use protoflow_core::{Block, Message};
 
     pub trait IoBlocks {
         fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T>;
@@ -36,13 +36,13 @@ pub mod io {
         Decode {
             input: InputPortName,
             output: OutputPortName,
-            encoding: Encoding,
+            encoding: Option<Encoding>,
         },
 
         Encode {
             input: InputPortName,
             output: OutputPortName,
-            encoding: Encoding,
+            encoding: Option<Encoding>,
         },
 
         EncodeHex {
@@ -69,6 +69,21 @@ pub mod io {
                 Decode { output, .. } | Encode { output, .. } | EncodeHex { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
+            }
+        }
+    }
+
+    impl BlockConfigInstantiation for IoBlocksConfig {
+        fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
+            use IoBlocksConfig::*;
+            match self {
+                Decode { encoding, .. } => {
+                    Box::new(super::Decode::<String>::with_system(system, *encoding))
+                }
+                Encode { encoding, .. } => {
+                    Box::new(super::Encode::<String>::with_system(system, *encoding))
+                }
+                EncodeHex { .. } => Box::new(super::EncodeHex::with_system(system)),
             }
         }
     }
