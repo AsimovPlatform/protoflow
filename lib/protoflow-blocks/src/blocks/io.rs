@@ -3,7 +3,7 @@
 pub mod io {
     use super::{
         prelude::{vec, Box, Cow, Named, String, Vec},
-        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
+        BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
     use crate::{
         prelude::{FromStr, ToString},
@@ -70,7 +70,7 @@ pub mod io {
         }
     }
 
-    impl BlockConfigConnections for IoBlocksConfig {
+    impl BlockConnections for IoBlocksConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use IoBlocksConfig::*;
             match self {
@@ -81,7 +81,7 @@ pub mod io {
         }
     }
 
-    impl BlockConfigInstantiation for IoBlocksConfig {
+    impl BlockInstantiation for IoBlocksConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
             use IoBlocksConfig::*;
             match self {

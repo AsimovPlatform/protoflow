@@ -3,7 +3,7 @@
 pub mod flow {
     use super::{
         prelude::{Cow, Named},
-        BlockConfigConnections, BlockConfigInstantiation,
+        BlockConnections, BlockInstantiation,
     };
 
     pub trait FlowBlocks {}
@@ -22,9 +22,9 @@ pub mod flow {
         }
     }
 
-    impl BlockConfigConnections for FlowBlocksConfig {}
+    impl BlockConnections for FlowBlocksConfig {}
 
-    impl BlockConfigInstantiation for FlowBlocksConfig {}
+    impl BlockInstantiation for FlowBlocksConfig {}
 }
 
 pub use flow::*;

@@ -9,6 +9,12 @@ pub use protoflow_core::prelude;
 mod block_config;
 pub use block_config::*;
 
+mod block_connections;
+pub use block_connections::*;
+
+mod block_instantiation;
+pub use block_instantiation::*;
+
 mod block_tag;
 pub use block_tag::*;
 

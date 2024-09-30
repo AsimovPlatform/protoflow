@@ -2,8 +2,8 @@
 
 use super::prelude::{Box, Cow, Named, String, Vec};
 use crate::{
-    CoreBlocksConfig, FlowBlocksConfig, HashBlocksConfig, IoBlocksConfig, MathBlocksConfig,
-    SysBlocksConfig, System, TextBlocksConfig,
+    BlockConnections, BlockInstantiation, CoreBlocksConfig, FlowBlocksConfig, HashBlocksConfig,
+    IoBlocksConfig, MathBlocksConfig, SysBlocksConfig, System, TextBlocksConfig,
 };
 use protoflow_core::Block;
 
@@ -23,22 +23,6 @@ pub enum BlockConfig {
     #[cfg(feature = "std")]
     Sys(SysBlocksConfig),
     Text(TextBlocksConfig),
-}
-
-pub trait BlockConfigConnections {
-    fn input_connections(&self) -> Vec<(&'static str, Option<InputPortName>)> {
-        unimplemented!()
-    }
-
-    fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-        unimplemented!()
-    }
-}
-
-pub trait BlockConfigInstantiation {
-    fn instantiate(&self, _system: &mut System) -> Box<dyn Block> {
-        unimplemented!()
-    }
 }
 
 #[cfg(feature = "serde")]
@@ -101,7 +85,7 @@ impl Named for BlockConfig {
     }
 }
 
-impl BlockConfigConnections for BlockConfig {
+impl BlockConnections for BlockConfig {
     fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
         use BlockConfig::*;
         match self {
@@ -118,7 +102,7 @@ impl BlockConfigConnections for BlockConfig {
     }
 }
 
-impl BlockConfigInstantiation for BlockConfig {
+impl BlockInstantiation for BlockConfig {
     fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
         use BlockConfig::*;
         match self {

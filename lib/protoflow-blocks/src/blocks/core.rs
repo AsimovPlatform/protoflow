@@ -3,7 +3,7 @@
 pub mod core {
     use super::{
         prelude::{vec, Box, Cow, Named, Vec},
-        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
+        BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
     use crate::{
         prelude::{Duration, Range, String, ToString},
@@ -96,7 +96,7 @@ pub mod core {
         }
     }
 
-    impl BlockConfigConnections for CoreBlocksConfig {
+    impl BlockConnections for CoreBlocksConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use CoreBlocksConfig::*;
             match self {
@@ -112,7 +112,7 @@ pub mod core {
         }
     }
 
-    impl BlockConfigInstantiation for CoreBlocksConfig {
+    impl BlockInstantiation for CoreBlocksConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
             use super::SystemBuilding;
             use CoreBlocksConfig::*;

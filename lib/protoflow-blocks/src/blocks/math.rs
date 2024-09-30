@@ -3,7 +3,7 @@
 pub mod math {
     use super::{
         prelude::{Cow, Named},
-        BlockConfigConnections, BlockConfigInstantiation,
+        BlockConnections, BlockInstantiation,
     };
 
     pub trait MathBlocks {}
@@ -22,9 +22,9 @@ pub mod math {
         }
     }
 
-    impl BlockConfigConnections for MathBlocksConfig {}
+    impl BlockConnections for MathBlocksConfig {}
 
-    impl BlockConfigInstantiation for MathBlocksConfig {}
+    impl BlockInstantiation for MathBlocksConfig {}
 }
 
 pub use math::*;

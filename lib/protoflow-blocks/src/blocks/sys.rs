@@ -11,7 +11,7 @@ pub mod sys {
     use super::{
         prelude::{vec, Box, Cow, Named, String, Vec},
         types::ByteSize,
-        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
+        BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
     use protoflow_core::Block;
 
@@ -89,7 +89,7 @@ pub mod sys {
         }
     }
 
-    impl BlockConfigConnections for SysBlocksConfig {
+    impl BlockConnections for SysBlocksConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use SysBlocksConfig::*;
             match self {
@@ -104,7 +104,7 @@ pub mod sys {
         }
     }
 
-    impl BlockConfigInstantiation for SysBlocksConfig {
+    impl BlockInstantiation for SysBlocksConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
             use SysBlocksConfig::*;
             match self {

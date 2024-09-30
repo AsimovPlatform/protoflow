@@ -11,7 +11,7 @@ pub mod hash {
     use super::{
         prelude::{vec, Box, Cow, Named, Vec},
         types::HashAlgorithm,
-        BlockConfigConnections, BlockConfigInstantiation, InputPortName, OutputPortName, System,
+        BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
     use protoflow_core::Block;
 
@@ -45,7 +45,7 @@ pub mod hash {
         }
     }
 
-    impl BlockConfigConnections for HashBlocksConfig {
+    impl BlockConnections for HashBlocksConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use HashBlocksConfig::*;
             match self {
@@ -56,7 +56,7 @@ pub mod hash {
         }
     }
 
-    impl BlockConfigInstantiation for HashBlocksConfig {
+    impl BlockInstantiation for HashBlocksConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
             use HashBlocksConfig::*;
             match self {

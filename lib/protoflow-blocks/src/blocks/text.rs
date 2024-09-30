@@ -3,7 +3,7 @@
 pub mod text {
     use super::{
         prelude::{Cow, Named},
-        BlockConfigConnections, BlockConfigInstantiation,
+        BlockConnections, BlockInstantiation,
     };
 
     pub trait TextBlocks {}
@@ -22,9 +22,9 @@ pub mod text {
         }
     }
 
-    impl BlockConfigConnections for TextBlocksConfig {}
+    impl BlockConnections for TextBlocksConfig {}
 
-    impl BlockConfigInstantiation for TextBlocksConfig {}
+    impl BlockInstantiation for TextBlocksConfig {}
 }
 
 pub use text::*;
