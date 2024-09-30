@@ -9,6 +9,10 @@ pub mod text {
     pub trait TextBlocks {}
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+    pub enum TextBlockTag {}
+
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
     pub enum TextBlocksConfig {}
 

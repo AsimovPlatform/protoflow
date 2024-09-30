@@ -6,8 +6,11 @@
 #[doc(hidden)]
 pub use protoflow_core::prelude;
 
-mod config;
-pub use config::*;
+mod block_config;
+pub use block_config::*;
+
+mod block_tag;
+pub use block_tag::*;
 
 #[cfg(feature = "std")]
 mod stdio;

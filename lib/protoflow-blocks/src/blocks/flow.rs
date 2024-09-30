@@ -9,6 +9,10 @@ pub mod flow {
     pub trait FlowBlocks {}
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+    pub enum FlowBlockTag {}
+
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
     pub enum FlowBlocksConfig {}
 

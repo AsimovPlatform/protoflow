@@ -26,6 +26,18 @@ pub mod sys {
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+    pub enum SysBlockTag {
+        ReadDir,
+        ReadEnv,
+        ReadFile,
+        ReadStdin,
+        WriteFile,
+        WriteStderr,
+        WriteStdout,
+    }
+
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
     pub enum SysBlocksConfig {
         ReadDir {

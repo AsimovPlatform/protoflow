@@ -38,6 +38,17 @@ pub mod core {
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+    pub enum CoreBlockTag {
+        Buffer,
+        Const,
+        Count,
+        Delay,
+        Drop,
+        Random,
+    }
+
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
     pub enum CoreBlocksConfig {
         Buffer {
