@@ -1,6 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::prelude::{fmt, Cow, FromStr, Named};
+use crate::{
+    prelude::{fmt, Box, Cow, FromStr, Named, String},
+    BlockInstantiation, System,
+};
+use protoflow_core::{types::Any, Block};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -111,5 +115,38 @@ impl Named for BlockTag {
 impl fmt::Display for BlockTag {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.name())
+    }
+}
+
+impl BlockInstantiation for BlockTag {
+    fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
+        use BlockTag::*;
+        match self {
+            Buffer => Box::new(super::Buffer::<Any>::with_system(system)),
+            Const => Box::new(super::Const::<String>::with_system(system, String::new())),
+            Count => Box::new(super::Count::<Any>::with_system(system)),
+            Delay => Box::new(super::Delay::<Any>::with_system(system, None)),
+            Drop => Box::new(super::Drop::<Any>::with_system(system)),
+            Random => Box::new(super::Random::<u64>::with_system(system, None)),
+            #[cfg(feature = "hash")]
+            Hash => Box::new(super::Hash::with_system(system, None)),
+            Decode => Box::new(super::Decode::<String>::with_system(system, None)),
+            Encode => Box::new(super::Encode::<String>::with_system(system, None)),
+            EncodeHex => Box::new(super::EncodeHex::with_system(system)),
+            #[cfg(feature = "std")]
+            ReadDir => Box::new(super::ReadDir::with_system(system)),
+            #[cfg(feature = "std")]
+            ReadEnv => Box::new(super::ReadEnv::<String>::with_system(system)),
+            #[cfg(feature = "std")]
+            ReadFile => Box::new(super::ReadFile::with_system(system)),
+            #[cfg(feature = "std")]
+            ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
+            #[cfg(feature = "std")]
+            WriteFile => Box::new(super::WriteFile::with_system(system)),
+            #[cfg(feature = "std")]
+            WriteStderr => Box::new(super::WriteStderr::with_system(system)),
+            #[cfg(feature = "std")]
+            WriteStdout => Box::new(super::WriteStdout::with_system(system)),
+        }
     }
 }
