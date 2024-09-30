@@ -7,6 +7,13 @@ use crate::{
 
 /// A block is an autonomous unit of computation in a system.
 pub trait BlockDescriptor: MaybeNamed + MaybeLabeled {
+    /// A description of this block's I/O ports.
+    fn ports(&self) -> Vec<PortDescriptor> {
+        let mut result = self.inputs();
+        result.append(&mut self.outputs());
+        result
+    }
+
     /// A description of this block's input ports.
     fn inputs(&self) -> Vec<PortDescriptor> {
         vec![]
