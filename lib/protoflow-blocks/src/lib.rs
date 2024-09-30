@@ -44,43 +44,6 @@ pub trait AllBlocks:
 {
 }
 
-/// The set of block types that are enabled in this build of the crate.
-#[doc(hidden)]
-pub static BLOCKS: &[(&str, &str)] = &[
-    // CoreBlocks
-    ("core", "Buffer"),
-    ("core", "Const"),
-    ("core", "Count"),
-    ("core", "Delay"),
-    ("core", "Drop"),
-    ("core", "Random"),
-    // FlowBlocks
-    // HashBlocks
-    #[cfg(feature = "hash")]
-    ("hash", "Hash"),
-    // IoBlocks
-    ("io", "Decode"),
-    ("io", "Encode"),
-    ("io", "EncodeHex"),
-    // MathBlocks
-    // SysBlocks
-    #[cfg(feature = "std")]
-    ("sys", "ReadDir"),
-    #[cfg(feature = "std")]
-    ("sys", "ReadEnv"),
-    #[cfg(feature = "std")]
-    ("sys", "ReadFile"),
-    #[cfg(feature = "std")]
-    ("sys", "ReadStdin"),
-    #[cfg(feature = "std")]
-    ("sys", "WriteFile"),
-    #[cfg(feature = "std")]
-    ("sys", "WriteStderr"),
-    #[cfg(feature = "std")]
-    ("sys", "WriteStdout"),
-    // TextBlocks
-];
-
 #[cfg(feature = "std")]
 #[doc(hidden)]
 pub fn build_stdio_system(

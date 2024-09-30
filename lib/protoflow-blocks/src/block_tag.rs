@@ -1,13 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Box, Cow, FromStr, Named, String},
+    prelude::{fmt, Box, Cow, FromStr, Named, String, Vec},
     BlockInstantiation, System,
 };
+use enum_iterator::Sequence;
 use protoflow_core::{types::Any, Block};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Sequence)]
 pub enum BlockTag {
     // CoreBlocks
     Buffer,
@@ -41,6 +42,47 @@ pub enum BlockTag {
     #[cfg(feature = "std")]
     WriteStdout,
     // TextBlocks
+}
+
+impl BlockTag {
+    pub fn count() -> usize {
+        enum_iterator::cardinality::<Self>()
+    }
+
+    pub fn all() -> Vec<Self> {
+        enum_iterator::all::<Self>().collect()
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        use BlockTag::*;
+        match self {
+            Buffer => "Buffer",
+            Const => "Const",
+            Count => "Count",
+            Delay => "Delay",
+            Drop => "Drop",
+            Random => "Random",
+            #[cfg(feature = "hash")]
+            Hash => "Hash",
+            Decode => "Decode",
+            Encode => "Encode",
+            EncodeHex => "EncodeHex",
+            #[cfg(feature = "std")]
+            ReadDir => "ReadDir",
+            #[cfg(feature = "std")]
+            ReadEnv => "ReadEnv",
+            #[cfg(feature = "std")]
+            ReadFile => "ReadFile",
+            #[cfg(feature = "std")]
+            ReadStdin => "ReadStdin",
+            #[cfg(feature = "std")]
+            WriteFile => "WriteFile",
+            #[cfg(feature = "std")]
+            WriteStderr => "WriteStderr",
+            #[cfg(feature = "std")]
+            WriteStdout => "WriteStdout",
+        }
+    }
 }
 
 impl FromStr for BlockTag {
@@ -81,34 +123,7 @@ impl FromStr for BlockTag {
 
 impl Named for BlockTag {
     fn name(&self) -> Cow<str> {
-        use BlockTag::*;
-        Cow::Borrowed(match self {
-            Buffer => "Buffer",
-            Const => "Const",
-            Count => "Count",
-            Delay => "Delay",
-            Drop => "Drop",
-            Random => "Random",
-            #[cfg(feature = "hash")]
-            Hash => "Hash",
-            Decode => "Decode",
-            Encode => "Encode",
-            EncodeHex => "EncodeHex",
-            #[cfg(feature = "std")]
-            ReadDir => "ReadDir",
-            #[cfg(feature = "std")]
-            ReadEnv => "ReadEnv",
-            #[cfg(feature = "std")]
-            ReadFile => "ReadFile",
-            #[cfg(feature = "std")]
-            ReadStdin => "ReadStdin",
-            #[cfg(feature = "std")]
-            WriteFile => "WriteFile",
-            #[cfg(feature = "std")]
-            WriteStderr => "WriteStderr",
-            #[cfg(feature = "std")]
-            WriteStdout => "WriteStdout",
-        })
+        Cow::Borrowed(self.as_str())
     }
 }
 

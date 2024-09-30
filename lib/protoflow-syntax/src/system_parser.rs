@@ -4,11 +4,11 @@
 extern crate std;
 
 use crate::{
-    prelude::{vec, BTreeSet, Vec},
+    prelude::{vec, BTreeSet, ToString, Vec},
     AnalysisError, AnalysisResult,
 };
 use error_stack::ResultExt;
-use protoflow_blocks::BLOCKS;
+use protoflow_blocks::BlockTag;
 use sysml_model::QualifiedName;
 
 pub use sysml_parser::{ParseError, ParsedBlock, ParsedMember, ParsedModel};
@@ -62,17 +62,18 @@ impl SystemParser {
         match member {
             ParsedMember::Import(import) => match import.imported_name.to_tuple3() {
                 (Some("Protoflow"), Some("*") | Some("**"), None) => {
-                    for (_, block_name) in BLOCKS.iter() {
+                    for block_tag in BlockTag::all() {
+                        let block_name = block_tag.to_string();
                         self.imported_names.insert(QualifiedName::new(vec![
                             "Protoflow".into(),
-                            (*block_name).into(),
+                            block_name.into(),
                         ]));
                     }
                 }
                 (Some("Protoflow"), Some(unqualified_name), None) => {
-                    if !BLOCKS
+                    if !BlockTag::all()
                         .iter()
-                        .any(|(_, block_name)| *block_name == unqualified_name)
+                        .any(|block_tag| block_tag.as_str() == unqualified_name)
                     {
                         return Err(AnalysisError::InvalidImport(import.imported_name.clone()));
                     }

@@ -43,6 +43,7 @@ cfg_aliases.workspace = true
 [dependencies]
 blake3 = { version = "1.5", default-features = false, optional = true }
 duration-str = { version = "0.11", default-features = false }
+enum-iterator = "2.1"
 protoflow-core = { version = "=0.3.1", default-features = false }
 protoflow-derive = { version = "=0.3.1" }
 tracing = { version = "0.1", default-features = false, optional = true }
