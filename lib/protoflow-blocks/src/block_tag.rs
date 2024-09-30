@@ -14,6 +14,7 @@ pub enum BlockTag {
     Random,
     // FlowBlocks
     // HashBlocks
+    #[cfg(feature = "hash")]
     Hash,
     // IoBlocks
     Decode,
@@ -21,12 +22,19 @@ pub enum BlockTag {
     EncodeHex,
     // MathBlocks
     // SysBlocks
+    #[cfg(feature = "std")]
     ReadDir,
+    #[cfg(feature = "std")]
     ReadEnv,
+    #[cfg(feature = "std")]
     ReadFile,
+    #[cfg(feature = "std")]
     ReadStdin,
+    #[cfg(feature = "std")]
     WriteFile,
+    #[cfg(feature = "std")]
     WriteStderr,
+    #[cfg(feature = "std")]
     WriteStdout,
     // TextBlocks
 }
@@ -43,16 +51,24 @@ impl FromStr for BlockTag {
             "Delay" => Delay,
             "Drop" => Drop,
             "Random" => Random,
+            #[cfg(feature = "hash")]
             "Hash" => Hash,
             "Decode" => Decode,
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
+            #[cfg(feature = "std")]
             "ReadDir" => ReadDir,
+            #[cfg(feature = "std")]
             "ReadEnv" => ReadEnv,
+            #[cfg(feature = "std")]
             "ReadFile" => ReadFile,
+            #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
+            #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
+            #[cfg(feature = "std")]
             "WriteStderr" => WriteStderr,
+            #[cfg(feature = "std")]
             "WriteStdout" => WriteStdout,
             _ => return Err(()),
         })
@@ -69,16 +85,24 @@ impl Named for BlockTag {
             Delay => "Delay",
             Drop => "Drop",
             Random => "Random",
+            #[cfg(feature = "hash")]
             Hash => "Hash",
             Decode => "Decode",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
+            #[cfg(feature = "std")]
             ReadDir => "ReadDir",
+            #[cfg(feature = "std")]
             ReadEnv => "ReadEnv",
+            #[cfg(feature = "std")]
             ReadFile => "ReadFile",
+            #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
+            #[cfg(feature = "std")]
             WriteFile => "WriteFile",
+            #[cfg(feature = "std")]
             WriteStderr => "WriteStderr",
+            #[cfg(feature = "std")]
             WriteStdout => "WriteStdout",
         })
     }

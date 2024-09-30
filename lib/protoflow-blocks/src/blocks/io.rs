@@ -40,7 +40,7 @@ pub mod io {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum IoBlocksConfig {
+    pub enum IoBlockConfig {
         Decode {
             input: InputPortName,
             output: OutputPortName,
@@ -59,9 +59,9 @@ pub mod io {
         },
     }
 
-    impl Named for IoBlocksConfig {
+    impl Named for IoBlockConfig {
         fn name(&self) -> Cow<str> {
-            use IoBlocksConfig::*;
+            use IoBlockConfig::*;
             Cow::Borrowed(match self {
                 Decode { .. } => "Decode",
                 Encode { .. } => "Encode",
@@ -70,9 +70,9 @@ pub mod io {
         }
     }
 
-    impl BlockConnections for IoBlocksConfig {
+    impl BlockConnections for IoBlockConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            use IoBlocksConfig::*;
+            use IoBlockConfig::*;
             match self {
                 Decode { output, .. } | Encode { output, .. } | EncodeHex { output, .. } => {
                     vec![("output", Some(output.clone()))]
@@ -81,9 +81,9 @@ pub mod io {
         }
     }
 
-    impl BlockInstantiation for IoBlocksConfig {
+    impl BlockInstantiation for IoBlockConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
-            use IoBlocksConfig::*;
+            use IoBlockConfig::*;
             match self {
                 Decode { encoding, .. } => {
                     Box::new(super::Decode::<String>::with_system(system, *encoding))

@@ -2,8 +2,8 @@
 
 use super::prelude::{Box, Cow, Named, String, Vec};
 use crate::{
-    BlockConnections, BlockInstantiation, CoreBlocksConfig, FlowBlocksConfig, HashBlocksConfig,
-    IoBlocksConfig, MathBlocksConfig, SysBlocksConfig, System, TextBlocksConfig,
+    BlockConnections, BlockInstantiation, CoreBlockConfig, FlowBlockConfig, HashBlockConfig,
+    IoBlockConfig, MathBlockConfig, SysBlockConfig, System, TextBlockConfig,
 };
 use protoflow_core::Block;
 
@@ -14,15 +14,15 @@ pub type OutputPortName = String;
 #[cfg_attr(feature = "serde", serde(untagged))]
 #[derive(Clone, Debug)]
 pub enum BlockConfig {
-    Core(CoreBlocksConfig),
-    Flow(FlowBlocksConfig),
+    Core(CoreBlockConfig),
+    Flow(FlowBlockConfig),
     #[cfg(feature = "hash")]
-    Hash(HashBlocksConfig),
-    Io(IoBlocksConfig),
-    Math(MathBlocksConfig),
+    Hash(HashBlockConfig),
+    Io(IoBlockConfig),
+    Math(MathBlockConfig),
     #[cfg(feature = "std")]
-    Sys(SysBlocksConfig),
-    Text(TextBlocksConfig),
+    Sys(SysBlockConfig),
+    Text(TextBlockConfig),
 }
 
 #[cfg(feature = "serde")]
@@ -40,23 +40,23 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
             } => {
                 Ok(match tag.string.as_str() {
                     "Buffer" | "Const" | "Count" | "Delay" | "Drop" | "Random" => {
-                        CoreBlocksConfig::deserialize(value.clone())
+                        CoreBlockConfig::deserialize(value.clone())
                             .map(BlockConfig::Core)
                             .unwrap()
                     }
 
                     #[cfg(feature = "hash")]
-                    "Hash" => HashBlocksConfig::deserialize(value.clone())
+                    "Hash" => HashBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Hash)
                         .unwrap(),
 
-                    "Decode" | "Encode" | "EncodeHex" => IoBlocksConfig::deserialize(value.clone())
+                    "Decode" | "Encode" | "EncodeHex" => IoBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Io)
                         .unwrap(),
 
                     #[cfg(feature = "std")]
                     "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile"
-                    | "WriteStderr" | "WriteStdout" => SysBlocksConfig::deserialize(value.clone())
+                    | "WriteStderr" | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Sys)
                         .unwrap(),
 

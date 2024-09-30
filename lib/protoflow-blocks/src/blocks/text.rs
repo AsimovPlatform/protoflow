@@ -14,17 +14,17 @@ pub mod text {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum TextBlocksConfig {}
+    pub enum TextBlockConfig {}
 
-    impl Named for TextBlocksConfig {
+    impl Named for TextBlockConfig {
         fn name(&self) -> Cow<str> {
             unreachable!()
         }
     }
 
-    impl BlockConnections for TextBlocksConfig {}
+    impl BlockConnections for TextBlockConfig {}
 
-    impl BlockInstantiation for TextBlocksConfig {}
+    impl BlockInstantiation for TextBlockConfig {}
 }
 
 pub use text::*;

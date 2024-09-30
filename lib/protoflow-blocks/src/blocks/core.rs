@@ -50,7 +50,7 @@ pub mod core {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum CoreBlocksConfig {
+    pub enum CoreBlockConfig {
         Buffer {
             input: InputPortName,
         },
@@ -82,9 +82,9 @@ pub mod core {
         },
     }
 
-    impl Named for CoreBlocksConfig {
+    impl Named for CoreBlockConfig {
         fn name(&self) -> Cow<str> {
-            use CoreBlocksConfig::*;
+            use CoreBlockConfig::*;
             Cow::Borrowed(match self {
                 Buffer { .. } => "Buffer",
                 Const { .. } => "Const",
@@ -96,9 +96,9 @@ pub mod core {
         }
     }
 
-    impl BlockConnections for CoreBlocksConfig {
+    impl BlockConnections for CoreBlockConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            use CoreBlocksConfig::*;
+            use CoreBlockConfig::*;
             match self {
                 Buffer { .. } => vec![],
                 Const { output, .. } => vec![("output", Some(output.clone()))],
@@ -112,10 +112,10 @@ pub mod core {
         }
     }
 
-    impl BlockInstantiation for CoreBlocksConfig {
+    impl BlockInstantiation for CoreBlockConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
             use super::SystemBuilding;
-            use CoreBlocksConfig::*;
+            use CoreBlockConfig::*;
             match self {
                 Buffer { .. } => Box::new(super::Buffer::new(system.input_any())), // TODO: Buffer::with_system(system)
                 Const { value, .. } => Box::new(super::Const::with_system(system, value.clone())),

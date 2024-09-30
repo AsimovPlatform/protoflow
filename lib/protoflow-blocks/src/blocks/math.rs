@@ -14,17 +14,17 @@ pub mod math {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum MathBlocksConfig {}
+    pub enum MathBlockConfig {}
 
-    impl Named for MathBlocksConfig {
+    impl Named for MathBlockConfig {
         fn name(&self) -> Cow<str> {
             unreachable!()
         }
     }
 
-    impl BlockConnections for MathBlocksConfig {}
+    impl BlockConnections for MathBlockConfig {}
 
-    impl BlockInstantiation for MathBlocksConfig {}
+    impl BlockInstantiation for MathBlockConfig {}
 }
 
 pub use math::*;

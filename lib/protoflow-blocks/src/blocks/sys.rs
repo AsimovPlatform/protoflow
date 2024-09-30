@@ -3,7 +3,7 @@
 #[cfg(not(feature = "std"))]
 pub mod sys {
     pub trait SysBlocks {}
-    pub enum SysBlocksConfig {}
+    pub enum SysBlockConfig {}
 }
 
 #[cfg(feature = "std")]
@@ -39,7 +39,7 @@ pub mod sys {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum SysBlocksConfig {
+    pub enum SysBlockConfig {
         ReadDir {
             path: InputPortName,
             output: OutputPortName,
@@ -74,9 +74,9 @@ pub mod sys {
         },
     }
 
-    impl Named for SysBlocksConfig {
+    impl Named for SysBlockConfig {
         fn name(&self) -> Cow<str> {
-            use SysBlocksConfig::*;
+            use SysBlockConfig::*;
             Cow::Borrowed(match self {
                 ReadDir { .. } => "ReadDir",
                 ReadEnv { .. } => "ReadEnv",
@@ -89,9 +89,9 @@ pub mod sys {
         }
     }
 
-    impl BlockConnections for SysBlocksConfig {
+    impl BlockConnections for SysBlockConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            use SysBlocksConfig::*;
+            use SysBlockConfig::*;
             match self {
                 ReadDir { output, .. }
                 | ReadEnv { output, .. }
@@ -104,9 +104,9 @@ pub mod sys {
         }
     }
 
-    impl BlockInstantiation for SysBlocksConfig {
+    impl BlockInstantiation for SysBlockConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
-            use SysBlocksConfig::*;
+            use SysBlockConfig::*;
             match self {
                 ReadDir { .. } => Box::new(super::ReadDir::with_system(system)),
                 ReadEnv { .. } => Box::new(super::ReadEnv::<String>::with_system(system)),

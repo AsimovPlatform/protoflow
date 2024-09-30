@@ -14,17 +14,17 @@ pub mod flow {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum FlowBlocksConfig {}
+    pub enum FlowBlockConfig {}
 
-    impl Named for FlowBlocksConfig {
+    impl Named for FlowBlockConfig {
         fn name(&self) -> Cow<str> {
             unreachable!()
         }
     }
 
-    impl BlockConnections for FlowBlocksConfig {}
+    impl BlockConnections for FlowBlockConfig {}
 
-    impl BlockInstantiation for FlowBlocksConfig {}
+    impl BlockInstantiation for FlowBlockConfig {}
 }
 
 pub use flow::*;

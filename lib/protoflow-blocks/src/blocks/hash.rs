@@ -3,7 +3,7 @@
 #[cfg(not(feature = "hash"))]
 pub mod hash {
     pub trait HashBlocks {}
-    pub enum HashBlocksConfig {}
+    pub enum HashBlockConfig {}
 }
 
 #[cfg(feature = "hash")]
@@ -27,7 +27,7 @@ pub mod hash {
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
-    pub enum HashBlocksConfig {
+    pub enum HashBlockConfig {
         Hash {
             input: InputPortName,
             output: Option<OutputPortName>,
@@ -36,18 +36,18 @@ pub mod hash {
         },
     }
 
-    impl Named for HashBlocksConfig {
+    impl Named for HashBlockConfig {
         fn name(&self) -> Cow<str> {
-            use HashBlocksConfig::*;
+            use HashBlockConfig::*;
             Cow::Borrowed(match self {
                 Hash { .. } => "Hash",
             })
         }
     }
 
-    impl BlockConnections for HashBlocksConfig {
+    impl BlockConnections for HashBlockConfig {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
-            use HashBlocksConfig::*;
+            use HashBlockConfig::*;
             match self {
                 Hash { output, hash, .. } => {
                     vec![("output", output.clone()), ("hash", Some(hash.clone()))]
@@ -56,9 +56,9 @@ pub mod hash {
         }
     }
 
-    impl BlockInstantiation for HashBlocksConfig {
+    impl BlockInstantiation for HashBlockConfig {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
-            use HashBlocksConfig::*;
+            use HashBlockConfig::*;
             match self {
                 Hash { algorithm, .. } => Box::new(super::Hash::with_system(system, *algorithm)),
             }
