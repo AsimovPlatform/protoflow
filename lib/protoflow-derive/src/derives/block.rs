@@ -124,6 +124,28 @@ pub(crate) fn expand_derive_block_for_struct(
         })
         .collect();
 
+    let parameters: Vec<(Ident, String)> = fields
+        .iter()
+        .filter(|(.., attr)| matches!(attr, Some(Parameter)))
+        .map(|(name, ty, ..)| (name.clone(), ty.clone()))
+        .collect();
+
+    let parameter_descriptors: Vec<TokenStream> = parameters
+        .iter()
+        .map(|(param_name, param_type)| {
+            // TODO: implement label, default_value
+            let param_name_str = param_name.to_string();
+            quote! {
+                #protoflow::ParameterDescriptor {
+                    name: #protoflow::prelude::String::from(#param_name_str),
+                    label: None,
+                    r#type: Some(#protoflow::prelude::String::from(#param_type)),
+                    default_value: None,
+                }
+            }
+        })
+        .collect();
+
     let impl_dogma_traits = quote! {
         #[automatically_derived]
         #[allow(
@@ -187,6 +209,12 @@ pub(crate) fn expand_derive_block_for_struct(
             fn outputs(&self) -> #protoflow::prelude::Vec<#protoflow::PortDescriptor> {
                 #protoflow::prelude::vec![
                     #(#output_port_descriptors,)*
+                ]
+            }
+
+            fn parameters(&self) -> #protoflow::prelude::Vec<#protoflow::ParameterDescriptor> {
+                #protoflow::prelude::vec![
+                    #(#parameter_descriptors,)*
                 ]
             }
         }
