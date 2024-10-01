@@ -44,8 +44,8 @@ cfg_aliases.workspace = true
 blake3 = { version = "1.5", default-features = false, optional = true }
 duration-str = { version = "0.11", default-features = false }
 enum-iterator = "2.1"
-protoflow-core = { version = "=0.3.1", default-features = false }
-protoflow-derive = { version = "=0.3.1" }
+protoflow-core.workspace = true
+protoflow-derive.workspace = true
 tracing = { version = "0.1", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, features = [
     "derive",
@@ -57,4 +57,4 @@ sysml-model = { version = "=0.2.3", default-features = false, optional = true }
 ubyte = { version = "0.10", default-features = false }
 
 [dev-dependencies]
-protoflow-derive = { version = "=0.3.1" }
+protoflow-derive.workspace = true

@@ -22,14 +22,14 @@ publish = true
 
 [workspace.dependencies]
 cfg_aliases = "0.2"
-protoflow = { path = "lib/protoflow" }
-protoflow-blocks = { path = "lib/protoflow-blocks" }
-protoflow-core = { path = "lib/protoflow-core" }
-protoflow-crossbeam = { path = "lib/protoflow-crossbeam" }
-protoflow-derive = { path = "lib/protoflow-derive" }
-protoflow-flume = { path = "lib/protoflow-flume" }
-protoflow-syntax = { path = "lib/protoflow-syntax" }
-protoflow-zeromq = { path = "lib/protoflow-zeromq" }
+protoflow = { version = "=0.3.1", default-features = false }
+protoflow-blocks = { version = "=0.3.1", default-features = false }
+protoflow-core = { version = "=0.3.1", default-features = false }
+protoflow-crossbeam = { version = "=0.3.1", default-features = false }
+protoflow-derive = { version = "=0.3.1", default-features = false }
+protoflow-flume = { version = "=0.3.1", default-features = false }
+protoflow-syntax = { version = "=0.3.1", default-features = false }
+protoflow-zeromq = { version = "=0.3.1", default-features = false }
 shadow-rs = { version = "0.26", features = ["tzdb"], default-features = false }
 
 [patch.crates-io]
