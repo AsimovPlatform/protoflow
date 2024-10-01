@@ -6,7 +6,17 @@
 
 _"Τὰ πάντα ῥεῖ καὶ οὐδὲν μένει" — Heraclitus_
 
+**Protoflow** is a [Rust] implementation of [flow-based programming] (FBP),
+with messages encoded as [Protocol Buffers].
+
 🚧 _We are building in public. This is presently under heavy construction._
+
+## ✨ Features
+
+- Supports pluggable transports and runtime models.
+- Supports opting out of any feature using comprehensive feature flags.
+- Adheres to the Rust API Guidelines in its [naming conventions].
+- 100% free and unencumbered public domain software.
 
 ## 🛠️ Prerequisites
 
@@ -32,7 +42,7 @@ cargo install protoflow
 ### Examples for Rust
 
 For Rust examples, see the [`examples`](lib/protoflow/examples) directory.
-A good place to start are the [`echo_lines`](lib/protoflow/examples/echo_lines)
+Good places to start are the [`echo_lines`](lib/protoflow/examples/echo_lines)
 and [`count_lines`](lib/protoflow/examples/count_lines) examples.
 
 ## 📚 Reference
@@ -470,6 +480,10 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/AsimovPlatform/protoflow&title=Protoflow)
 [![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/AsimovPlatform/protoflow&t=Protoflow)
 [![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/AsimovPlatform/protoflow)
+
+[Protocol Buffers]: https://protobuf.dev
+[Rust]: https://rust-lang.org
+[flow-based programming]: https://jpaulm.github.io/fbp/
 
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
