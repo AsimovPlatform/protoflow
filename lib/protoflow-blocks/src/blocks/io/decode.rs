@@ -2,9 +2,12 @@
 
 extern crate std;
 
-use crate::{types::Encoding, StdioConfig, StdioError, StdioSystem, System};
+use crate::{
+    prelude::{vec, Bytes, FromStr, String, ToString, Vec},
+    types::Encoding,
+    StdioConfig, StdioError, StdioSystem, System,
+};
 use protoflow_core::{
-    prelude::{Bytes, FromStr, String, ToString, Vec},
     Block, BlockError, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
@@ -135,8 +138,10 @@ impl<T: Message + FromStr> Block for Decode<T> {
 
 #[cfg(feature = "std")]
 impl StdioSystem for Decode {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        config.allow_only(vec!["encoding"])?;
 
         Ok(System::build(|_s| todo!()))
     }

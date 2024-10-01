@@ -1,6 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{prelude::Bytes, types::HashAlgorithm, StdioConfig, StdioError, StdioSystem, System};
+use crate::{
+    prelude::{vec, Bytes},
+    types::HashAlgorithm,
+    StdioConfig, StdioError, StdioSystem, System,
+};
 use blake3::Hasher;
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort, Port, PortError};
 use protoflow_derive::Block;
@@ -127,6 +131,7 @@ impl StdioSystem for Hash {
         use crate::{HashBlocks, IoBlocks, SystemBuilding};
 
         // TODO: parse the algorithm parameter
+        config.allow_only(vec!["algorithm"])?;
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);

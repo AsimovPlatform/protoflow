@@ -1,7 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{prelude::String, Block, BlockResult, BlockRuntime, Message, OutputPort};
+use crate::{
+    prelude::{vec, String},
+    StdioConfig, StdioError, StdioSystem, System,
+};
+use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -92,6 +95,7 @@ impl<T: Message> StdioSystem for Const<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
+        config.allow_only(vec!["value"])?;
         let value = config.get_string("value")?;
 
         Ok(System::build(|s| {

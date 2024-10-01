@@ -1,10 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{IoBlocks, StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{
+use crate::{
     prelude::{format, Bytes, String},
-    Block, BlockResult, BlockRuntime, InputPort, OutputPort,
+    IoBlocks, StdioConfig, StdioError, StdioSystem, System,
 };
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -82,6 +82,8 @@ impl Block for EncodeHex {
 impl StdioSystem for EncodeHex {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::SystemBuilding;
+
+        config.reject_any()?;
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);

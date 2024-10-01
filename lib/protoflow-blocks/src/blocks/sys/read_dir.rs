@@ -2,11 +2,11 @@
 
 extern crate std;
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{
-    prelude::{String, ToString},
-    Block, BlockResult, BlockRuntime, InputPort, OutputPort,
+use crate::{
+    prelude::{vec, String, ToString},
+    StdioConfig, StdioError, StdioSystem, System,
 };
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -89,6 +89,7 @@ impl StdioSystem for ReadDir {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
+        config.allow_only(vec!["path"])?;
         let path = config.get_string("path")?;
 
         Ok(System::build(|s| {

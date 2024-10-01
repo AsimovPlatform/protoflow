@@ -3,7 +3,7 @@
 extern crate std;
 
 use crate::{types::Encoding, ReadStdin, SysBlocks, System, WriteStderr, WriteStdout};
-use protoflow_core::prelude::{BTreeMap, FromStr, String};
+use protoflow_core::prelude::{BTreeMap, FromStr, String, Vec};
 
 pub trait StdioSystem {
     fn build_system(config: StdioConfig) -> Result<System, StdioError>;
@@ -15,6 +15,24 @@ pub struct StdioConfig {
 }
 
 impl StdioConfig {
+    pub fn reject_any(&self) -> Result<(), StdioError> {
+        if !self.params.is_empty() {
+            return Err(StdioError::UnknownParameter(
+                self.params.keys().next().unwrap().clone(),
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn allow_only(&self, keys: Vec<&'static str>) -> Result<(), StdioError> {
+        for key in self.params.keys() {
+            if !keys.contains(&key.as_str()) {
+                return Err(StdioError::UnknownParameter(key.clone()));
+            }
+        }
+        Ok(())
+    }
+
     pub fn get<T: FromStr>(&self, key: &'static str) -> Result<T, StdioError> {
         self.get_string(key)?
             .parse::<T>()
@@ -54,6 +72,7 @@ impl StdioConfig {
 #[derive(Clone, Debug)]
 pub enum StdioError {
     UnknownSystem(String),
+    UnknownParameter(String),
     MissingParameter(&'static str),
     InvalidParameter(&'static str),
 }
@@ -66,6 +85,9 @@ impl std::fmt::Display for StdioError {
         match self {
             UnknownSystem(system) => {
                 write!(f, "unknown system: {}", system)
+            }
+            UnknownParameter(parameter) => {
+                write!(f, "unknown parameter: {}", parameter)
             }
             MissingParameter(parameter) => {
                 write!(f, "missing parameter: {}", parameter)

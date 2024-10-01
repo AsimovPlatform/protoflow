@@ -1,9 +1,12 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{types::DelayType, StdioConfig, StdioError, StdioSystem, System};
+use crate::{
+    prelude::{vec, Duration},
+    types::DelayType,
+    StdioConfig, StdioError, StdioSystem, System,
+};
 use protoflow_core::{
-    prelude::Duration, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message,
-    OutputPort, Port,
+    types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort, Port,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -117,6 +120,7 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
+        config.allow_only(vec!["fixed"])?;
         let fixed_delay = config.get_opt::<f64>("fixed")?;
         // TODO: parse "random" parameter as well.
         let delay = DelayType::Fixed(Duration::from_secs_f64(fixed_delay.unwrap_or(1.)));

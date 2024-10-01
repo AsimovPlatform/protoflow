@@ -2,8 +2,8 @@
 
 extern crate std;
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{prelude::Bytes, Block, BlockResult, BlockRuntime, InputPort};
+use crate::{prelude::Bytes, StdioConfig, StdioError, StdioSystem, System};
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -72,6 +72,8 @@ impl Block for WriteStdout {
 impl StdioSystem for WriteStdout {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::SystemBuilding;
+
+        config.reject_any()?;
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);

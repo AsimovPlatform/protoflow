@@ -2,11 +2,12 @@
 
 extern crate std;
 
-use crate::{types::ByteSize, StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{
+use crate::{
     prelude::{vec, Bytes},
-    Block, BlockResult, BlockRuntime, OutputPort,
+    types::ByteSize,
+    StdioConfig, StdioError, StdioSystem, System,
 };
+use protoflow_core::{Block, BlockResult, BlockRuntime, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 use std::io::Read;
@@ -108,6 +109,8 @@ impl Block for ReadStdin {
 impl StdioSystem for ReadStdin {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::SystemBuilding;
+
+        config.allow_only(vec!["buffer_size"])?;
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);

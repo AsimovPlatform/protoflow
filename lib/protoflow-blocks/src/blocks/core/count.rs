@@ -114,6 +114,8 @@ impl<T: Message + crate::prelude::FromStr + crate::prelude::ToString + 'static> 
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
+        config.reject_any()?;
+
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
             let message_decoder = s.decode_with::<T>(config.encoding);

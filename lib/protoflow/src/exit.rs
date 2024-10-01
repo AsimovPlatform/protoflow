@@ -55,8 +55,9 @@ impl From<protoflow_blocks::StdioError> for ExitCode {
         std::eprintln!("{}: {}", "protoflow", error);
         match error {
             UnknownSystem(_) => Self(SysexitsError::EX_UNAVAILABLE),
-            MissingParameter(_) => Self(SysexitsError::EX_USAGE),
-            InvalidParameter(_) => Self(SysexitsError::EX_USAGE),
+            UnknownParameter(_) | MissingParameter(_) | InvalidParameter(_) => {
+                Self(SysexitsError::EX_USAGE)
+            }
         }
     }
 }
@@ -85,8 +86,9 @@ impl From<crate::commands::execute::ExecuteError> for ExitCode {
         std::eprintln!("{}: {}", "protoflow", error);
         match error {
             UnknownSystem(_) => Self(SysexitsError::EX_UNAVAILABLE),
-            MissingParameter(_) => Self(SysexitsError::EX_USAGE),
-            InvalidParameter(_) => Self(SysexitsError::EX_USAGE),
+            UnknownParameter(_) | MissingParameter(_) | InvalidParameter(_) => {
+                Self(SysexitsError::EX_USAGE)
+            }
             InvalidEncoding(_) => Self(SysexitsError::EX_USAGE),
         }
     }

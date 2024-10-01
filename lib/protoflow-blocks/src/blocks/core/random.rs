@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
+use crate::{prelude::vec, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -83,6 +83,7 @@ impl StdioSystem for Random<u64> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SystemBuilding};
 
+        config.allow_only(vec!["seed"])?;
         let seed = config.get_opt::<u64>("seed")?;
 
         Ok(System::build(|s| {

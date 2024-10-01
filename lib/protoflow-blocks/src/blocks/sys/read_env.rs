@@ -2,11 +2,11 @@
 
 extern crate std;
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{
-    prelude::{FromStr, String},
-    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+use crate::{
+    prelude::{vec, FromStr, String},
+    StdioConfig, StdioError, StdioSystem, System,
 };
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -87,6 +87,7 @@ impl<T: Message + FromStr> StdioSystem for ReadEnv<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
+        config.allow_only(vec!["name"])?;
         let name = config.get_string("name")?;
 
         Ok(System::build(|s| {

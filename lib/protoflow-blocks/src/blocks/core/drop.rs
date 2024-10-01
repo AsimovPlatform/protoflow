@@ -69,6 +69,8 @@ impl<T: Message> StdioSystem for Drop<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, SystemBuilding};
 
+        config.reject_any()?;
+
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
             let dropper = s.drop();

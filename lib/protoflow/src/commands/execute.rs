@@ -23,6 +23,7 @@ pub fn execute(
 #[derive(Clone, Debug)]
 pub enum ExecuteError {
     UnknownSystem(String),
+    UnknownParameter(String),
     MissingParameter(&'static str),
     InvalidParameter(&'static str),
     InvalidEncoding(String),
@@ -36,6 +37,9 @@ impl std::fmt::Display for ExecuteError {
         match self {
             UnknownSystem(system) => {
                 write!(f, "unknown system: {}", system)
+            }
+            UnknownParameter(parameter) => {
+                write!(f, "unknown parameter: {}", parameter)
             }
             MissingParameter(parameter) => {
                 write!(f, "missing parameter: {}", parameter)
@@ -55,6 +59,7 @@ impl From<StdioError> for ExecuteError {
         use StdioError::*;
         match error {
             UnknownSystem(system) => Self::UnknownSystem(system),
+            UnknownParameter(parameter) => Self::UnknownParameter(parameter),
             MissingParameter(parameter) => Self::MissingParameter(parameter),
             InvalidParameter(parameter) => Self::InvalidParameter(parameter),
         }

@@ -1,9 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{
-    prelude::VecDeque, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message,
-};
+use crate::{prelude::VecDeque, StdioConfig, StdioError, StdioSystem, System};
+use protoflow_core::{types::Any, Block, BlockResult, BlockRuntime, InputPort, Message};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -80,6 +78,8 @@ impl<T: Message> Block for Buffer<T> {
 impl<T: Message> StdioSystem for Buffer<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, SystemBuilding};
+
+        config.reject_any()?;
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);

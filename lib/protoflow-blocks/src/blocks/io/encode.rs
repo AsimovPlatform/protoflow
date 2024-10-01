@@ -2,11 +2,12 @@
 
 extern crate std;
 
-use crate::{types::Encoding, StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{
-    prelude::{Bytes, String, ToString},
-    Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+use crate::{
+    prelude::{vec, Bytes, String, ToString},
+    types::Encoding,
+    StdioConfig, StdioError, StdioSystem, System,
 };
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -113,8 +114,10 @@ impl<T: Message + ToString> Block for Encode<T> {
 
 #[cfg(feature = "std")]
 impl StdioSystem for Encode {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+
+        config.allow_only(vec!["encoding"])?;
 
         Ok(System::build(|_s| todo!()))
     }
