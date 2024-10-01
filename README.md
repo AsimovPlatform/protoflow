@@ -3,17 +3,25 @@
 [![License](https://img.shields.io/badge/license-Public%20Domain-blue.svg)](https://unlicense.org)
 [![Compatibility](https://img.shields.io/badge/rust-1.70%2B-blue)](https://rust-lang.org)
 [![Package](https://img.shields.io/crates/v/protoflow)](https://crates.io/crates/protoflow)
+[![Documentation](https://img.shields.io/docsrs/protoflow?label=docs.rs)](https://docs.rs/protoflow/latest/protoflow/)
 
 _"Τὰ πάντα ῥεῖ καὶ οὐδὲν μένει" — Heraclitus_
 
 **Protoflow** is a [Rust] implementation of [flow-based programming] (FBP),
-with messages encoded as [Protocol Buffers].
+with messages encoded as [Protocol Buffers]. It can be used to implement
+dataflow systems consisting of interconnected blocks that process messages.
 
 🚧 _We are building in public. This is presently under heavy construction._
 
 ## ✨ Features
 
-- Supports pluggable transports and runtime models.
+- Implements a flow-based programming (FBP) dataflow scheduler.
+- Constructs systems by connecting reusable components called blocks.
+- Uses Protocol Buffers messages for inter-block communication.
+- Currently offers a threaded runtime with an in-process transport.
+- Planned support for pluggable runtimes (threaded, async, etc).
+- Planned support for pluggable transports (in-process, socket, etc).
+- Includes a command-line interface (CLI) for executing Protoflow blocks.
 - Supports opting out of any feature using comprehensive feature flags.
 - Adheres to the Rust API Guidelines in its [naming conventions].
 - 100% free and unencumbered public domain software.
@@ -41,9 +49,37 @@ cargo install protoflow
 
 ### Examples for Rust
 
-For Rust examples, see the [`examples`](lib/protoflow/examples) directory.
-Good places to start are the [`echo_lines`](lib/protoflow/examples/echo_lines)
-and [`count_lines`](lib/protoflow/examples/count_lines) examples.
+For Rust examples, see the [`examples`] directory. Good places to start are
+the [`echo_lines`] and [`count_lines`] examples:
+
+```bash
+cargo run --example echo_lines < CHANGES.md
+cargo run --example count_lines < README.md
+```
+
+#### The [`count_lines`] example
+
+```rust filename="lib/protoflow/examples/count_lines/main.rs"
+use protoflow::{blocks::*, BlockResult};
+
+pub fn main() -> BlockResult {
+    System::run(|s| {
+        let stdin = s.read_stdin();
+
+        let line_decoder = s.decode_lines();
+        s.connect(&stdin.output, &line_decoder.input);
+
+        let counter = s.count::<String>();
+        s.connect(&line_decoder.output, &counter.input);
+
+        let count_encoder = s.encode_lines();
+        s.connect(&counter.count, &count_encoder.input);
+
+        let stdout = s.write_stdout();
+        s.connect(&count_encoder.output, &stdout.input);
+    })
+}
+```
 
 ## 📚 Reference
 
@@ -63,6 +99,8 @@ and [`count_lines`](lib/protoflow/examples/count_lines) examples.
   Messages are Protocol Buffers packets that are processed by blocks.
 
 ### Blocks
+
+The built-in blocks provided by Protoflow are listed below:
 
 | Block           | Description                                                |
 | :-------------- | :--------------------------------------------------------- |
@@ -484,6 +522,11 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [Protocol Buffers]: https://protobuf.dev
 [Rust]: https://rust-lang.org
 [flow-based programming]: https://jpaulm.github.io/fbp/
+[naming conventions]: https://rust-lang.github.io/api-guidelines/naming.html
+
+[`count_lines`]: lib/protoflow/examples/count_lines
+[`echo_lines`]: lib/protoflow/examples/echo_lines
+[`examples`]: lib/protoflow/examples
 
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
