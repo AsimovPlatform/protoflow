@@ -2,9 +2,10 @@
 
 use crate::{meta::BlockFieldAttribute, util::protoflow_crate};
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{
-    self, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident, Result,
+    self, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident, Path,
+    Result,
 };
 
 pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream> {
@@ -39,7 +40,7 @@ pub(crate) fn expand_derive_block_for_struct(
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    let fields: Vec<(Ident, String, Option<BlockFieldAttribute>)> = fields
+    let fields: Vec<(Ident, Path, Option<BlockFieldAttribute>)> = fields
         .iter()
         .filter_map(|field| {
             let Some(field_name) = &field.ident else {
@@ -52,9 +53,7 @@ pub(crate) fn expand_derive_block_for_struct(
                 .next();
             match &field.ty {
                 syn::Type::Path(syn::TypePath { path, .. }) => {
-                    let segment = path.segments.first().unwrap();
-                    let ident = &segment.ident;
-                    Some((field_name.clone(), ident.to_string(), field_attr))
+                    Some((field_name.clone(), path.clone(), field_attr))
                 }
                 _ => return None,
             }
@@ -67,13 +66,13 @@ pub(crate) fn expand_derive_block_for_struct(
         .map(|(name, ..)| name.clone())
         .collect();
 
-    let input_ports: Vec<(Ident, String)> = fields
+    let input_ports: Vec<(Ident, Path)> = fields
         .iter()
         .filter(|(.., attr)| matches!(attr, Some(Input)))
         .map(|(name, ty, ..)| (name.clone(), ty.clone()))
         .collect();
 
-    let output_ports: Vec<(Ident, String)> = fields
+    let output_ports: Vec<(Ident, Path)> = fields
         .iter()
         .filter(|(.., attr)| matches!(attr, Some(Output)))
         .map(|(name, ty, ..)| (name.clone(), ty.clone()))
@@ -93,12 +92,14 @@ pub(crate) fn expand_derive_block_for_struct(
         .map(|(port_name, port_type)| {
             // TODO: mandatory name; implement label
             let port_name_str = port_name.to_string();
+            let mut port_type_str = port_type.to_token_stream().to_string();
+            port_type_str.retain(|c| !c.is_ascii_whitespace());
             quote! {
                 #protoflow::PortDescriptor {
                     direction: #protoflow::PortDirection::Input,
                     name: Some(#protoflow::prelude::String::from(#port_name_str)),
                     label: None,
-                    r#type: Some(#protoflow::prelude::String::from(#port_type)),
+                    r#type: Some(#protoflow::prelude::String::from(#port_type_str)),
                     id: #protoflow::Port::id(&self.#port_name),
                     state: #protoflow::Port::state(&self.#port_name),
                 }
@@ -111,12 +112,14 @@ pub(crate) fn expand_derive_block_for_struct(
         .map(|(port_name, port_type)| {
             // TODO: mandatory name; implement label
             let port_name_str = port_name.to_string();
+            let mut port_type_str = port_type.to_token_stream().to_string();
+            port_type_str.retain(|c| !c.is_ascii_whitespace());
             quote! {
                 #protoflow::PortDescriptor {
                     direction: #protoflow::PortDirection::Output,
                     name: Some(#protoflow::prelude::String::from(#port_name_str)),
                     label: None,
-                    r#type: Some(#protoflow::prelude::String::from(#port_type)),
+                    r#type: Some(#protoflow::prelude::String::from(#port_type_str)),
                     id: #protoflow::Port::id(&self.#port_name),
                     state: #protoflow::Port::state(&self.#port_name),
                 }
@@ -124,7 +127,7 @@ pub(crate) fn expand_derive_block_for_struct(
         })
         .collect();
 
-    let parameters: Vec<(Ident, String)> = fields
+    let parameters: Vec<(Ident, Path)> = fields
         .iter()
         .filter(|(.., attr)| matches!(attr, Some(Parameter)))
         .map(|(name, ty, ..)| (name.clone(), ty.clone()))
@@ -135,11 +138,13 @@ pub(crate) fn expand_derive_block_for_struct(
         .map(|(param_name, param_type)| {
             // TODO: implement label, default_value
             let param_name_str = param_name.to_string();
+            let mut param_type_str = param_type.to_token_stream().to_string();
+            param_type_str.retain(|c| !c.is_ascii_whitespace());
             quote! {
                 #protoflow::ParameterDescriptor {
                     name: #protoflow::prelude::String::from(#param_name_str),
                     label: None,
-                    r#type: Some(#protoflow::prelude::String::from(#param_type)),
+                    r#type: Some(#protoflow::prelude::String::from(#param_type_str)),
                     default_value: None,
                 }
             }
