@@ -11,6 +11,7 @@
 extern crate proc_macro;
 
 mod derives;
+mod meta;
 pub(crate) mod util;
 
 use proc_macro::TokenStream;
