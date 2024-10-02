@@ -112,6 +112,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`Drop`]        | Discards all messages it receives.                         |
 | [`Encode`]      | Encodes messages to a byte stream.                         |
 | [`EncodeHex`]   | Encodes a byte stream into hexadecimal form.               |
+| [`EncodeJSON`]  | Encodes messages into JSON format.                         |
 | [`Hash`]        | Computes the cryptographic hash of a byte stream.          |
 | [`Random`]      | Generates and sends a random value.                        |
 | [`ReadDir`]     | Reads file names from a file system directory.             |
@@ -296,6 +297,28 @@ block-beta
 
 ```bash
 protoflow execute EncodeHex
+```
+
+#### [`EncodeJSON`]
+
+A block that encodes messages into JSON format.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 EncodeJSON space:2 Sink
+    Source-- "input" -->EncodeJSON
+    EncodeJSON-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class EncodeJSON block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute EncodeJSON
 ```
 
 #### [`Hash`]
@@ -536,6 +559,7 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
+[`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
 [`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html

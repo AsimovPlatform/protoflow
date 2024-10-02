@@ -49,9 +49,11 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     .map(BlockConfig::Hash)
                     .unwrap(),
 
-                "Decode" | "Encode" | "EncodeHex" => IoBlockConfig::deserialize(value.clone())
-                    .map(BlockConfig::Io)
-                    .unwrap(),
+                "Decode" | "Encode" | "EncodeHex" | "EncodeJSON" => {
+                    IoBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Io)
+                        .unwrap()
+                }
 
                 #[cfg(feature = "std")]
                 "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile" | "WriteStderr"

@@ -6,8 +6,8 @@ use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, Drop, Encode, EncodeHex,
-    FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin,
-    SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile,
+    ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, InputPort, Message, OutputPort, PortID, PortResult, Process,
@@ -162,6 +162,10 @@ impl IoBlocks for System {
 
     fn encode_hex(&mut self) -> EncodeHex {
         self.0.block(EncodeHex::with_system(self))
+    }
+
+    fn encode_json(&mut self) -> EncodeJson {
+        self.0.block(EncodeJson::with_system(self))
     }
 }
 

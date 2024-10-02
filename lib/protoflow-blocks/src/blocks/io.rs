@@ -28,6 +28,8 @@ pub mod io {
         }
 
         fn encode_hex(&mut self) -> EncodeHex;
+
+        fn encode_json(&mut self) -> EncodeJson;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -36,6 +38,7 @@ pub mod io {
         Decode,
         Encode,
         EncodeHex,
+        EncodeJson,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -57,6 +60,12 @@ pub mod io {
             input: InputPortName,
             output: OutputPortName,
         },
+
+        #[serde(rename = "EncodeJSON")]
+        EncodeJson {
+            input: InputPortName,
+            output: OutputPortName,
+        },
     }
 
     impl Named for IoBlockConfig {
@@ -66,6 +75,7 @@ pub mod io {
                 Decode { .. } => "Decode",
                 Encode { .. } => "Encode",
                 EncodeHex { .. } => "EncodeHex",
+                EncodeJson { .. } => "EncodeJSON",
             })
         }
     }
@@ -74,7 +84,10 @@ pub mod io {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use IoBlockConfig::*;
             match self {
-                Decode { output, .. } | Encode { output, .. } | EncodeHex { output, .. } => {
+                Decode { output, .. }
+                | Encode { output, .. }
+                | EncodeHex { output, .. }
+                | EncodeJson { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
             }
@@ -92,6 +105,7 @@ pub mod io {
                     Box::new(super::Encode::<String>::with_system(system, *encoding))
                 }
                 EncodeHex { .. } => Box::new(super::EncodeHex::with_system(system)),
+                EncodeJson { .. } => Box::new(super::EncodeJson::with_system(system)),
             }
         }
     }
@@ -104,6 +118,9 @@ pub mod io {
 
     mod encode_hex;
     pub use encode_hex::*;
+
+    mod encode_json;
+    pub use encode_json::*;
 }
 
 pub use io::*;
