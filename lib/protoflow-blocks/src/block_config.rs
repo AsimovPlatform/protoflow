@@ -37,33 +37,36 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
             TaggedValue {
                 tag,
                 value: Value::Mapping(_mapping),
-            } => {
-                Ok(match tag.string.as_str() {
-                    "Buffer" | "Const" | "Count" | "Delay" | "Drop" | "Random" => {
-                        CoreBlockConfig::deserialize(value.clone())
-                            .map(BlockConfig::Core)
-                            .unwrap()
-                    }
+            } => Ok(match tag.string.as_str() {
+                "Buffer" | "Const" | "Count" | "Delay" | "Drop" | "Random" => {
+                    CoreBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Core)
+                        .unwrap()
+                }
 
-                    #[cfg(feature = "hash")]
-                    "Hash" => HashBlockConfig::deserialize(value.clone())
-                        .map(BlockConfig::Hash)
-                        .unwrap(),
+                #[cfg(feature = "hash")]
+                "Hash" => HashBlockConfig::deserialize(value.clone())
+                    .map(BlockConfig::Hash)
+                    .unwrap(),
 
-                    "Decode" | "Encode" | "EncodeHex" => IoBlockConfig::deserialize(value.clone())
-                        .map(BlockConfig::Io)
-                        .unwrap(),
+                "Decode" | "Encode" | "EncodeHex" => IoBlockConfig::deserialize(value.clone())
+                    .map(BlockConfig::Io)
+                    .unwrap(),
 
-                    #[cfg(feature = "std")]
-                    "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile"
-                    | "WriteStderr" | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
-                        .map(BlockConfig::Sys)
-                        .unwrap(),
+                #[cfg(feature = "std")]
+                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile" | "WriteStderr"
+                | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
+                    .map(BlockConfig::Sys)
+                    .unwrap(),
 
-                    _ => unimplemented!(), // TODO
-                })
+                _ => return Err(serde::de::Error::custom("unknown Protoflow block type")),
+            }),
+
+            _ => {
+                return Err(serde::de::Error::custom(
+                    "unexpected YAML element, expected a tagged mapping",
+                ))
             }
-            _ => unimplemented!(), // TODO
         }
     }
 }
