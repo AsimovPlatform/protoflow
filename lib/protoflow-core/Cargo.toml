@@ -21,7 +21,6 @@ rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
 serde = []
 std = [
     "dogma/std",
-    "futures/std",
     "getrandom?/std",
     "prost/std",
     "prost-types/std",
@@ -40,7 +39,6 @@ cfg_aliases.workspace = true
 [dependencies]
 bytes = { version = "1", default-features = false }
 dogma = { version = "0.1", default-features = false }
-futures = { version = "0.3", default-features = false }
 getrandom = { version = "0.2", optional = true, default-features = false }
 parking_lot = "0.12"
 prost = { version = "0.13", default-features = false, features = ["derive"] }
