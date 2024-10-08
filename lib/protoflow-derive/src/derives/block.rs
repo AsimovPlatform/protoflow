@@ -4,8 +4,8 @@ use crate::{meta::BlockFieldAttribute, util::protoflow_crate};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    self, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident, Path,
-    Result,
+    self, Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, Ident, Result,
+    Type,
 };
 
 pub(crate) fn expand_derive_block(input: &DeriveInput) -> Result<TokenStream> {
@@ -40,7 +40,7 @@ pub(crate) fn expand_derive_block_for_struct(
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    let fields: Vec<(Ident, Path, Option<BlockFieldAttribute>)> = fields
+    let fields: Vec<(Ident, Option<Type>, Option<BlockFieldAttribute>)> = fields
         .iter()
         .filter_map(|field| {
             let Some(field_name) = &field.ident else {
@@ -52,8 +52,19 @@ pub(crate) fn expand_derive_block_for_struct(
                 .filter_map(|attr| BlockFieldAttribute::try_from(attr).ok())
                 .next();
             match &field.ty {
-                syn::Type::Path(syn::TypePath { path, .. }) => {
-                    Some((field_name.clone(), path.clone(), field_attr))
+                Type::Path(syn::TypePath { path, .. }) => {
+                    let type_segment = path.segments.last().unwrap();
+                    let type_argument =
+                        if let syn::PathArguments::AngleBracketed(p) = &type_segment.arguments {
+                            if let syn::GenericArgument::Type(t) = p.args.first().unwrap().clone() {
+                                Some(t)
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        };
+                    Some((field_name.clone(), type_argument.clone(), field_attr))
                 }
                 _ => return None,
             }
@@ -66,13 +77,13 @@ pub(crate) fn expand_derive_block_for_struct(
         .map(|(name, ..)| name.clone())
         .collect();
 
-    let input_ports: Vec<(Ident, Path)> = fields
+    let input_ports: Vec<(Ident, Option<Type>)> = fields
         .iter()
         .filter(|(.., attr)| matches!(attr, Some(Input)))
         .map(|(name, ty, ..)| (name.clone(), ty.clone()))
         .collect();
 
-    let output_ports: Vec<(Ident, Path)> = fields
+    let output_ports: Vec<(Ident, Option<Type>)> = fields
         .iter()
         .filter(|(.., attr)| matches!(attr, Some(Output)))
         .map(|(name, ty, ..)| (name.clone(), ty.clone()))
@@ -127,7 +138,7 @@ pub(crate) fn expand_derive_block_for_struct(
         })
         .collect();
 
-    let parameters: Vec<(Ident, Path)> = fields
+    let parameters: Vec<(Ident, Option<Type>)> = fields
         .iter()
         .filter(|(.., attr)| matches!(attr, Some(Parameter)))
         .map(|(name, ty, ..)| (name.clone(), ty.clone()))
