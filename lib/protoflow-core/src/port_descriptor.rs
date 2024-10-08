@@ -7,6 +7,8 @@ use crate::{
 
 /// The dataflow direction of a port.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum PortDirection {
     Input,
     Output,
@@ -14,23 +16,29 @@ pub enum PortDirection {
 
 /// A descriptor for a block port.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct PortDescriptor {
     /// The dataflow direction of this port.
     pub direction: PortDirection,
 
     /// The machine-readable name of this port, if any.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub name: Option<String>,
 
     /// A human-readable label for this port, if any.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub label: Option<String>,
 
     /// The data type for messages on this port.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub r#type: Option<String>,
 
     /// The unique identifier for this port.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub id: PortID,
 
     /// The current state of this port.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub state: PortState,
 }
 

@@ -47,9 +47,12 @@ impl serde::Serialize for &dyn BlockDescriptor {
         S: serde::Serializer,
     {
         use serde::ser::SerializeStruct;
-        let mut state = serializer.serialize_struct("BlockDescriptor", 1)?;
+        let mut state = serializer.serialize_struct("BlockDescriptor", 5)?;
         state.serialize_field("name", &self.name())?;
-        // TODO: add more fields
+        state.serialize_field("label", &self.label())?;
+        state.serialize_field("parameters", &self.parameters())?;
+        state.serialize_field("inputs", &self.inputs())?;
+        state.serialize_field("outputs", &self.outputs())?;
         state.end()
     }
 }
