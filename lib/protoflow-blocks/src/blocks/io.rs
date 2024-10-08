@@ -61,7 +61,7 @@ pub mod io {
             output: OutputPortName,
         },
 
-        #[serde(rename = "EncodeJSON")]
+        #[cfg_attr(feature = "serde", serde(rename = "EncodeJSON"))]
         EncodeJson {
             input: InputPortName,
             output: OutputPortName,

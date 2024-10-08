@@ -18,7 +18,7 @@ publish.workspace = true
 default = ["all", "std"]
 all = ["serde", "sysml", "tracing"]
 rand = ["dep:getrandom", "dep:rand"] # FIXME: , "rand/getrandom"]
-serde = []
+serde = ["dep:serde"]
 std = [
     "dogma/std",
     "futures/std",
@@ -46,6 +46,7 @@ parking_lot = "0.12"
 prost = { version = "0.13", default-features = false, features = ["derive"] }
 prost-types = { version = "0.13", default-features = false }
 rand = { version = "0.8", optional = true, default-features = false }
+serde = { version = "1.0", default-features = false, optional = true }
 sharded-slab = "0.1.7"
 stability = "0.2"
 sysml-model = { version = "=0.2.3", default-features = false, optional = true }
