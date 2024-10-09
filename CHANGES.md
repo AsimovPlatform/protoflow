@@ -5,9 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.1] - 2024-10-03
+## [0.4.1] - 2024-10-09
 ### Added
 - `EncodeJSON`: A block for JSON encoding
+- Serde support for core types
+### Fixed
+- CLI: Fix a minor bug
 
 ## [0.4.0] - 2024-10-01
 
