@@ -1,5 +1,11 @@
 name: Release
 
+# TODO:
+# - Strip binaries.
+# - Support signing macos binaries.
+# - Specify hashes in release.
+# - Produce targball on unix and zip on windows.
+
 # Trigger on any tag creation.
 on:
   push:
@@ -56,5 +62,20 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.target }}
+          name: protoflow-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/${{ matrix.artifact }}
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: github.event.ref_type == 'tag'
+    needs: build
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: './artifacts'
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: artifacts/**/*
