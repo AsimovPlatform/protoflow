@@ -65,7 +65,8 @@ jobs:
           mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} .output/${{ matrix.artifact }}
       - name: Compress artifact
         if: ${{ matrix.os != 'windows-latest' }}
-        run: gzip -f .output/*
+        working-directory: output
+        run: gzip -f *
       - name: Archive artifact
         if: ${{ matrix.os == 'windows-latest' }}
         run: 7z a -tzip .output/${{ matrix.artifact }}.zip .output/*
