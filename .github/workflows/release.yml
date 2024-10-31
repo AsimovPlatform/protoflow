@@ -61,20 +61,21 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
       - name: Rename artifact
         run: |
-          mkdir .output
-          mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} .output/${{ matrix.artifact }}
+          mkdir output
+          mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} output/${{ matrix.artifact }}
       - name: Compress artifact
         if: ${{ matrix.os != 'windows-latest' }}
-        working-directory: .output
+        working-directory: output
         run: gzip -f ${{ matrix.artifact }}
       - name: Archive artifact
         if: ${{ matrix.os == 'windows-latest' }}
-        run: 7z a -tzip .output/${{ matrix.artifact }}.zip .output/*
+        run: 7z a -tzip output/${{ matrix.artifact }}.zip output/*
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
-          path: .output/*
+          path: output/*
+          if-no-files-found: error
   release:
     name: Release
     runs-on: ubuntu-latest
