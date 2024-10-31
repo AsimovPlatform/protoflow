@@ -1,0 +1,52 @@
+name: Release
+
+# Trigger on any tag creation.
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use-zigbuild: false
+            artifact: protoflow
+          # - os: macos-latest
+          #   target: x86_64-apple-darwin
+          #   use-zigbuild: true
+          #   artifact: protoflow
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use-zigbuild: false
+            artifact: protoflow.exe
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install Rust and target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          target: ${{ matrix.target }}
+      - name: Install zig
+        if: ${{ matrix.use-zigbuild }}
+        uses: mlugg/setup-zig@v1
+      - name: Install cargo-zigbuild
+        if: ${{ matrix.use-zigbuild }}
+        run: cargo install --locked cargo-zigbuild
+      - name: Build using cargo-zigbuild
+        if: ${{ matrix.use-zigbuild }}
+        run: cargo zigbuild --release --target ${{ matrix.target }}
+      - name: Build
+        if: ${{ !matrix.use-zigbuild }}
+        run: cargo build --release --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.artifact }}
