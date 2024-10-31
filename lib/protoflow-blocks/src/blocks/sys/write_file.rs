@@ -60,10 +60,25 @@ impl WriteFile {
 }
 
 impl Block for WriteFile {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        while let Some(_message) = self.input.recv()? {
-            unimplemented!() // TODO
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        use std::io::prelude::Write;
+
+        runtime.wait_for(&self.path)?;
+
+        let Some(path) = self.path.recv()? else {
+            return Ok(());
+        };
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
+
+        while let Some(message) = self.input.recv()? {
+            file.write_all(&message)?;
         }
+
+        drop(file);
+
         self.input.close()?;
         Ok(())
     }
@@ -72,18 +87,27 @@ impl Block for WriteFile {
 #[cfg(feature = "std")]
 impl StdioSystem for WriteFile {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        //use crate::{CoreBlocks, SysBlocks, SystemBuilding};
+        use crate::{CoreBlocks, SysBlocks, SystemBuilding};
 
         config.allow_only(vec!["path"])?;
+        let path = config.get_string("path")?;
 
-        Ok(System::build(|_s| todo!())) // TODO
+        Ok(System::build(|s| {
+            let stdin = config.read_stdin(s);
+            let path_const = s.const_string(path);
+            let write_file = s.write_file();
+
+            s.connect(&path_const.output, &write_file.path);
+            s.connect(&stdin.output, &write_file.input);
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
     use super::WriteFile;
-    use crate::{System, SystemBuilding};
+    use crate::{CoreBlocks, IoBlocks, SysBlocks, System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
@@ -91,5 +115,39 @@ mod tests {
         let _ = System::build(|s| {
             let _ = s.block(WriteFile::new(s.input(), s.input()));
         });
+    }
+
+    #[test]
+    fn run_block() {
+        use std::{fs::File, io::Read, string::String};
+
+        let temp_dir = std::env::temp_dir();
+        let output_path = temp_dir.join("write-file-test.txt");
+
+        // ok to fail:
+        let _ = std::fs::remove_file(&output_path);
+
+        System::run(|s| {
+            let path = s.const_string(output_path.display());
+            let content = s.const_string("Hello world!");
+            let line_encoder = s.encode_lines();
+            let write_file = s.write_file();
+            s.connect(&content.output, &line_encoder.input);
+            s.connect(&path.output, &write_file.path);
+            s.connect(&line_encoder.output, &write_file.input);
+        })
+        .expect("system execution failed");
+
+        let mut file = File::open(&output_path).expect("failed to open file for system output");
+
+        let mut file_content = String::new();
+        file.read_to_string(&mut file_content)
+            .expect("failed to read system output");
+
+        assert_eq!("Hello world!\n", file_content);
+
+        drop(file);
+
+        std::fs::remove_file(&output_path).expect("failed to remove temp file");
     }
 }
