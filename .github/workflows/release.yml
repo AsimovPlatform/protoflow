@@ -67,7 +67,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.event.ref_type == 'tag'
+    if: startsWith(github.ref, 'refs/tags/')
     needs: build
     steps:
       - name: Download artifacts
