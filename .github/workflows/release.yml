@@ -4,14 +4,13 @@ name: Release
 # - Strip binaries.
 # - Support signing macos binaries.
 # - Specify hashes in release.
-# - Produce targball on unix and zip on windows.
+# - Produce .gz on unix and .zip on windows.
 
 # Trigger on any tag creation.
 on:
   push:
     tags:
       - '*'
-  workflow_dispatch:
 
 jobs:
   build:
@@ -22,23 +21,23 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             use-zigbuild: false # no reason to use zigbuild when building for host
-            artifact: protoflow
+            artifact: protoflow-linux-x64
           # - os: ubuntu-latest
           #   target: aarch64-unknown-linux-gnu
           #   use-zigbuild: true
-          #   artifact: protoflow
+          #   artifact: protoflow-linux-arm64
           - os: macos-latest
             target: aarch64-apple-darwin
             use-zigbuild: true
-            artifact: protoflow
+            artifact: protoflow-darwin-arm64
           # - os: macos-latest
           #   target: x86_64-apple-darwin
           #   use-zigbuild: true
-          #   artifact: protoflow
+          #   artifact: protoflow-darwin-x64
           # - os: windows-latest
           #   target: x86_64-pc-windows-msvc
           #   use-zigbuild: false # zigbuild doesn't support Windows
-          #   artifact: protoflow.exe
+          #   artifact: protoflow-windows-x64.exe
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -60,10 +59,14 @@ jobs:
       - name: Build
         if: ${{ !matrix.use-zigbuild }}
         run: cargo build --release --target ${{ matrix.target }}
+      - name: Rename artifact
+        run: |
+          mkdir .output
+          mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} .output/${{ matrix.artifact }}
       - uses: actions/upload-artifact@v4
         with:
-          name: protoflow-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ matrix.artifact }}
+          name: ${{ matrix.target }}
+          path: .output/${{ matrix.artifact }}
   release:
     name: Release
     runs-on: ubuntu-latest
