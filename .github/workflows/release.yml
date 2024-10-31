@@ -66,7 +66,7 @@ jobs:
       - name: Compress artifact
         if: ${{ matrix.os != 'windows-latest' }}
         working-directory: .output
-        run: gzip -f *
+        run: gzip -f ${{ matrix.artifact }}
       - name: Archive artifact
         if: ${{ matrix.os == 'windows-latest' }}
         run: 7z a -tzip .output/${{ matrix.artifact }}.zip .output/*
