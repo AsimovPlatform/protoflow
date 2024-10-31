@@ -23,22 +23,22 @@ jobs:
             target: x86_64-unknown-linux-gnu
             use-zigbuild: false # no reason to use zigbuild when building for host
             artifact: protoflow
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            use-zigbuild: true
-            artifact: protoflow
+          # - os: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   use-zigbuild: true
+          #   artifact: protoflow
           - os: macos-latest
             target: aarch64-apple-darwin
             use-zigbuild: true
             artifact: protoflow
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            use-zigbuild: true
-            artifact: protoflow
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            use-zigbuild: false # zigbuild doesn't support Windows
-            artifact: protoflow.exe
+          # - os: macos-latest
+          #   target: x86_64-apple-darwin
+          #   use-zigbuild: true
+          #   artifact: protoflow
+          # - os: windows-latest
+          #   target: x86_64-pc-windows-msvc
+          #   use-zigbuild: false # zigbuild doesn't support Windows
+          #   artifact: protoflow.exe
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
