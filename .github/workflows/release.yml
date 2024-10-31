@@ -63,10 +63,17 @@ jobs:
         run: |
           mkdir .output
           mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} .output/${{ matrix.artifact }}
-      - uses: actions/upload-artifact@v4
+      - name: Compress artifact
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: gzip .output/*
+      - name: Archive artifact
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: 7z a -tzip .output/${{ matrix.artifact }}.zip .output/*
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
-          path: .output/${{ matrix.artifact }}
+          path: .output/*
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -78,8 +85,6 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
-      - name: '[DEBUG] List artifacts'
-        run: ls -R artifacts
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
