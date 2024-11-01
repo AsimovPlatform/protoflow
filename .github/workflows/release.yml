@@ -2,7 +2,6 @@ name: Release
 
 # TODO:
 # - Support signing macos binaries.
-# - Pull changes from changes.md
 
 # Trigger on any tag creation.
 on:
@@ -95,13 +94,17 @@ jobs:
           for file in artifacts/*; do
             shasum --algorithm 256 "$file" > "$file.sha256"
           done
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: repo
       - name: Parse changelog
         id: query-release-info
         uses: release-flow/keep-a-changelog-action@v2
         with:
           command: query
           version: latest
-          changelog: CHANGES.md
+          changelog: repo/CHANGES.md
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
