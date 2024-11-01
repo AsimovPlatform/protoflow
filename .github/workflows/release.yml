@@ -70,16 +70,6 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         working-directory: output
         run: 7z a -tzip ${{ matrix.artifact }}.zip *
-      - name: Compute hash (*nix)
-        working-directory: output
-        run: 
-          shasum --algorithm 256 "${{ matrix.artifact }}" > "${{ matrix.artifact }}.sha256"
-      - name: Compute hash (Windows)
-        working-directory: output
-        run: |
-          choco install --ignore-checksums dos2unix psutils
-          shasum --algorithm 256 "${{ matrix.artifact }}" > "${{ matrix.artifact }}.sha256"
-          dos2unix "${{ matrix.artifact }}.sha256"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -97,6 +87,11 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - name: Compute checksums for artifacts
+        run: |
+          for file in artifacts/*; do
+            shasum --algorithm 256 "$file" > "$file.sha256"
+          done
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
