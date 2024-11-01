@@ -18,22 +18,27 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             use-zigbuild: false # no reason to use zigbuild when building for host
+            strip: true
             artifact: protoflow-linux-x64
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             use-zigbuild: true
+            strip: false
             artifact: protoflow-linux-arm64
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            use-zigbuild: true
-            artifact: protoflow-darwin-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
             use-zigbuild: true
+            strip: true
             artifact: protoflow-darwin-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            use-zigbuild: true
+            strip: false
+            artifact: protoflow-darwin-arm64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             use-zigbuild: false # zigbuild doesn't support Windows
+            strip: false
             artifact: protoflow-windows-x64.exe
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -61,7 +66,7 @@ jobs:
           mkdir output
           mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} output/${{ matrix.artifact }}
       - name: Strip artifact (*nix)
-        if: ${{ matrix.os != 'windows-latest' }}
+        if: ${{ matrix.strip }}
         working-directory: output
         run: strip ${{ matrix.artifact }}
       - name: Compress artifact (*nix)
