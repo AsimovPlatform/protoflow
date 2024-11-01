@@ -3,8 +3,7 @@ name: Release
 # TODO:
 # - Strip binaries.
 # - Support signing macos binaries.
-# - Specify hashes in release.
-# - Produce .gz on unix and .zip on windows.
+# - Pull changes from changes.md
 
 # Trigger on any tag creation.
 on:
@@ -63,13 +62,24 @@ jobs:
         run: |
           mkdir output
           mv target/${{ matrix.target }}/release/protoflow${{ matrix.os == 'windows-latest' && '.exe' || '' }} output/${{ matrix.artifact }}
-      - name: Compress artifact
+      - name: Compress artifact (*nix)
         if: ${{ matrix.os != 'windows-latest' }}
         working-directory: output
         run: gzip -f ${{ matrix.artifact }}
-      - name: Archive artifact
+      - name: Archive artifact (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
-        run: 7z a -tzip output/${{ matrix.artifact }}.zip output/*
+        working-directory: output
+        run: 7z a -tzip ${{ matrix.artifact }}.zip *
+      - name: Compute hash (*nix)
+        working-directory: output
+        run: 
+          shasum --algorithm 256 "${{ matrix.artifact }}" > "${{ matrix.artifact }}.sha256"
+      - name: Compute hash (Windows)
+        working-directory: output
+        run: |
+          choco install --ignore-checksums dos2unix psutils
+          shasum --algorithm 256 "${{ matrix.artifact }}" > "${{ matrix.artifact }}.sha256"
+          dos2unix "${{ matrix.artifact }}.sha256"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
