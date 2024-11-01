@@ -105,13 +105,13 @@ jobs:
           path: repo
       - name: Parse changelog
         id: query-release-info
-        uses: release-flow/keep-a-changelog-action@v2
+        uses: release-flow/keep-a-changelog-action@v3
         with:
           command: query
           version: latest
           changelog: repo/CHANGES.md
       - name: Create release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
           body: ${{ steps.query-release-info.outputs.release-notes }}
           tag_name: ${{ github.ref_name }}
