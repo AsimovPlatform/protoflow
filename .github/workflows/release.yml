@@ -35,7 +35,8 @@ jobs:
           #   use-zigbuild: true
           #   strip: false
           #   artifact: protoflow-macos-arm64
-          - os: windows-latest
+          # - os: windows-latest
+          - os: ubuntu-latest
             target: x86_64-pc-windows-msvc
             use-zigbuild: false # zigbuild doesn't support Windows
             strip: false
