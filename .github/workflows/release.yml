@@ -29,12 +29,12 @@ jobs:
           #   target: x86_64-apple-darwin
           #   use-zigbuild: true
           #   strip: true
-          #   artifact: protoflow-darwin-x64
+          #   artifact: protoflow-macos-x64
           # - os: macos-latest
           #   target: aarch64-apple-darwin
           #   use-zigbuild: true
           #   strip: false
-          #   artifact: protoflow-darwin-arm64
+          #   artifact: protoflow-macos-arm64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             use-zigbuild: false # zigbuild doesn't support Windows
@@ -48,8 +48,8 @@ jobs:
         with:
           target: ${{ matrix.target }}
           artifact-name: ${{ matrix.artifact }}
-          strip: ${{ matrix.strip }}
-          use-zigbuild: ${{ matrix.use-zigbuild }}
+          strip: ${{ matrix.strip || 'false' }}
+          use-zigbuild: ${{ matrix.use-zigbuild || 'false' }}
 
   release:
     name: Release
