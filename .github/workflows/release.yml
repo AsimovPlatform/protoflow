@@ -42,7 +42,7 @@ jobs:
             strip: false
             artifact: windows-x64.exe
           - os: windows-latest
-            target: x86_64-pc-windows-gnu
+            target: x86_64-pc-windows-msvc
             use-zigbuild: false
             strip: false
             artifact: windows2-x64.exe
