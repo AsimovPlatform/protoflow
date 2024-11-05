@@ -193,7 +193,7 @@ impl SysBlocks for System {
     }
 
     fn write_file(&mut self) -> WriteFile {
-        self.0.block(WriteFile::with_system(self))
+        self.0.block(WriteFile::with_system(self, None))
     }
 
     fn write_stderr(&mut self) -> WriteStderr {
