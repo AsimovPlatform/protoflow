@@ -38,13 +38,13 @@ jobs:
           # - os: windows-latest
           - os: ubuntu-latest
             target: x86_64-pc-windows-gnu
-            package-extension: exe
+            extension: exe
             use-zigbuild: false # zigbuild doesn't support Windows
             strip: false
             artifact: windows-x64.exe
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            package-extension: exe
+            extension: exe
             use-zigbuild: false
             strip: false
             artifact: windows2-x64.exe
@@ -55,6 +55,7 @@ jobs:
         uses: AsimovPlatform/build-rust-action@master
         with:
           target: ${{ matrix.target }}
+          package-extension: ${{ matrix.extension }}
           artifact-name: ${{ matrix.artifact }}
           strip: ${{ matrix.strip || 'false' }}
           use-zigbuild: ${{ matrix.use-zigbuild || 'false' }}
