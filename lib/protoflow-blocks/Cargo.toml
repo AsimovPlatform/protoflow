@@ -59,3 +59,4 @@ ubyte = { version = "0.10", default-features = false }
 
 [dev-dependencies]
 protoflow-derive.workspace = true
+tempfile = "3.13.0"
