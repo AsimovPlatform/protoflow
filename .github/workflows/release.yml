@@ -20,21 +20,21 @@ jobs:
             use-zigbuild: false # no reason to use zigbuild when building for host
             strip: true
             artifact: linux-x64
-          # - os: ubuntu-latest
-          #   target: aarch64-unknown-linux-gnu
-          #   use-zigbuild: true
-          #   strip: false
-          #   artifact: linux-arm64
-          # - os: macos-latest
-          #   target: x86_64-apple-darwin
-          #   use-zigbuild: true
-          #   strip: true
-          #   artifact: macos-x64
-          # - os: macos-latest
-          #   target: aarch64-apple-darwin
-          #   use-zigbuild: true
-          #   strip: false
-          #   artifact: macos-arm64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use-zigbuild: true
+            strip: false
+            artifact: linux-arm64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            use-zigbuild: true
+            strip: true
+            artifact: macos-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            use-zigbuild: true
+            strip: false
+            artifact: macos-arm64
           # - os: windows-latest
           - os: ubuntu-latest
             target: x86_64-pc-windows-gnu
@@ -42,12 +42,12 @@ jobs:
             use-zigbuild: false # zigbuild doesn't support Windows
             strip: false
             artifact: windows-x64.exe
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            extension: exe
-            use-zigbuild: false
-            strip: false
-            artifact: windows2-x64.exe
+          # - os: windows-latest
+          #   target: x86_64-pc-windows-msvc
+          #   extension: exe
+          #   use-zigbuild: false
+          #   strip: false
+          #   artifact: windows2-x64.exe
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
