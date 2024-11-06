@@ -38,11 +38,13 @@ jobs:
           # - os: windows-latest
           - os: ubuntu-latest
             target: x86_64-pc-windows-gnu
+            package-extension: exe
             use-zigbuild: false # zigbuild doesn't support Windows
             strip: false
             artifact: windows-x64.exe
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            package-extension: exe
             use-zigbuild: false
             strip: false
             artifact: windows2-x64.exe
