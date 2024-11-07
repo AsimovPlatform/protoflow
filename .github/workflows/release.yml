@@ -50,10 +50,16 @@ jobs:
             strip: false
           # Linux to Windows
           - os: ubuntu-latest
-            artifact: windows-x64
+            artifact: windows-x64-gnu
             target: x86_64-pc-windows-gnu
             extension: exe
-            use-zigbuild: false # zigbuild doesn't support Windows
+            use-zigbuild: false
+            strip: false
+          - os: ubuntu-latest
+            artifact: windows-x64-msvc
+            target: x86_64-pc-windows-msvc
+            extension: exe
+            use-zigbuild: false
             strip: false
           - os: ubuntu-latest
             artifact: windows-arm64
@@ -63,7 +69,13 @@ jobs:
             strip: false
           # Windows native
           - os: windows-latest
-            artifact: windows-native-x64
+            artifact: windows-native-x64-gnu
+            target: x86_64-pc-windows-gnu
+            extension: exe
+            use-zigbuild: false
+            strip: false
+          - os: windows-latest
+            artifact: windows-native-x64-msvc
             target: x86_64-pc-windows-msvc
             extension: exe
             use-zigbuild: false
