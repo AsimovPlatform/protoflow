@@ -41,13 +41,13 @@ jobs:
             extension: exe
             use-zigbuild: false # zigbuild doesn't support Windows
             strip: false
-            artifact: windows-x64.exe
-          # - os: windows-latest
-          #   target: x86_64-pc-windows-msvc
-          #   extension: exe
-          #   use-zigbuild: false
-          #   strip: false
-          #   artifact: windows2-x64.exe
+            artifact: windows-x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            extension: exe
+            use-zigbuild: false
+            strip: false
+            artifact: windows-native-x64
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
