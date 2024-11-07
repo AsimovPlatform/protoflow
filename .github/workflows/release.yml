@@ -15,39 +15,65 @@ jobs:
       fail-fast: true
       matrix:
         include:
+          # Linux native
           - os: ubuntu-latest
+            artifact: linux-x64
             target: x86_64-unknown-linux-gnu
             use-zigbuild: false # no reason to use zigbuild when building for host
             strip: true
-            artifact: linux-x64
           - os: ubuntu-latest
+            artifact: linux-arm64
             target: aarch64-unknown-linux-gnu
             use-zigbuild: true
             strip: false
-            artifact: linux-arm64
-          - os: macos-latest
+          # Linux to macOS
+          - os: ubuntu-latest
+            artifact: macos-x64
             target: x86_64-apple-darwin
             use-zigbuild: true
             strip: true
-            artifact: macos-x64
-          - os: macos-latest
+          - os: ubuntu-latest
+            artifact: macos-arm64
             target: aarch64-apple-darwin
             use-zigbuild: true
             strip: false
-            artifact: macos-arm64
-          # - os: windows-latest
+          # macOS native
+          - os: macos-latest
+            artifact: macos-native-x64
+            target: x86_64-apple-darwin
+            use-zigbuild: false
+            strip: true
+          - os: macos-latest
+            artifact: macos-native-arm64
+            target: aarch64-apple-darwin
+            use-zigbuild: false
+            strip: false
+          # Linux to Windows
           - os: ubuntu-latest
+            artifact: windows-x64
             target: x86_64-pc-windows-gnu
             extension: exe
             use-zigbuild: false # zigbuild doesn't support Windows
             strip: false
-            artifact: windows-x64
+          - os: ubuntu-latest
+            artifact: windows-arm64
+            target: aarch64-pc-windows-msvc
+            extension: exe
+            use-zigbuild: false
+            strip: false
+          # Windows native
           - os: windows-latest
+            artifact: windows-native-x64
             target: x86_64-pc-windows-msvc
             extension: exe
             use-zigbuild: false
             strip: false
-            artifact: windows-native-x64
+          - os: windows-latest
+            artifact: windows-native-arm64
+            target: aarch64-pc-windows-msvc
+            extension: exe
+            use-zigbuild: false
+            strip: false
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
