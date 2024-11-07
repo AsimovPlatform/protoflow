@@ -12,7 +12,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           # Linux native
@@ -76,6 +76,7 @@ jobs:
             strip: false
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
       - name: Build
         uses: AsimovPlatform/build-rust-action@master
