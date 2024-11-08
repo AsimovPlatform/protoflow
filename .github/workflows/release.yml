@@ -55,18 +55,6 @@ jobs:
             extension: exe
             use-zigbuild: false
             strip: false
-          - os: ubuntu-latest
-            artifact: windows-x64-msvc
-            target: x86_64-pc-windows-msvc
-            extension: exe
-            use-zigbuild: false
-            strip: false
-          - os: ubuntu-latest
-            artifact: windows-arm64
-            target: aarch64-pc-windows-msvc
-            extension: exe
-            use-zigbuild: false
-            strip: false
           # Windows native
           - os: windows-latest
             artifact: windows-native-x64-gnu
@@ -98,6 +86,7 @@ jobs:
           artifact-name: ${{ matrix.artifact }}
           strip: ${{ matrix.strip || 'false' }}
           use-zigbuild: ${{ matrix.use-zigbuild || 'false' }}
+          rust-toolchain: 1.81.0
 
   release:
     name: Release
