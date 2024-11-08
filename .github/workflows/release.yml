@@ -15,65 +15,26 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          # Linux native
           - os: ubuntu-latest
             artifact: linux-x64
             target: x86_64-unknown-linux-gnu
-            use-zigbuild: false # no reason to use zigbuild when building for host
             strip: true
           - os: ubuntu-latest
             artifact: linux-arm64
             target: aarch64-unknown-linux-gnu
             use-zigbuild: true
-            strip: false
-          # Linux to macOS
           - os: ubuntu-latest
             artifact: macos-x64
             target: x86_64-apple-darwin
             use-zigbuild: true
-            strip: false
           - os: ubuntu-latest
             artifact: macos-arm64
             target: aarch64-apple-darwin
             use-zigbuild: true
-            strip: false
-          # macOS native
-          - os: macos-latest
-            artifact: macos-native-x64
-            target: x86_64-apple-darwin
-            use-zigbuild: false
-            strip: true
-          - os: macos-latest
-            artifact: macos-native-arm64
-            target: aarch64-apple-darwin
-            use-zigbuild: false
-            strip: false
-          # Linux to Windows
           - os: ubuntu-latest
             artifact: windows-x64-gnu
             target: x86_64-pc-windows-gnu
             extension: exe
-            use-zigbuild: false
-            strip: false
-          # Windows native
-          - os: windows-latest
-            artifact: windows-native-x64-gnu
-            target: x86_64-pc-windows-gnu
-            extension: exe
-            use-zigbuild: false
-            strip: false
-          - os: windows-latest
-            artifact: windows-native-x64-msvc
-            target: x86_64-pc-windows-msvc
-            extension: exe
-            use-zigbuild: false
-            strip: false
-          - os: windows-latest
-            artifact: windows-native-arm64
-            target: aarch64-pc-windows-msvc
-            extension: exe
-            use-zigbuild: false
-            strip: false
     name: Build ${{ matrix.artifact }}
     runs-on: ${{ matrix.os }}
     continue-on-error: false
