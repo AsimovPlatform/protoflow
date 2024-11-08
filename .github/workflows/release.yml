@@ -1,8 +1,5 @@
 name: Release
 
-# TODO:
-# - Support signing macos binaries.
-
 # Trigger on any tag creation.
 on:
   push:
