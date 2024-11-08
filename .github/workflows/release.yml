@@ -31,7 +31,7 @@ jobs:
             artifact: macos-x64
             target: x86_64-apple-darwin
             use-zigbuild: true
-            strip: true
+            strip: false
           - os: ubuntu-latest
             artifact: macos-arm64
             target: aarch64-apple-darwin
@@ -74,7 +74,7 @@ jobs:
             extension: exe
             use-zigbuild: false
             strip: false
-    name: Build ${{ matrix.target }}
+    name: Build ${{ matrix.artifact }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
