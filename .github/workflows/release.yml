@@ -40,9 +40,9 @@ jobs:
         uses: AsimovPlatform/build-rust-action@v1
         with:
           target: ${{ matrix.target }}
-          package-extension: ${{ matrix.extension }}
           artifact-name: ${{ matrix.artifact }}
-          strip: ${{ matrix.strip || 'false' }}
+          binary-extension: ${{ matrix.extension }}
+          strip-artifact: ${{ matrix.strip || 'false' }}
           use-zigbuild: ${{ matrix.use-zigbuild || 'false' }}
           rust-toolchain: 1.81.0
 
