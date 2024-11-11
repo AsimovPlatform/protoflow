@@ -55,4 +55,4 @@ jobs:
       - name: Download artifacts
         uses: AsimovPlatform/release-action@v1
         with:
-          changelog_path: CHANGES.md
+          changelog-path: CHANGES.md
