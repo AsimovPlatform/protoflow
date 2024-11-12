@@ -5,9 +5,9 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, Drop, Encode, EncodeHex,
-    EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile,
-    ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
+    EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
+    ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, InputPort, Message, OutputPort, PortID, PortResult, Process,
@@ -146,6 +146,10 @@ impl HashBlocks for System {
 impl IoBlocks for System {
     fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
         self.0.block(Decode::<T>::with_system(self, None))
+    }
+
+    fn decode_json(&mut self) -> DecodeJson {
+        self.0.block(DecodeJson::with_system(self))
     }
 
     fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T> {

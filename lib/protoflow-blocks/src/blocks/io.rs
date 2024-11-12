@@ -13,6 +13,7 @@ pub mod io {
 
     pub trait IoBlocks {
         fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T>;
+        fn decode_json(&mut self) -> DecodeJson;
         fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T>;
 
         fn decode_lines<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
@@ -38,6 +39,7 @@ pub mod io {
         Decode,
         Encode,
         EncodeHex,
+        DecodeJson,
         EncodeJson,
     }
 
@@ -48,6 +50,12 @@ pub mod io {
             input: InputPortName,
             output: OutputPortName,
             encoding: Option<Encoding>,
+        },
+
+        #[cfg_attr(feature = "serde", serde(rename = "DecodeJSON"))]
+        DecodeJson {
+            input: InputPortName,
+            output: OutputPortName,
         },
 
         Encode {
@@ -73,6 +81,7 @@ pub mod io {
             use IoBlockConfig::*;
             Cow::Borrowed(match self {
                 Decode { .. } => "Decode",
+                DecodeJson { .. } => "DecodeJSON",
                 Encode { .. } => "Encode",
                 EncodeHex { .. } => "EncodeHex",
                 EncodeJson { .. } => "EncodeJSON",
@@ -85,6 +94,7 @@ pub mod io {
             use IoBlockConfig::*;
             match self {
                 Decode { output, .. }
+                | DecodeJson { output, .. }
                 | Encode { output, .. }
                 | EncodeHex { output, .. }
                 | EncodeJson { output, .. } => {
@@ -101,6 +111,7 @@ pub mod io {
                 Decode { encoding, .. } => {
                     Box::new(super::Decode::<String>::with_system(system, *encoding))
                 }
+                DecodeJson { .. } => Box::new(super::DecodeJson::with_system(system)),
                 Encode { encoding, .. } => {
                     Box::new(super::Encode::<String>::with_system(system, *encoding))
                 }
@@ -112,6 +123,9 @@ pub mod io {
 
     mod decode;
     pub use decode::*;
+
+    mod decode_json;
+    pub use decode_json::*;
 
     mod encode;
     pub use encode::*;
