@@ -231,6 +231,10 @@ block-beta
     class Sink hidden
 ```
 
+```bash
+protoflow execute DecodeJSON
+```
+
 #### [`Delay`]
 
 A block that passes messages through while delaying them by a fixed or random duration.
