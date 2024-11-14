@@ -13,19 +13,19 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: linux-x64
+            artifact: linux-x86
             target: x86_64-unknown-linux-gnu
             strip: true
           - os: ubuntu-latest
-            artifact: linux-arm64
+            artifact: linux-arm
             target: aarch64-unknown-linux-gnu
             use-zigbuild: true
           - os: ubuntu-latest
-            artifact: macos-x64
+            artifact: macos-x86
             target: x86_64-apple-darwin
             use-zigbuild: true
           - os: ubuntu-latest
-            artifact: macos-arm64
+            artifact: macos-arm
             target: aarch64-apple-darwin
             use-zigbuild: true
           - os: ubuntu-latest
