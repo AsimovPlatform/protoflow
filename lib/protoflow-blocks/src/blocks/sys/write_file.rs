@@ -8,10 +8,10 @@ use crate::{
 };
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort};
 use protoflow_derive::Block;
-use serde::{Deserialize, Serialize};
 use simple_mermaid::mermaid;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct WriteFlags {
     pub create: bool,
     pub append: bool,
