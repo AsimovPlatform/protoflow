@@ -21,7 +21,7 @@ default = ["all", "cli", "std"]
 all = ["blocks", "derive", "rand", "serde", "sysml", "tracing"]
 beta = ["unstable"] # deprecated
 blocks = ["dep:protoflow-blocks"]
-cli = ["std", "dep:clap", "dep:clientele"]
+cli = ["std", "syntax", "dep:clap", "dep:clientele"]
 crossbeam = ["dep:protoflow-crossbeam"]
 derive = ["dep:protoflow-derive"]
 flume = ["dep:protoflow-flume"]
@@ -72,13 +72,13 @@ clientele = { version = "0.2", default-features = false, features = [
     "wild",
 ], optional = true }
 error-stack = { version = "0.5", default-features = false }
-protoflow-blocks = { version = "=0.4.2", default-features = false, optional = true }
-protoflow-core = { version = "=0.4.2", default-features = false }
-protoflow-crossbeam = { version = "=0.4.2", default-features = false, optional = true }
-protoflow-derive = { version = "=0.4.2", optional = true }
-protoflow-flume = { version = "=0.4.2", default-features = false, optional = true }
-protoflow-syntax = { version = "=0.4.2", default-features = false, optional = true }
-protoflow-zeromq = { version = "=0.4.2", default-features = false, optional = true }
+protoflow-blocks = { version = "=0.4.3", default-features = false, optional = true }
+protoflow-core = { version = "=0.4.3", default-features = false }
+protoflow-crossbeam = { version = "=0.4.3", default-features = false, optional = true }
+protoflow-derive = { version = "=0.4.3", optional = true }
+protoflow-flume = { version = "=0.4.3", default-features = false, optional = true }
+protoflow-syntax = { version = "=0.4.3", default-features = false, optional = true }
+protoflow-zeromq = { version = "=0.4.3", default-features = false, optional = true }
 tracing = { version = "0.1", default-features = false, optional = true }
 
 [dev-dependencies]
