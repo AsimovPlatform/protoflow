@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant DecodeJSON.input as DecodeJSON.input port
+    participant DecodeJSON as DecodeJSON block
+    participant DecodeJSON.output as DecodeJSON.output port
+    participant BlockB as Another block
+
+    BlockA-->>DecodeJSON: Connect
+    DecodeJSON-->>BlockB: Connect
+
+    loop DecodeJSON process
+        BlockA->>DecodeJSON: Message (Bytes)
+        DecodeJSON->>DecodeJSON: Decode from JSON
+        DecodeJSON->>BlockB: Message
+    end
+
+    BlockA-->>DecodeJSON: Disconnect
+    DecodeJSON-->>DecodeJSON.input: Close
+    DecodeJSON-->>DecodeJSON.output: Close
+    DecodeJSON-->>BlockB: Disconnect
