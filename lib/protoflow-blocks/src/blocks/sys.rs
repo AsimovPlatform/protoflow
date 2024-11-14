@@ -13,14 +13,16 @@ pub mod sys {
         types::ByteSize,
         BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
-    use protoflow_core::Block;
+    use protoflow_core::{Block, Message};
 
     pub trait SysBlocks {
         fn read_dir(&mut self) -> ReadDir;
         fn read_env(&mut self) -> ReadEnv;
         fn read_file(&mut self) -> ReadFile;
+        fn read_socket<T: Message + 'static>(&mut self) -> ReadSocket<T>;
         fn read_stdin(&mut self) -> ReadStdin;
         fn write_file(&mut self) -> WriteFile;
+        fn write_socket<T: Message + 'static>(&mut self) -> WriteSocket<T>;
         fn write_stderr(&mut self) -> WriteStderr;
         fn write_stdout(&mut self) -> WriteStdout;
     }
@@ -31,8 +33,10 @@ pub mod sys {
         ReadDir,
         ReadEnv,
         ReadFile,
+        ReadSocket,
         ReadStdin,
         WriteFile,
+        WriteSocket,
         WriteStderr,
         WriteStdout,
     }
@@ -55,6 +59,11 @@ pub mod sys {
             output: OutputPortName,
         },
 
+        ReadSocket {
+            output: OutputPortName,
+            config: ReadSocketConfig,
+        },
+
         ReadStdin {
             output: OutputPortName,
             buffer_size: Option<ByteSize>,
@@ -64,6 +73,11 @@ pub mod sys {
             path: InputPortName,
             input: InputPortName,
             flags: Option<WriteFlags>,
+        },
+
+        WriteSocket {
+            input: InputPortName,
+            config: WriteSocketConfig,
         },
 
         WriteStderr {
@@ -82,8 +96,10 @@ pub mod sys {
                 ReadDir { .. } => "ReadDir",
                 ReadEnv { .. } => "ReadEnv",
                 ReadFile { .. } => "ReadFile",
+                ReadSocket { .. } => "ReadSocket",
                 ReadStdin { .. } => "ReadStdin",
                 WriteFile { .. } => "WriteFile",
+                WriteSocket { .. } => "WriteSocket",
                 WriteStderr { .. } => "WriteStderr",
                 WriteStdout { .. } => "WriteStdout",
             })
@@ -97,10 +113,13 @@ pub mod sys {
                 ReadDir { output, .. }
                 | ReadEnv { output, .. }
                 | ReadFile { output, .. }
+                | ReadSocket { output, .. }
                 | ReadStdin { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
-                WriteFile { .. } | WriteStderr { .. } | WriteStdout { .. } => vec![],
+                WriteFile { .. } | WriteSocket { .. } | WriteStderr { .. } | WriteStdout { .. } => {
+                    vec![]
+                }
             }
         }
     }
@@ -112,10 +131,18 @@ pub mod sys {
                 ReadDir { .. } => Box::new(super::ReadDir::with_system(system)),
                 ReadEnv { .. } => Box::new(super::ReadEnv::<String>::with_system(system)),
                 ReadFile { .. } => Box::new(super::ReadFile::with_system(system)),
+                ReadSocket { config, .. } => Box::new(super::ReadSocket::<String>::with_system(
+                    system,
+                    Some(config.clone()),
+                )),
                 ReadStdin { buffer_size, .. } => {
                     Box::new(super::ReadStdin::with_system(system, *buffer_size))
                 }
                 WriteFile { flags, .. } => Box::new(super::WriteFile::with_system(system, *flags)),
+                WriteSocket { config, .. } => Box::new(super::WriteSocket::<String>::with_system(
+                    system,
+                    Some(config.clone()),
+                )),
                 WriteStderr { .. } => Box::new(super::WriteStderr::with_system(system)),
                 WriteStdout { .. } => Box::new(super::WriteStdout::with_system(system)),
             }
@@ -131,11 +158,17 @@ pub mod sys {
     mod read_file;
     pub use read_file::*;
 
+    mod read_socket;
+    pub use read_socket::*;
+
     mod read_stdin;
     pub use read_stdin::*;
 
     mod write_file;
     pub use write_file::*;
+
+    mod write_socket;
+    pub use write_socket::*;
 
     mod write_stderr;
     pub use write_stderr::*;

@@ -35,9 +35,13 @@ pub enum BlockTag {
     #[cfg(feature = "std")]
     ReadFile,
     #[cfg(feature = "std")]
+    ReadSocket,
+    #[cfg(feature = "std")]
     ReadStdin,
     #[cfg(feature = "std")]
     WriteFile,
+    #[cfg(feature = "std")]
+    WriteSocket,
     #[cfg(feature = "std")]
     WriteStderr,
     #[cfg(feature = "std")]
@@ -76,9 +80,13 @@ impl BlockTag {
             #[cfg(feature = "std")]
             ReadFile => "ReadFile",
             #[cfg(feature = "std")]
+            ReadSocket => "ReadSocket",
+            #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
             #[cfg(feature = "std")]
             WriteFile => "WriteFile",
+            #[cfg(feature = "std")]
+            WriteSocket => "WriteSocket",
             #[cfg(feature = "std")]
             WriteStderr => "WriteStderr",
             #[cfg(feature = "std")]
@@ -112,9 +120,13 @@ impl FromStr for BlockTag {
             #[cfg(feature = "std")]
             "ReadFile" => ReadFile,
             #[cfg(feature = "std")]
+            "ReadSocket" => ReadSocket,
+            #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
             #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
+            #[cfg(feature = "std")]
+            "WriteSocket" => WriteSocket,
             #[cfg(feature = "std")]
             "WriteStderr" => WriteStderr,
             #[cfg(feature = "std")]
@@ -159,9 +171,15 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "std")]
             ReadFile => Box::new(super::ReadFile::with_system(system)),
             #[cfg(feature = "std")]
+            //todo: evren add param
+            ReadSocket => Box::new(super::ReadSocket::<Any>::with_system(system, None)),
+            #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
+            #[cfg(feature = "std")]
+            //todo: evren add param
+            WriteSocket => Box::new(super::WriteSocket::<Any>::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),
             #[cfg(feature = "std")]
