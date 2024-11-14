@@ -1,47 +1,80 @@
 extern crate std;
-
+use crate::prelude::{vec, String};
 use crate::{IoBlocks, StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     types::Any, Block, BlockError, BlockResult, BlockRuntime, Message, OutputPort, Port,
     PortResult, SystemBuilding,
 };
 use protoflow_derive::Block;
-use tracing::{error, info};
-
-use crate::prelude::{vec, String};
-
 use serde::{Deserialize, Serialize};
-
+use simple_mermaid::mermaid;
+use std::{
+    format,
+    io::Read,
+    net::{TcpListener, TcpStream},
+    string::ToString,
+    sync::{Arc, Mutex, PoisonError},
+};
+use tracing::{error, info};
+/// A block that reads a proto object from a TCP port.
+///
+/// # Block Diagram
+#[doc = mermaid!("../../../doc/sys/read_socket.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../../doc/sys/read_socket.seq.mmd" framed)]
+///
+/// # Examples
+///
+/// ## Using the block in a system
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     // TODO
+/// });
+/// # }
+/// ```
+///
+/// ## Running the block via the CLI
+///
+/// ```console
+/// $ protoflow execute ReadSocket host="127.0.0.1" port="7077" buffer_size="1024"
+/// ```
+///
 #[derive(Block, Clone)]
-pub struct ReadSocket<T: protoflow_core::Message = Any> {
+pub struct ReadSocket<T: Message = Any> {
     #[output]
     pub output: OutputPort<T>,
     #[parameter]
     pub config: ReadSocketConfig,
     #[cfg(feature = "std")]
-    pub listener: std::sync::Arc<std::sync::Mutex<Option<std::net::TcpListener>>>,
+    #[state]
+    pub listener: Arc<Mutex<Option<TcpListener>>>,
     #[cfg(feature = "std")]
-    pub stream: std::sync::Arc<std::sync::Mutex<Option<std::net::TcpStream>>>,
+    #[state]
+    pub stream: Arc<Mutex<Option<TcpStream>>>,
 }
 
-impl<T: protoflow_core::Message> ReadSocket<T> {
+impl<T: Message> ReadSocket<T> {
     pub fn with_params(output: OutputPort<T>, config: Option<ReadSocketConfig>) -> Self {
         Self {
             output,
             config: config.unwrap_or(Default::default()),
-            listener: std::sync::Arc::new(std::sync::Mutex::new(None)),
-            stream: std::sync::Arc::new(std::sync::Mutex::new(None)),
+            listener: Arc::new(Mutex::new(None)),
+            stream: Arc::new(Mutex::new(None)),
         }
     }
 }
 
-impl<T: protoflow_core::Message + 'static> ReadSocket<T> {
+impl<T: Message + 'static> ReadSocket<T> {
     pub fn with_system(system: &System, config: Option<ReadSocketConfig>) -> Self {
         Self::with_params(system.output(), config)
     }
 }
 
-impl<T: protoflow_core::Message + std::string::ToString + 'static> StdioSystem for ReadSocket<T> {
+impl<T: Message + ToString + 'static> StdioSystem for ReadSocket<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         config.allow_only(vec!["host", "port", "buffer_size"])?;
 
@@ -66,10 +99,10 @@ impl<T: protoflow_core::Message + std::string::ToString + 'static> StdioSystem f
     }
 }
 
-impl<T: protoflow_core::Message + 'static> Block for ReadSocket<T> {
+impl<T: Message + 'static> Block for ReadSocket<T> {
     fn prepare(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let address = std::format!("{}:{}", &self.config.host, &self.config.port);
-        let listener = std::net::TcpListener::bind(&address)?;
+        let address = format!("{}:{}", &self.config.host, &self.config.port);
+        let listener = TcpListener::bind(&address)?;
         *self.listener.lock().map_err(lock_error)? = Some(listener);
         info!("Server listening on {}", address);
         Ok(())
@@ -111,12 +144,12 @@ impl<T: protoflow_core::Message + 'static> Block for ReadSocket<T> {
     }
 }
 
-fn lock_error<T>(err: std::sync::PoisonError<T>) -> BlockError {
-    BlockError::Other(std::format!("Failed to acquire lock: {:?}", err))
+fn lock_error<T>(err: PoisonError<T>) -> BlockError {
+    BlockError::Other(format!("Failed to acquire lock: {:?}", err))
 }
 
 fn handle_client<M, F>(
-    stream: &mut std::net::TcpStream,
+    stream: &mut TcpStream,
     buffer_size: usize,
     process_fn: F,
 ) -> Result<(), BlockError>
@@ -126,7 +159,7 @@ where
 {
     let mut buffer = vec![0; buffer_size];
 
-    while let Ok(bytes_read) = std::io::Read::read(stream, &mut buffer) {
+    while let Ok(bytes_read) = Read::read(stream, &mut buffer) {
         if bytes_read == 0 {
             info!("Client disconnected");
             break;
@@ -145,6 +178,7 @@ where
 
     Ok(())
 }
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReadSocketConfig {
     pub host: String,
@@ -156,8 +190,51 @@ impl Default for ReadSocketConfig {
     fn default() -> Self {
         Self {
             host: String::from("127.0.0.1"),
-            port: 7777,
+            port: 7070,
             buffer_size: 512,
+        }
+    }
+}
+#[cfg(test)]
+pub mod read_socket_tests {
+
+    use protoflow_core::SystemBuilding;
+
+    use crate::{Encoding, SysBlocks, System};
+
+    use super::ReadSocket;
+    use std::string::String;
+    extern crate std;
+
+    #[test]
+    #[ignore]
+    fn instantiate_block() {
+        // Check that the block is constructible:
+        let _ = System::build(|s| {
+            let _ = s.block(ReadSocket::<String>::with_system(s, None));
+        });
+    }
+    #[test]
+    #[ignore = "requires port"]
+    fn run_server() {
+        use super::*;
+        use SystemBuilding;
+        if let Err(e) = System::run(|s| {
+            let std_out = s.write_stdout();
+            let message_encoder = s.encode_with::<String>(Encoding::TextWithNewlineSuffix);
+
+            let read_socket = s.block(ReadSocket::<String>::with_system(
+                s,
+                Some(ReadSocketConfig {
+                    host: String::from("127.0.0.1"),
+                    port: 7070,
+                    buffer_size: 512,
+                }),
+            ));
+            s.connect(&read_socket.output, &message_encoder.input);
+            s.connect(&message_encoder.output, &std_out.input);
+        }) {
+            error!("{}", e)
         }
     }
 }

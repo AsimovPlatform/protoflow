@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant ReadSocket as ReadSocket block
+    participant ReadSocket.output as ReadSocket.output port
+    participant BlockA as Another block
+
+    ReadSocket-->>BlockA: Connect
+
+    loop ReadSocket process
+        ReadSocket->>ReadSocket: Read proto message from TCP port
+        ReadSocket->>BlockA: Message (proto)
+    end
+
+    ReadSocket-->>ReadSocket.output: Close
+    ReadSocket-->>BlockA: Disconnect

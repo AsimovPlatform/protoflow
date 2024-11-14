@@ -119,8 +119,10 @@ The built-in blocks provided by Protoflow are listed below:
 | [`ReadDir`]     | Reads file names from a file system directory.             |
 | [`ReadEnv`]     | Reads the value of an environment variable.                |
 | [`ReadFile`]    | Reads bytes from the contents of a file.                   |
+| [`ReadSocket`]  | Reads proto message from a TCP port.                       |
 | [`ReadStdin`]   | Reads bytes from standard input (aka stdin).               |
 | [`WriteFile`]   | Writes or appends bytes to the contents of a file.         |
+| [`WriteSocket`] | Writes a proto message to a TCP port                       |
 | [`WriteStderr`] | Writes bytes to standard error (aka stderr).               |
 | [`WriteStdout`] | Writes bytes to standard output (aka stdout).              |
 
@@ -466,6 +468,25 @@ block-beta
 ```bash
 protoflow execute ReadFile path=/tmp/file.txt
 ```
+#### [`ReadSocket`]
+
+A block that reads proto messages from a TCP port.
+
+```mermaid
+block-beta
+    columns 4
+    ReadSocket space:2 Sink
+    ReadSocket-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadSocket block
+    class Sink hidden
+```
+
+```bash
+protoflow execute ReadSocket host="127.0.0.1" port=7077 buffer_size=1024
+```
 
 #### [`ReadStdin`]
 
@@ -511,7 +532,25 @@ block-beta
 ```bash
 protoflow execute WriteFile path=/tmp/file.txt
 ```
+#### [`WriteSocket`]
 
+A block that writes proto messages to TCP port.
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 WriteSocket
+    Source-- "input" -->WriteSocket
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class WriteSocket block
+    class Source hidden
+```
+
+```bash
+protoflow execute WriteSocket host="127.0.0.1" port=7077 buffer_size=1024
+```
 #### [`WriteStderr`]
 
 A block that writes bytes to standard error (aka stderr).
@@ -589,7 +628,9 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
 [`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadFile.html
+[`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadSocket.html
 [`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
+[`WriteSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteSocket.html
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html

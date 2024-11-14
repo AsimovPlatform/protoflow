@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant WriteSocket.input as WriteSocket.input port
+    participant WriteSocket as WriteSocket block
+
+    BlockA-->>WriteSocket: Connect
+
+    loop WriteSocket process
+        BlockA->>WriteSocket: Message (proto)
+        WriteSocket->>WriteSocket: Write proto message to TCP port
+    end
+
+    BlockA-->>WriteSocket: Disconnect
+    WriteSocket-->>WriteSocket.input: Close
