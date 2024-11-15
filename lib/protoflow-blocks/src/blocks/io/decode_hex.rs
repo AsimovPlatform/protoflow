@@ -1,20 +1,20 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{format, Bytes, String, Vec},
+    prelude::{Bytes, Vec},
     IoBlocks, StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
-/// A block that encodes a byte stream into hexadecimal form.
+/// A block that decodes a hexadecimal byte stream to byte.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../../doc/io/encode_hex.mmd")]
+#[doc = mermaid!("../../../doc/io/decode_hex.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../../doc/io/encode_hex.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/io/decode_hex.seq.mmd" framed)]
 ///
 /// # Examples
 ///
@@ -25,10 +25,10 @@ use simple_mermaid::mermaid;
 /// # fn main() {
 /// System::build(|s| {
 ///     let stdin = s.read_stdin();
-///     let hex_encoder = s.encode_hex();
+///     let hex_decoder = s.decode_hex();
 ///     let stdout = s.write_stdout();
-///     s.connect(&stdin.output, &hex_encoder.input);
-///     s.connect(&hex_encoder.output, &stdout.input);
+///     s.connect(&stdin.output, &hex_decoder.input);
+///     s.connect(&hex_decoder.output, &stdout.input);
 /// });
 /// # }
 /// ```
@@ -36,7 +36,7 @@ use simple_mermaid::mermaid;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute EncodeHex
+/// $ protoflow execute DecodeHex
 /// ```
 ///
 #[derive(Block, Clone)]
@@ -74,10 +74,8 @@ impl Block for DecodeHex {
     }
 }
 fn hex_to_bytes(hex_message: &Bytes) -> Bytes {
-    // Allocate enough space for the decoded bytes
     let mut decoded = Vec::with_capacity(hex_message.len() / 2);
 
-    // Process each pair of hex digits directly
     for chunk in hex_message.chunks_exact(2) {
         let high = chunk[0];
         let low = chunk[1];
@@ -106,10 +104,10 @@ impl StdioSystem for DecodeHex {
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
-            let hex_encoder = s.decode_hex();
+            let hex_decoder = s.decode_hex();
             let stdout = config.write_stdout(s);
-            s.connect(&stdin.output, &hex_encoder.input);
-            s.connect(&hex_encoder.output, &stdout.input);
+            s.connect(&stdin.output, &hex_decoder.input);
+            s.connect(&hex_decoder.output, &stdout.input);
         }))
     }
 }

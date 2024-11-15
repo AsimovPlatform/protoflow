@@ -108,6 +108,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`Const`]       | Sends a constant value.                                    |
 | [`Count`]       | Counts the number of messages it receives, while optionally passing them through. |
 | [`Decode`]      | Decodes messages from a byte stream.                       |
+| [`DecodeHex`]   | Decodes hexadecimal stream to byte stream.                 |
 | [`DecodeJSON`]      | Decodes JSON messages from a byte stream.                       |
 | [`Delay`]       | Passes messages through while delaying them by a fixed or random duration. |
 | [`Drop`]        | Discards all messages it receives.                         |
@@ -211,6 +212,28 @@ block-beta
 
 ```bash
 protoflow execute Decode encoding=text
+```
+
+#### [`DecodeHex`]
+
+A block that decodes a hexadecimal byte stream into bytes.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 DecodeHex space:2 Sink
+    Source-- "input" -->DecodeHex
+    DecodeHex-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeHex block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute DecodeHex
 ```
 
 #### [`DecodeJSON`]
@@ -578,6 +601,7 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
+[`DecodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeHex.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
