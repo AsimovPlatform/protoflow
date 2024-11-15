@@ -80,6 +80,7 @@ pub fn build_stdio_system(
         "WriteStdout" => WriteStdout::build_system(config)?,
         // TextBlocks
         "ConcatStrings" => ConcatStrings::build_system(config)?,
+        "SplitString" => SplitString::build_system(config)?,
         _ => return Err(StdioError::UnknownSystem(system_name))?,
     })
 }

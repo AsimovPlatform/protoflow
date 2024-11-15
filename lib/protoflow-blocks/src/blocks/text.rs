@@ -11,6 +11,7 @@ pub mod text {
         fn concat_strings(&mut self) -> ConcatStrings;
         fn concat_strings_by(&mut self, joiner: &str) -> ConcatStrings;
         fn split_string(&mut self, delimiter: &str) -> SplitString;
+        fn split_string_whitespace(&mut self) -> SplitString;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -75,7 +76,7 @@ pub mod text {
     pub use concat_strings::*;
 
     mod split_string;
-    pub use spit_string::*;
+    pub use split_string::*;
 }
 
 pub use text::*;

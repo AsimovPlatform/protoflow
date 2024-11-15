@@ -102,28 +102,29 @@ pub fn main() -> BlockResult {
 
 The built-in blocks provided by Protoflow are listed below:
 
-| Block             | Description                                                                                                        |
-|:------------------|:-------------------------------------------------------------------------------------------------------------------|
-| [`Buffer`]        | Stores all messages it receives.                                                                                   |
-| [`ConcatStrings`] | Concatenates the received string messages, with an optional joiner string inserted between each message.           |
-| [`Const`]         | Sends a constant value.                                                                                            |
-| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                  |
-| [`Decode`]        | Decodes messages from a byte stream.                                                                               |
-| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                          |
-| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                         |
-| [`Drop`]          | Discards all messages it receives.                                                                                 |
-| [`Encode`]        | Encodes messages to a byte stream.                                                                                 |
-| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                       |
-| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                 |
-| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                  |
-| [`Random`]        | Generates and sends a random value.                                                                                |
-| [`ReadDir`]       | Reads file names from a file system directory.                                                                     |
-| [`ReadEnv`]       | Reads the value of an environment variable.                                                                        |
-| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                           |
-| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                       |
-| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                                 |
-| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                       |
-| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                      |
+| Block             | Description                                                                                              |
+|:------------------|:---------------------------------------------------------------------------------------------------------|
+| [`Buffer`]        | Stores all messages it receives.                                                                         |
+| [`Const`]         | Sends a constant value.                                                                                  |
+| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                        |
+| [`Decode`]        | Decodes messages from a byte stream.                                                                     |
+| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                |
+| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                               |
+| [`Drop`]          | Discards all messages it receives.                                                                       |
+| [`Encode`]        | Encodes messages to a byte stream.                                                                       |
+| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                             |
+| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                       |
+| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                        |
+| [`Random`]        | Generates and sends a random value.                                                                      |
+| [`ReadDir`]       | Reads file names from a file system directory.                                                           |
+| [`ReadEnv`]       | Reads the value of an environment variable.                                                              |
+| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                 |
+| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                             |
+| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                       |
+| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                             |
+| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                            |
+| [`ConcatStrings`] | Concatenates the received string messages, with an optional joiner string inserted between each message. |
+| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter                           |
 
 #### [`Buffer`]
 
@@ -161,7 +162,10 @@ block-beta
     class ConcatStrings block
     class Source hidden
     class Sink hidden
+```
 
+```bash
+protoflow execute ConcatStrings joiner=","
 ```
 
 #### [`Const`]
@@ -487,6 +491,28 @@ block-beta
 protoflow execute ReadFile path=/tmp/file.txt
 ```
 
+#### [`SplitString`]
+
+A block that splits string
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 SplitString space:2 Sink
+    Source-- "input" -->SplitString
+    SplitString-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class SplitString block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute SplitString delimiter=","
+```
+
 #### [`ReadStdin`]
 
 A block that reads bytes from standard input (aka stdin).
@@ -595,7 +621,6 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`examples`]: lib/protoflow/examples
 
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
-[`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
@@ -614,3 +639,5 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
+[`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
+[`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html

@@ -28,6 +28,7 @@ use simple_mermaid::mermaid;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
+///     let joiner = ",";
 ///     let stdin = s.read_stdin();
 ///     let line_decoder = s.decode_with(config.encoding);
 ///     let concat_strings = s.concat_strings_by(&joiner);
@@ -44,7 +45,7 @@ use simple_mermaid::mermaid;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute ConcatStrings joiner=", "
+/// $ protoflow execute ConcatStrings joiner=","
 /// ```
 ///
 #[derive(Block, Clone)]
