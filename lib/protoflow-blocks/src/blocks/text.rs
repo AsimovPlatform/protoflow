@@ -10,12 +10,14 @@ pub mod text {
     pub trait TextBlocks {
         fn concat_strings(&mut self) -> ConcatStrings;
         fn concat_strings_by(&mut self, joiner: &str) -> ConcatStrings;
+        fn split_string(&mut self, delimiter: &str) -> SplitString;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum TextBlockTag {
-        ConcatStrings
+        ConcatStrings,
+        SplitString,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -25,6 +27,11 @@ pub mod text {
             input: InputPortName,
             output: OutputPortName,
             joiner: Option<String>
+        },
+        SplitString {
+            input: InputPortName,
+            output: OutputPortName,
+            delimiter: Option<String>
         }
     }
 
@@ -33,6 +40,7 @@ pub mod text {
             use TextBlockConfig::*;
             Cow::Borrowed(match self {
                 ConcatStrings { .. } => "ConcatStrings",
+                SplitString { .. } => "SplitString",
             })
         }
     }
@@ -41,7 +49,8 @@ pub mod text {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use TextBlockConfig::*;
             match self {
-                ConcatStrings { output, .. } => {
+                ConcatStrings { output, .. }
+                | SplitString { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
             }
@@ -55,12 +64,18 @@ pub mod text {
                 ConcatStrings { joiner, .. } => {
                     Box::new(super::ConcatStrings::with_system(system, joiner.clone()))
                 }
+                SplitString { delimiter, .. } => {
+                    Box::new(super::SplitString::with_system(system, delimiter.clone()))
+                }
             }
         }
     }
 
     mod concat_strings;
     pub use concat_strings::*;
+
+    mod split_string;
+    pub use spit_string::*;
 }
 
 pub use text::*;
