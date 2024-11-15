@@ -124,7 +124,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                             |
 | [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                            |
 | [`ConcatStrings`] | Concatenates the received string messages, with an optional joiner string inserted between each message. |
-| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter                           |
+| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                          |
 
 #### [`Buffer`]
 
@@ -144,28 +144,6 @@ block-beta
 
 ```bash
 protoflow execute Buffer
-```
-
-#### [`ConcatStrings`]
-
-A block for concatenating all string messages it receives
-
-```mermaid
-block-beta
-    columns 7
-    Source space:2 ConcatStrings space:2 Sink
-    Source-- "input" -->ConcatStrings
-    ConcatStrings-- "output" -->Sink
-
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class ConcatStrings block
-    class Source hidden
-    class Sink hidden
-```
-
-```bash
-protoflow execute ConcatStrings joiner=","
 ```
 
 #### [`Const`]
@@ -491,28 +469,6 @@ block-beta
 protoflow execute ReadFile path=/tmp/file.txt
 ```
 
-#### [`SplitString`]
-
-A block that splits string
-
-```mermaid
-block-beta
-    columns 7
-    Source space:2 SplitString space:2 Sink
-    Source-- "input" -->SplitString
-    SplitString-- "output" -->Sink
-
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class SplitString block
-    class Source hidden
-    class Sink hidden
-```
-
-```bash
-protoflow execute SplitString delimiter=","
-```
-
 #### [`ReadStdin`]
 
 A block that reads bytes from standard input (aka stdin).
@@ -596,6 +552,50 @@ block-beta
 
 ```bash
 protoflow execute WriteStdout < input.txt > output.txt
+```
+
+#### [`ConcatStrings`]
+
+A block for concatenating all string messages it receives
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 ConcatStrings space:2 Sink
+    Source-- "input" -->ConcatStrings
+    ConcatStrings-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ConcatStrings block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute ConcatStrings joiner=","
+```
+
+#### [`SplitString`]
+
+A block that splits string
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 SplitString space:2 Sink
+    Source-- "input" -->SplitString
+    SplitString-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class SplitString block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute SplitString delimiter=","
 ```
 
 ## 👨‍💻 Development
