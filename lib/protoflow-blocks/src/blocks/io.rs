@@ -13,6 +13,7 @@ pub mod io {
 
     pub trait IoBlocks {
         fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T>;
+        fn decode_json(&mut self) -> DecodeJson;
         fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T>;
 
         fn decode_lines<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
@@ -28,6 +29,8 @@ pub mod io {
         }
 
         fn encode_hex(&mut self) -> EncodeHex;
+
+        fn encode_json(&mut self) -> EncodeJson;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -36,6 +39,8 @@ pub mod io {
         Decode,
         Encode,
         EncodeHex,
+        DecodeJson,
+        EncodeJson,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -45,6 +50,12 @@ pub mod io {
             input: InputPortName,
             output: OutputPortName,
             encoding: Option<Encoding>,
+        },
+
+        #[cfg_attr(feature = "serde", serde(rename = "DecodeJSON"))]
+        DecodeJson {
+            input: InputPortName,
+            output: OutputPortName,
         },
 
         Encode {
@@ -57,6 +68,12 @@ pub mod io {
             input: InputPortName,
             output: OutputPortName,
         },
+
+        #[cfg_attr(feature = "serde", serde(rename = "EncodeJSON"))]
+        EncodeJson {
+            input: InputPortName,
+            output: OutputPortName,
+        },
     }
 
     impl Named for IoBlockConfig {
@@ -64,8 +81,10 @@ pub mod io {
             use IoBlockConfig::*;
             Cow::Borrowed(match self {
                 Decode { .. } => "Decode",
+                DecodeJson { .. } => "DecodeJSON",
                 Encode { .. } => "Encode",
                 EncodeHex { .. } => "EncodeHex",
+                EncodeJson { .. } => "EncodeJSON",
             })
         }
     }
@@ -74,7 +93,11 @@ pub mod io {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use IoBlockConfig::*;
             match self {
-                Decode { output, .. } | Encode { output, .. } | EncodeHex { output, .. } => {
+                Decode { output, .. }
+                | DecodeJson { output, .. }
+                | Encode { output, .. }
+                | EncodeHex { output, .. }
+                | EncodeJson { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
             }
@@ -88,10 +111,12 @@ pub mod io {
                 Decode { encoding, .. } => {
                     Box::new(super::Decode::<String>::with_system(system, *encoding))
                 }
+                DecodeJson { .. } => Box::new(super::DecodeJson::with_system(system)),
                 Encode { encoding, .. } => {
                     Box::new(super::Encode::<String>::with_system(system, *encoding))
                 }
                 EncodeHex { .. } => Box::new(super::EncodeHex::with_system(system)),
+                EncodeJson { .. } => Box::new(super::EncodeJson::with_system(system)),
             }
         }
     }
@@ -99,11 +124,17 @@ pub mod io {
     mod decode;
     pub use decode::*;
 
+    mod decode_json;
+    pub use decode_json::*;
+
     mod encode;
     pub use encode::*;
 
     mod encode_hex;
     pub use encode_hex::*;
+
+    mod encode_json;
+    pub use encode_json::*;
 }
 
 pub use io::*;

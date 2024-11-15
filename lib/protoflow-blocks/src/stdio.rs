@@ -9,6 +9,7 @@ pub trait StdioSystem {
     fn build_system(config: StdioConfig) -> Result<System, StdioError>;
 }
 
+#[derive(Debug, Default, Clone)]
 pub struct StdioConfig {
     pub encoding: Encoding,
     pub params: BTreeMap<String, String>,

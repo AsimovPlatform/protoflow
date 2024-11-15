@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// A block is an autonomous unit of computation in a system.
-pub trait BlockDescriptor: MaybeNamed + MaybeLabeled {
+pub trait BlockDescriptor: AsBlockDescriptor + MaybeNamed + MaybeLabeled {
     /// A description of this block's I/O ports.
     fn ports(&self) -> Vec<PortDescriptor> {
         let mut result = self.inputs();
@@ -27,5 +27,32 @@ pub trait BlockDescriptor: MaybeNamed + MaybeLabeled {
     /// A description of this block's parameters.
     fn parameters(&self) -> Vec<ParameterDescriptor> {
         vec![]
+    }
+}
+
+pub trait AsBlockDescriptor {
+    fn as_block_descriptor(&self) -> &dyn BlockDescriptor;
+}
+
+impl<T: BlockDescriptor + Sized> AsBlockDescriptor for T {
+    fn as_block_descriptor(&self) -> &dyn BlockDescriptor {
+        self
+    }
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for &dyn BlockDescriptor {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("BlockDescriptor", 5)?;
+        state.serialize_field("name", &self.name())?;
+        state.serialize_field("label", &self.label())?;
+        state.serialize_field("parameters", &self.parameters())?;
+        state.serialize_field("inputs", &self.inputs())?;
+        state.serialize_field("outputs", &self.outputs())?;
+        state.end()
     }
 }

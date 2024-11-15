@@ -10,7 +10,7 @@ sequenceDiagram
     Decode-->>BlockB: Connect
 
     loop Decode process
-        BlockA->>Decode: Message
+        BlockA->>Decode: Message (Bytes)
         Decode->>Decode: Decode message
         Decode->>BlockB: Message
     end

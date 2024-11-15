@@ -3,6 +3,8 @@
 use crate::prelude::{fmt, TryFrom};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum PortID {
     Input(InputPortID),
     Output(OutputPortID),
@@ -69,6 +71,7 @@ impl fmt::Display for PortID {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InputPortID(pub(crate) isize);
 
 impl InputPortID {
@@ -109,6 +112,7 @@ impl fmt::Display for InputPortID {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct OutputPortID(pub(crate) isize);
 
 impl OutputPortID {

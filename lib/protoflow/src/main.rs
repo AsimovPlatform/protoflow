@@ -33,7 +33,7 @@ struct Options {
     flags: StandardOptions,
 
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -97,7 +97,7 @@ pub fn main() -> Result<(), ExitCode> {
         // TODO: configure tracing
     }
 
-    match options.command {
+    match options.command.unwrap() {
         #[cfg(feature = "beta")]
         Command::Config {} => config::config(),
         #[cfg(feature = "beta")]

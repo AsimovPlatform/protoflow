@@ -5,9 +5,9 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, Delay, Drop, Encode, EncodeHex,
-    FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin,
-    SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
+    EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
+    ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -175,6 +175,10 @@ impl IoBlocks for System {
         self.0.block(Decode::<T>::with_system(self, None))
     }
 
+    fn decode_json(&mut self) -> DecodeJson {
+        self.0.block(DecodeJson::with_system(self))
+    }
+
     fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T> {
         self.0.block(Decode::<T>::with_system(self, Some(encoding)))
     }
@@ -189,6 +193,10 @@ impl IoBlocks for System {
 
     fn encode_hex(&mut self) -> EncodeHex {
         self.0.block(EncodeHex::with_system(self))
+    }
+
+    fn encode_json(&mut self) -> EncodeJson {
+        self.0.block(EncodeJson::with_system(self))
     }
 }
 
@@ -216,7 +224,7 @@ impl SysBlocks for System {
     }
 
     fn write_file(&mut self) -> WriteFile {
-        self.0.block(WriteFile::with_system(self))
+        self.0.block(WriteFile::with_system(self, None))
     }
 
     fn write_stderr(&mut self) -> WriteStderr {

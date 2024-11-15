@@ -63,6 +63,7 @@ pub mod sys {
         WriteFile {
             path: InputPortName,
             input: InputPortName,
+            flags: Option<WriteFlags>,
         },
 
         WriteStderr {
@@ -114,7 +115,7 @@ pub mod sys {
                 ReadStdin { buffer_size, .. } => {
                     Box::new(super::ReadStdin::with_system(system, *buffer_size))
                 }
-                WriteFile { .. } => Box::new(super::WriteFile::with_system(system)),
+                WriteFile { flags, .. } => Box::new(super::WriteFile::with_system(system, *flags)),
                 WriteStderr { .. } => Box::new(super::WriteStderr::with_system(system)),
                 WriteStdout { .. } => Box::new(super::WriteStdout::with_system(system)),
             }

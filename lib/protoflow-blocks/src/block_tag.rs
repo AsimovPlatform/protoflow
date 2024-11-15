@@ -25,6 +25,7 @@ pub enum BlockTag {
     Decode,
     Encode,
     EncodeHex,
+    EncodeJson,
     // MathBlocks
     // SysBlocks
     #[cfg(feature = "std")]
@@ -67,6 +68,7 @@ impl BlockTag {
             Decode => "Decode",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
+            EncodeJson => "EncodeJSON",
             #[cfg(feature = "std")]
             ReadDir => "ReadDir",
             #[cfg(feature = "std")]
@@ -102,6 +104,7 @@ impl FromStr for BlockTag {
             "Decode" => Decode,
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
+            "EncodeJSON" => EncodeJson,
             #[cfg(feature = "std")]
             "ReadDir" => ReadDir,
             #[cfg(feature = "std")]
@@ -148,6 +151,7 @@ impl BlockInstantiation for BlockTag {
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
+            EncodeJson => Box::new(super::EncodeJson::with_system(system)),
             #[cfg(feature = "std")]
             ReadDir => Box::new(super::ReadDir::with_system(system)),
             #[cfg(feature = "std")]
@@ -157,7 +161,7 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
             #[cfg(feature = "std")]
-            WriteFile => Box::new(super::WriteFile::with_system(system)),
+            WriteFile => Box::new(super::WriteFile::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),
             #[cfg(feature = "std")]

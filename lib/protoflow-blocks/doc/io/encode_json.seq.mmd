@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant EncodeJSON.input as EncodeJSON.input port
+    participant EncodeJSON as EncodeJSON block
+    participant EncodeJSON.output as EncodeJSON.output port
+    participant BlockB as Another block
+
+    BlockA-->>EncodeJSON: Connect
+    EncodeJSON-->>BlockB: Connect
+
+    loop EncodeJSON process
+        BlockA->>EncodeJSON: Message
+        EncodeJSON->>EncodeJSON: Encode into JSON
+        EncodeJSON->>BlockB: Message (Bytes)
+    end
+
+    BlockA-->>EncodeJSON: Disconnect
+    EncodeJSON-->>EncodeJSON.input: Close
+    EncodeJSON-->>EncodeJSON.output: Close
+    EncodeJSON-->>BlockB: Disconnect

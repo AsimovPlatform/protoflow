@@ -12,7 +12,7 @@ sequenceDiagram
     loop Encode process
         BlockA->>Encode: Message
         Encode->>Encode: Encode message
-        Encode->>BlockB: Message
+        Encode->>BlockB: Message (Bytes)
     end
 
     BlockA-->>Encode: Disconnect
