@@ -23,6 +23,7 @@ pub enum BlockTag {
     Hash,
     // IoBlocks
     Decode,
+    DecodeHex,
     Encode,
     EncodeHex,
     EncodeJson,
@@ -66,6 +67,7 @@ impl BlockTag {
             #[cfg(feature = "hash")]
             Hash => "Hash",
             Decode => "Decode",
+            DecodeHex => "DecodeHex",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
@@ -102,6 +104,7 @@ impl FromStr for BlockTag {
             #[cfg(feature = "hash")]
             "Hash" => Hash,
             "Decode" => Decode,
+            "DecodeHex" => DecodeHex,
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
@@ -149,6 +152,7 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "hash")]
             Hash => Box::new(super::Hash::with_system(system, None)),
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
+            DecodeHex => Box::new(super::DecodeHex::with_system(system)),
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),

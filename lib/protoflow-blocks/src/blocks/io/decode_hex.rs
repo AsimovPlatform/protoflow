@@ -1,0 +1,174 @@
+// This is free and unencumbered software released into the public domain.
+
+use crate::{
+    prelude::{format, Bytes, String, Vec},
+    IoBlocks, StdioConfig, StdioError, StdioSystem, System,
+};
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
+use protoflow_derive::Block;
+use simple_mermaid::mermaid;
+
+/// A block that encodes a byte stream into hexadecimal form.
+///
+/// # Block Diagram
+#[doc = mermaid!("../../../doc/io/encode_hex.mmd")]
+///
+/// # Sequence Diagram
+#[doc = mermaid!("../../../doc/io/encode_hex.seq.mmd" framed)]
+///
+/// # Examples
+///
+/// ## Using the block in a system
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     let stdin = s.read_stdin();
+///     let hex_encoder = s.encode_hex();
+///     let stdout = s.write_stdout();
+///     s.connect(&stdin.output, &hex_encoder.input);
+///     s.connect(&hex_encoder.output, &stdout.input);
+/// });
+/// # }
+/// ```
+///
+/// ## Running the block via the CLI
+///
+/// ```console
+/// $ protoflow execute EncodeHex
+/// ```
+///
+#[derive(Block, Clone)]
+pub struct DecodeHex {
+    /// The input text stream.
+    #[input]
+    pub input: InputPort<Bytes>,
+
+    /// The output byte stream.
+    #[output]
+    pub output: OutputPort<Bytes>,
+}
+
+impl DecodeHex {
+    pub fn new(input: InputPort<Bytes>, output: OutputPort<Bytes>) -> Self {
+        Self { input, output }
+    }
+
+    pub fn with_system(system: &System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input(), system.output())
+    }
+}
+
+impl Block for DecodeHex {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        runtime.wait_for(&self.input)?;
+
+        while let Some(message) = self.input.recv()? {
+            let decoded = hex_to_bytes(&message);
+            self.output.send(&decoded)?;
+        }
+
+        Ok(())
+    }
+}
+fn hex_to_bytes(hex_message: &Bytes) -> Bytes {
+    // Allocate enough space for the decoded bytes
+    let mut decoded = Vec::with_capacity(hex_message.len() / 2);
+
+    // Process each pair of hex digits directly
+    for chunk in hex_message.chunks_exact(2) {
+        let high = chunk[0];
+        let low = chunk[1];
+        decoded.push((hex_value(high) << 4) | hex_value(low));
+    }
+
+    Bytes::from(decoded)
+}
+
+#[inline(always)]
+fn hex_value(byte: u8) -> u8 {
+    match byte {
+        b'0'..=b'9' => byte - b'0',
+        b'a'..=b'f' => byte - b'a' + 10,
+        b'A'..=b'F' => byte - b'A' + 10,
+        _ => panic!("Invalid hex character"),
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdioSystem for DecodeHex {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::SystemBuilding;
+
+        config.reject_any()?;
+
+        Ok(System::build(|s| {
+            let stdin = config.read_stdin(s);
+            let hex_encoder = s.decode_hex();
+            let stdout = config.write_stdout(s);
+            s.connect(&stdin.output, &hex_encoder.input);
+            s.connect(&hex_encoder.output, &stdout.input);
+        }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::DecodeHex;
+    use crate::{IoBlocks, SysBlocks, System, SystemBuilding};
+
+    #[test]
+    fn instantiate_block() {
+        // Check that the block is constructible:
+        let _ = System::build(|s| {
+            let _ = s.block(DecodeHex::new(s.input(), s.output()));
+        });
+    }
+    #[test]
+    fn runBlock2() {
+        use super::*;
+        let _ = System::run(|s| {
+            let stdin = s.read_stdin();
+
+            let line_decoder = s.decode::<String>();
+            s.connect(&stdin.output, &line_decoder.input);
+
+            let count_encoder = s.encode::<String>();
+
+            let stdout = s.write_stdout();
+            s.connect(&count_encoder.output, &stdout.input);
+        });
+    }
+
+    #[test]
+    fn run_block() {
+        use super::*;
+        // Check that the block is constructible:
+        let _ = System::run(|s| {
+            // let stdin = s.read_stdin();
+
+            // let hex_encoder = super::super::EncodeHex::with_system(&s);
+
+            // s.connect(&stdin.output, &hex_encoder.input);
+
+            // // let hex_decoder = super::super::DecodeHex::with_system(&s);
+            // // s.connect(&hex_encoder.output, &hex_decoder.input);
+
+            // let stdout = s.write_stdout();
+            // // s.connect(&hex_decoder.output, &stdout.input);
+            // s.connect(&hex_encoder.output, &stdout.input);
+            let stdin = s.read_stdin();
+            let decoder = s.decode_with::<String>(crate::Encoding::TextWithNewlineSuffix);
+            let encoder = s.encode_with::<String>(crate::Encoding::TextWithNewlineSuffix);
+            let stdout = s.write_stdout();
+            //let decoder=s
+            let hex_encoder = s.encode_hex();
+            let stdout = s.write_stdout();
+            s.connect(&stdin.output, &decoder.input);
+            s.connect(&decoder.output, &encoder.input);
+            s.connect(&encoder.output, &stdout.input);
+        });
+    }
+}
