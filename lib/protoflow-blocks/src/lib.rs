@@ -79,6 +79,7 @@ pub fn build_stdio_system(
         "WriteStderr" => WriteStderr::build_system(config)?,
         "WriteStdout" => WriteStdout::build_system(config)?,
         // TextBlocks
+        "ConcatStrings" => ConcatStrings::build_system(config)?,
         _ => return Err(StdioError::UnknownSystem(system_name))?,
     })
 }

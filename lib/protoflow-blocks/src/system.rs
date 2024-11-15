@@ -5,7 +5,7 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
+    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
     EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
     ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
@@ -209,4 +209,12 @@ impl SysBlocks for System {
     }
 }
 
-impl TextBlocks for System {}
+impl TextBlocks for System {
+    fn concat_strings(&mut self) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, None))
+    }
+
+    fn concat_strings_by(&mut self, joiner: &str) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, Some(joiner.to_string())))
+    }
+}
