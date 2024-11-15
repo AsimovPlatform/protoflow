@@ -115,7 +115,7 @@ impl StdioSystem for DecodeHex {
 #[cfg(test)]
 mod tests {
     use super::DecodeHex;
-    use crate::{IoBlocks, SysBlocks, System, SystemBuilding};
+    use crate::{SysBlocks, System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
@@ -124,49 +124,22 @@ mod tests {
             let _ = s.block(DecodeHex::new(s.input(), s.output()));
         });
     }
-    #[test]
-    fn runBlock2() {
-        use super::*;
-        let _ = System::run(|s| {
-            let stdin = s.read_stdin();
-
-            let line_decoder = s.decode::<String>();
-            s.connect(&stdin.output, &line_decoder.input);
-
-            let count_encoder = s.encode::<String>();
-
-            let stdout = s.write_stdout();
-            s.connect(&count_encoder.output, &stdout.input);
-        });
-    }
 
     #[test]
-    fn run_block() {
+    #[ignore]
+    fn test_encode_decode_hex() {
         use super::*;
-        // Check that the block is constructible:
+
         let _ = System::run(|s| {
-            // let stdin = s.read_stdin();
-
-            // let hex_encoder = super::super::EncodeHex::with_system(&s);
-
-            // s.connect(&stdin.output, &hex_encoder.input);
-
-            // // let hex_decoder = super::super::DecodeHex::with_system(&s);
-            // // s.connect(&hex_encoder.output, &hex_decoder.input);
-
-            // let stdout = s.write_stdout();
-            // // s.connect(&hex_decoder.output, &stdout.input);
-            // s.connect(&hex_encoder.output, &stdout.input);
             let stdin = s.read_stdin();
-            let decoder = s.decode_with::<String>(crate::Encoding::TextWithNewlineSuffix);
-            let encoder = s.encode_with::<String>(crate::Encoding::TextWithNewlineSuffix);
-            let stdout = s.write_stdout();
-            //let decoder=s
             let hex_encoder = s.encode_hex();
+            s.connect(&stdin.output, &hex_encoder.input);
+
+            let hex_decoder = s.decode_hex();
+            s.connect(&hex_encoder.output, &hex_decoder.input);
+
             let stdout = s.write_stdout();
-            s.connect(&stdin.output, &decoder.input);
-            s.connect(&decoder.output, &encoder.input);
-            s.connect(&encoder.output, &stdout.input);
+            s.connect(&hex_decoder.output, &stdout.input);
         });
     }
 }
