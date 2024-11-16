@@ -27,6 +27,7 @@ cfg_aliases.workspace = true
 [dependencies]
 protoflow-core.workspace = true
 tracing = { version = "0.1", default-features = false, optional = true }
-#zeromq = { version = "0.4", default-features = false }
+zeromq = { version = "0.4.1", default-features = false, features = ["tokio-runtime", "all-transport"] }
+tokio = { version = "1.40.0", default-features = false }
 
 [dev-dependencies]
