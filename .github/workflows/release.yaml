@@ -39,7 +39,7 @@ jobs:
     continue-on-error: false
     steps:
       - name: Build
-        uses: AsimovPlatform/build-rust-action@v1
+        uses: asimov-platform/build-rust-action@v1
         with:
           target: ${{ matrix.target }}
           artifact-name: ${{ matrix.artifact }}
@@ -57,6 +57,6 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        uses: AsimovPlatform/release-action@v1
+        uses: asimov-platform/release-action@v1
         with:
           changelog-path: CHANGES.md
