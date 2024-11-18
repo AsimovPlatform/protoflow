@@ -17,7 +17,7 @@ publish.workspace = true
 [features]
 default = ["all", "std"]
 all = ["tracing"]
-std = ["protoflow-core/std", "tracing?/std"] #, "zeromq/default"]
+std = ["protoflow-core/std", "tracing?/std"]
 tracing = ["protoflow-core/tracing", "dep:tracing"]
 unstable = ["protoflow-core/unstable"]
 
@@ -27,7 +27,11 @@ cfg_aliases.workspace = true
 [dependencies]
 protoflow-core.workspace = true
 tracing = { version = "0.1", default-features = false, optional = true }
-zeromq = { version = "0.4.1", default-features = false, features = ["tokio-runtime", "all-transport"] }
+zeromq = { version = "0.4.1", default-features = false, features = [
+	"tokio-runtime",
+	"all-transport",
+] }
 tokio = { version = "1.40.0", default-features = false }
+parking_lot = "0.12"
 
 [dev-dependencies]
