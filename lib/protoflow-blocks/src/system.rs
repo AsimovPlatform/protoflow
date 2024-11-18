@@ -3,15 +3,15 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
+    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString, Vec},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
     EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
     ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
-    Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
-    PortResult, Process, SystemBuilding, SystemExecution,
+    Block, BlockID, BlockResult, BoxedBlockType, InputPort, InputPortID, Message, OutputPort,
+    OutputPortID, PortID, PortResult, Process, SystemBuilding, SystemExecution,
 };
 
 #[cfg(feature = "hash")]
@@ -92,8 +92,12 @@ impl fmt::Debug for System {
 }
 
 impl SystemExecution for System {
+    fn prepare(&self) -> BlockResult<()> {
+        SystemExecution::prepare(&self.0)
+    }
+
     fn execute(self) -> BlockResult<Rc<dyn Process>> {
-        self.0.execute()
+        SystemExecution::execute(self.0)
     }
 }
 
@@ -117,6 +121,14 @@ impl SystemBuilding for System {
 
     fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         self.0.connect(source, target)
+    }
+
+    fn connections(&self) -> Vec<(OutputPortID, InputPortID)> {
+        self.0.connections()
+    }
+
+    fn validate(self) -> BlockResult<()> {
+        self.0.validate()
     }
 }
 

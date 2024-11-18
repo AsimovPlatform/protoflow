@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, Box, Bytes, PhantomData, Rc, String, VecDeque},
+    prelude::{fmt, Arc, BTreeSet, Box, Bytes, PhantomData, Rc, String, Vec, VecDeque},
     runtimes::StdRuntime,
     transports::MpscTransport,
     types::Any,
@@ -57,9 +57,18 @@ pub trait SystemBuilding {
     ///
     /// Both ports must be of the same message type.
     fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool;
+
+    fn connections(&self) -> Vec<(OutputPortID, InputPortID)>;
+
+    /// Validates system for execution.
+    fn validate(self) -> BlockResult<()>;
 }
 
 pub trait SystemExecution {
+    /// Prepare:
+    ///  - Calls the transport layer to connect all the output->input ports.
+    ///    The connections are defined by `SystemBuilding.connect()`.
+    fn prepare(&self) -> BlockResult<()>;
     /// Executes the system, returning the system process.
     fn execute(self) -> BlockResult<Rc<dyn Process>>;
 }
@@ -70,6 +79,8 @@ pub struct System<X: Transport + Default + 'static = MpscTransport> {
 
     /// The registered blocks in the system.
     pub(crate) blocks: VecDeque<BoxedBlockType>,
+
+    pub(crate) connections: BTreeSet<(OutputPortID, InputPortID)>,
 
     _phantom: PhantomData<X>,
 }
@@ -99,6 +110,7 @@ impl<X: Transport + Default + 'static> System<X> {
         Self {
             runtime: runtime.clone(),
             blocks: VecDeque::new(),
+            connections: BTreeSet::default(),
             _phantom: PhantomData,
         }
     }
@@ -147,19 +159,18 @@ impl<X: Transport + Default + 'static> System<X> {
         self.blocks.get(block_id.into())
     }
 
-    pub fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
+    pub fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         self.connect_by_id(PortID::Output(source.id), PortID::Input(target.id))
             .unwrap()
     }
 
     #[doc(hidden)]
-    pub fn connect_by_id(&self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
-        let runtime = self.runtime.as_ref();
-        let transport = runtime.transport.as_ref();
-        transport.connect(
+    pub fn connect_by_id(&mut self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
+        let add = self.connections.insert((
             OutputPortID(source_id.into()),
             InputPortID(target_id.into()),
-        )
+        ));
+        Ok(true)
     }
 }
 
@@ -184,10 +195,24 @@ impl SystemBuilding for System {
     fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         System::connect(self, source, target)
     }
+
+    fn connections(&self) -> Vec<(OutputPortID, InputPortID)> {
+        self.connections.clone().into_iter().collect()
+    }
+
+    fn validate(self) -> BlockResult<()> {
+        Ok(()) // TODO
+    }
 }
 
 impl SystemExecution for System {
+    fn prepare(&self) -> BlockResult<()> {
+        self.runtime.transport.connect_system(self)?;
+        Ok(())
+    }
+
     fn execute(self) -> BlockResult<Rc<dyn Process>> {
-        System::execute(self)
+        SystemExecution::prepare(&self)?;
+        self.execute()
     }
 }
