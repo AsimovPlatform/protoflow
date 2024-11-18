@@ -166,7 +166,7 @@ impl<X: Transport + Default + 'static> System<X> {
 
     #[doc(hidden)]
     pub fn connect_by_id(&mut self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
-        let add = self.connections.insert((
+        self.connections.insert((
             OutputPortID(source_id.into()),
             InputPortID(target_id.into()),
         ));
