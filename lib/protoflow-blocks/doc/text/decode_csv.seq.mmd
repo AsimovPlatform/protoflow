@@ -11,7 +11,7 @@ sequenceDiagram
 
     loop DecodeCsv process
         BlockA->>DecodeCsv: Message
-        DecodeCsv->>DecodeCsv: Concat strings
+        DecodeCsv->>DecodeCsv: Decodes csv file
         DecodeCsv->>BlockB: Message
     end
 

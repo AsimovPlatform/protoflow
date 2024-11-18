@@ -3,7 +3,7 @@
 extern crate std;
 
 use crate::{
-    prelude::{Bytes, ToString},
+    prelude::{Bytes, ToString, vec},
     StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{
@@ -48,14 +48,14 @@ pub struct DecodeCsv {
     /// The csv header message.
     #[output]
     pub header: OutputPort<Value>,
-    /// The csv content message stream.
+    /// The csv rows message stream.
     #[output]
-    pub content: OutputPort<Value>,
+    pub rows: OutputPort<Value>,
 }
 
 impl DecodeCsv {
-    pub fn new(input: InputPort<Bytes>, header: OutputPort<Value>, content: OutputPort<Value>) -> Self {
-        Self { input, header, content }
+    pub fn new(input: InputPort<Bytes>, header: OutputPort<Value>, rows: OutputPort<Value>) -> Self {
+        Self { input, header, rows }
     }
 
     pub fn with_system(system: &System) -> Self {
@@ -85,7 +85,7 @@ impl Block for DecodeCsv {
                 kind: Some(ListValue(LV { values: headers }))
             };
 
-            self.output.send(&header_output)?;
+            self.header.send(&header_output)?;
 
             for result in rdr.records() {
                 let record = result.map_err(|e| BlockError::Other(e.to_string()))?;
@@ -99,7 +99,7 @@ impl Block for DecodeCsv {
                     kind: Some(ListValue(LV { values: row_values }))
                 };
 
-                self.output.send(&row_output)?;
+                self.rows.send(&row_output)?;
             }
         }
 
@@ -109,21 +109,22 @@ impl Block for DecodeCsv {
 
 #[cfg(feature = "std")]
 impl StdioSystem for DecodeCsv {
-    fn build_system(_config: StdioConfig) -> Result<System, StdioError> {
+    fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         // use crate::{TextBlocks, IoBlocks, CoreBlocks, SysBlocks, SystemBuilding};
 
-        // config.allow_only(vec!["path"])?;
+        config.allow_only(vec!["path"])?;
         // let path = config.get_string("path")?;
 
         Ok(System::build(|_s| {
             // let path = s.const_string(path);
             // let read_file = s.read_file();
             // let decode_csv = s.decode_csv();
-            // let encoder = s.encode();
+            // let encoder = s.encode_with(config.encoding);
             // let stdout = config.write_stdout(s);
             // s.connect(&path.output, &read_file.path);
             // s.connect(&read_file.output, &decode_csv.input);
-            // s.connect(&decode_csv.output, &encoder.input);
+            // s.connect(&decode_csv.header, &encoder.input);
+            // s.connect(&decode_csv.rows, &encoder.input);
             // s.connect(&encoder.output, &stdout.input);
             todo!()
         }))

@@ -39,7 +39,7 @@ pub mod text {
         DecodeCsv {
             input: InputPortName,
             header: OutputPortName,
-            content: OutputPortName,
+            rows: OutputPortName,
         },
     }
 
@@ -62,8 +62,8 @@ pub mod text {
                 | SplitString { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
-                DecodeCsv { header, content, .. } => {
-                    vec![("header", Some(header.clone())), ("output", Some(content.clone()))]
+                DecodeCsv { header, rows, .. } => {
+                    vec![("header", Some(header.clone())), ("rows", Some(rows.clone()))]
                 }
             }
         }

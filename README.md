@@ -606,12 +606,12 @@ A block that decodes csv file
 ```mermaid
 block-beta
     columns 7
-    space:5 Header space:1
+    space:5 Sink1 space:1
     space:1 Source space:1 DecodeCsv space:3
-    space:5 Rows space:1
+    space:5 Sink2 space:1
     Source-- "input" -->DecodeCsv
     DecodeCsv-- "header" -->Sink1
-    DecodeCsv-- "content" -->Sink2
+    DecodeCsv-- "rows" -->Sink2
 
     classDef block height:48px,padding:8px;
     classDef hidden visibility:none;
