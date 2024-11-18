@@ -610,15 +610,15 @@ block-beta
     space:1 Source space:1 DecodeCsv space:3
     space:5 Rows space:1
     Source-- "input" -->DecodeCsv
-    DecodeCsv-- "header" -->Header
-    DecodeCsv-- "content" -->Rows
+    DecodeCsv-- "header" -->Sink1
+    DecodeCsv-- "content" -->Sink2
 
     classDef block height:48px,padding:8px;
     classDef hidden visibility:none;
     class DecodeCsv block
-    class Source block
-    class Header block
-    class Rows block
+    class Source hidden
+    class Sink1 hidden
+    class Sink2 hidden
 ```
 
 ```bash
