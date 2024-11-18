@@ -50,12 +50,12 @@ pub struct DecodeCsv {
     pub header: OutputPort<Value>,
     /// The csv content message stream.
     #[output]
-    pub output: OutputPort<Value>,
+    pub content: OutputPort<Value>,
 }
 
 impl DecodeCsv {
-    pub fn new(input: InputPort<Bytes>, header: OutputPort<Value>, output: OutputPort<Value>) -> Self {
-        Self { input, header, output }
+    pub fn new(input: InputPort<Bytes>, header: OutputPort<Value>, content: OutputPort<Value>) -> Self {
+        Self { input, header, content }
     }
 
     pub fn with_system(system: &System) -> Self {
