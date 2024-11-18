@@ -606,7 +606,7 @@ A block that decodes csv file
 ```mermaid
 block-beta
     columns 7
-    Source space:2 DecodeCsv space:2 Sink1 space:1 Sink2
+    Source space:2 DecodeCsv space:2 Sink1 space:2 Sink2
     Source-- "input" -->DecodeCsv
     DecodeCsv-- "header" -->Sink1
     DecodeCsv-- "content" -->Sink2
@@ -615,8 +615,8 @@ block-beta
     classDef hidden visibility:none;
     class DecodeCsv block
     class Source hidden
-    class Sink1 hidden
-    class Sink2 hidden
+    class Sink1 block
+    class Sink2 block
 ```
 
 ```bash
