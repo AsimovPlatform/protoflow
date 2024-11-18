@@ -610,8 +610,8 @@ block-beta
     space:1 Source space:1 DecodeCsv space:3
     space:6 Rows space:1
     Source-- "input" -->DecodeCsv
-    DecodeCsv-- "header" -->Header
-    DecodeCsv-- "content" -->Rows
+    DecodeCsv-- "header" -->Sink1
+    DecodeCsv-- "content" -->Sink2
 
     classDef block height:48px,padding:8px;
     classDef hidden visibility:none;
