@@ -12,6 +12,7 @@ pub mod text {
         fn concat_strings_by(&mut self, joiner: &str) -> ConcatStrings;
         fn split_string(&mut self, delimiter: &str) -> SplitString;
         fn split_string_whitespace(&mut self) -> SplitString;
+        fn decode_csv(&mut self) -> DecodeCsv;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -19,6 +20,7 @@ pub mod text {
     pub enum TextBlockTag {
         ConcatStrings,
         SplitString,
+        DecodeCsv,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -33,7 +35,12 @@ pub mod text {
             input: InputPortName,
             output: OutputPortName,
             delimiter: Option<String>
-        }
+        },
+        DecodeCsv {
+            input: InputPortName,
+            header: OutputPortName,
+            output: OutputPortName,
+        },
     }
 
     impl Named for TextBlockConfig {
@@ -42,6 +49,7 @@ pub mod text {
             Cow::Borrowed(match self {
                 ConcatStrings { .. } => "ConcatStrings",
                 SplitString { .. } => "SplitString",
+                DecodeCsv { .. } => "DecodeCsv"
             })
         }
     }
@@ -53,6 +61,9 @@ pub mod text {
                 ConcatStrings { output, .. }
                 | SplitString { output, .. } => {
                     vec![("output", Some(output.clone()))]
+                }
+                DecodeCsv { header, output, .. } => {
+                    vec![("header", Some(header.clone())), ("output", Some(output.clone()))]
                 }
             }
         }
@@ -68,6 +79,9 @@ pub mod text {
                 SplitString { delimiter, .. } => {
                     Box::new(super::SplitString::with_system(system, delimiter.clone()))
                 }
+                DecodeCsv { .. } => {
+                    Box::new(super::DecodeCsv::with_system(system))
+                }
             }
         }
     }
@@ -77,6 +91,9 @@ pub mod text {
 
     mod split_string;
     pub use split_string::*;
+
+    mod decode_csv;
+    pub use decode_csv::*;
 }
 
 pub use text::*;

@@ -125,6 +125,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                            |
 | [`ConcatStrings`] | Concatenates the received string messages, with an optional joiner string inserted between each message. |
 | [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                          |
+| [`DecodeCsv`]     | Decodes the received input bytes message.                                                                |
 
 #### [`Buffer`]
 
@@ -598,6 +599,29 @@ block-beta
 protoflow execute SplitString delimiter=","
 ```
 
+#### [`DecodeCsv`]
+
+A block that decodes csv file
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 DecodeCsv space:2 Sink
+    Source-- "input" -->DecodeCsv
+    DecodeCsv-- "header" -->Sink
+    DecodeCsv-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeCsv block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute DecodeCsv path="your-file.csv"
+```
+
 ## 👨‍💻 Development
 
 ```bash
@@ -641,3 +665,4 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
 [`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
 [`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html
+[`DecodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
