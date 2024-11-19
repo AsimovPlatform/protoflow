@@ -132,6 +132,9 @@ pub mod io {
     mod decode;
     pub use decode::*;
 
+    mod decode_hex;
+    pub use decode_hex::*;
+
     mod decode_json;
     pub use decode_json::*;
 
@@ -140,9 +143,6 @@ pub mod io {
 
     mod encode_hex;
     pub use encode_hex::*;
-
-    mod decode_hex;
-    pub use decode_hex::*;
 
     mod encode_json;
     pub use encode_json::*;

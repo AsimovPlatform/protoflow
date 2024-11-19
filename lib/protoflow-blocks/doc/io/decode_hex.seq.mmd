@@ -10,7 +10,7 @@ sequenceDiagram
     DecodeHex-->>BlockB: Connect
 
     loop DecodeHex process
-        BlockA->>DecodeHex: Message (Hexadecimal Bytes)
+        BlockA->>DecodeHex: Message (Bytes)
         DecodeHex->>DecodeHex: Decode from hexadecimal
         DecodeHex->>BlockB: Message (Bytes)
     end

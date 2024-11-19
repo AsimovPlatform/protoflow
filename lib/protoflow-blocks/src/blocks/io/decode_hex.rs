@@ -1,12 +1,13 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{Bytes, Vec},
+    prelude::{format, Bytes, Vec},
     IoBlocks, StdioConfig, StdioError, StdioSystem, System,
 };
-use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
+use protoflow_core::{Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
+use tracing;
 
 /// A block that decodes a hexadecimal byte stream to byte.
 ///
@@ -66,32 +67,37 @@ impl Block for DecodeHex {
         runtime.wait_for(&self.input)?;
 
         while let Some(message) = self.input.recv()? {
-            let decoded = hex_to_bytes(&message);
+            let decoded = hex_to_bytes(&message)?;
             self.output.send(&decoded)?;
         }
 
         Ok(())
     }
 }
-fn hex_to_bytes(hex_message: &Bytes) -> Bytes {
+
+fn hex_to_bytes(hex_message: &Bytes) -> Result<Bytes, BlockError> {
     let mut decoded = Vec::with_capacity(hex_message.len() / 2);
 
     for chunk in hex_message.chunks_exact(2) {
         let high = chunk[0];
         let low = chunk[1];
-        decoded.push((hex_value(high) << 4) | hex_value(low));
+        decoded.push((hex_value(high)? << 4) | hex_value(low)?);
     }
 
-    Bytes::from(decoded)
+    Ok(Bytes::from(decoded))
 }
 
 #[inline(always)]
-fn hex_value(byte: u8) -> u8 {
+fn hex_value(byte: u8) -> Result<u8, BlockError> {
     match byte {
-        b'0'..=b'9' => byte - b'0',
-        b'a'..=b'f' => byte - b'a' + 10,
-        b'A'..=b'F' => byte - b'A' + 10,
-        _ => panic!("Invalid hex character"),
+        b'0'..=b'9' => Ok(byte - b'0'),
+        b'a'..=b'f' => Ok(byte - b'a' + 10),
+        b'A'..=b'F' => Ok(byte - b'A' + 10),
+        _ => {
+            let err = format!("Invalid hex character: '{}' (0x{:02X})", byte as char, byte);
+            tracing::error!(target: "DecodeHex:hex_value", err);
+            Err(BlockError::Other(err))
+        }
     }
 }
 
