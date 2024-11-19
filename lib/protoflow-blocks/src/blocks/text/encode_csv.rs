@@ -7,12 +7,12 @@ use crate::{
     StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{
-    types::{Value, value::Kind::*, ListValue as LV}, Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort,
+    types::Value, Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 use csv::ReaderBuilder;
-use std::io::Cursor;
+use std::io::{Bytes, Cursor};
 /// A block that encodes csv files.
 ///
 /// # Block Diagram
@@ -40,3 +40,38 @@ use std::io::Cursor;
 /// $ protoflow execute DecodeCsv path="file.csv"
 /// ```
 ///
+#[derive(Block, Clone)]
+pub struct EncodeCsv {
+    /// The header message proto_types::Value stream.
+    #[input]
+    pub header: InputPort<Value>,
+    /// The rows message proto_types::Value stream.
+    #[input]
+    pub rows: InputPort<Value>,
+    /// The output message stream.
+    #[output]
+    pub output: OutputPort<Bytes>,
+}
+
+impl EncodeCsv {
+    pub fn new(header: InputPort<Value>, rows: InputPort<Value>, output: OutputPort<Bytes>) -> Self {
+        Self { header, rows, output }
+    }
+
+    pub fn with_system(system: &System) -> Self {
+        use crate::SystemBuilding;
+        Self::new(system.input(), system.input(), system.output())
+    }
+}
+
+impl Block for EncodeCsv {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        runtime.wait_for(&self.header)?;
+
+        while let (Some(header), Some(rows)) = (self.header.recv()?, self.rows.recv()?) {
+
+        }
+
+        Ok(())
+    }
+}
