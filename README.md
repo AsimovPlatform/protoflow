@@ -102,29 +102,31 @@ pub fn main() -> BlockResult {
 
 The built-in blocks provided by Protoflow are listed below:
 
-| Block             | Description                                                                                                 |
-|:------------------|:------------------------------------------------------------------------------------------------------------|
-| [`Buffer`]        | Stores all messages it receives.                                                                            |
-| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message. |
-| [`Const`]         | Sends a constant value.                                                                                     |
-| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                           |
-| [`Decode`]        | Decodes messages from a byte stream.                                                                        |
-| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                   |
-| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                  |
-| [`Drop`]          | Discards all messages it receives.                                                                          |
-| [`Encode`]        | Encodes messages to a byte stream.                                                                          |
-| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                |
-| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                          |
-| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                           |
-| [`Random`]        | Generates and sends a random value.                                                                         |
-| [`ReadDir`]       | Reads file names from a file system directory.                                                              |
-| [`ReadEnv`]       | Reads the value of an environment variable.                                                                 |
-| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                    |
-| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                |
-| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                             |
-| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                          |
-| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                |
-| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                               |
+| Block             | Description                                                                                                                    |
+|:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
+| [`Buffer`]        | Stores all messages it receives.                                                                                               |
+| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
+| [`Const`]         | Sends a constant value.                                                                                                        |
+| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
+| [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
+| [`DecodeCsv`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
+| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
+| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
+| [`Drop`]          | Discards all messages it receives.                                                                                             |
+| [`Encode`]        | Encodes messages to a byte stream.                                                                                             |
+| [`EncodeCsv`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
+| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
+| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
+| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
+| [`Random`]        | Generates and sends a random value.                                                                                            |
+| [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
+| [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
+| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                                       |
+| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                                   |
+| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                                                |
+| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                                             |
+| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                                   |
+| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                                  |
 
 #### [`Buffer`]
 
@@ -237,6 +239,32 @@ block-beta
 protoflow execute Decode encoding=text
 ```
 
+#### [`DecodeCsv`]
+
+A block that decodes CSV files from a byte stream into a header and rows represented as `prost_types::Value`
+
+```mermaid
+block-beta
+    columns 7
+    space:5 Sink1 space:1
+    space:1 Source space:1 DecodeCsv space:3
+    space:5 Sink2 space:1
+    Source-- "input" -->DecodeCsv
+    DecodeCsv-- "header" -->Sink1
+    DecodeCsv-- "rows" -->Sink2
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeCsv block
+    class Source hidden
+    class Sink1 hidden
+    class Sink2 hidden
+```
+
+```bash
+protoflow execute DecodeCsv
+```
+
 #### [`DecodeJSON`]
 
 A block that decodes JSON messages from a byte stream.
@@ -322,6 +350,32 @@ block-beta
 ```bash
 protoflow execute Encode encoding=text
 protoflow execute Encode encoding=protobuf
+```
+
+#### [`EncodeCsv`]
+
+A block that encodes CSV files by converting a header and rows, provided as `prost_types::Value` streams, into a byte stream
+
+```mermaid
+block-beta
+    columns 7
+    space:1 Source1 space:5
+    space:3 DecodeCsv space:1 Sink space:1
+    space:1 Source2 space:5
+    Source1-- "header" -->DecodeCsv
+    Source2-- "rows" -->DecodeCsv
+    DecodeCsv-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeCsv block
+    class Source1 hidden
+    class Source2 hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute EncodeCsv
 ```
 
 #### [`EncodeHex`]
@@ -629,6 +683,7 @@ git clone https://github.com/asimov-platform/protoflow.git
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
+[`EncodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeCsv.html
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
@@ -641,3 +696,4 @@ git clone https://github.com/asimov-platform/protoflow.git
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
+[`DecodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html

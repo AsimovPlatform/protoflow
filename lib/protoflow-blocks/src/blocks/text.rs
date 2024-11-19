@@ -12,6 +12,8 @@ pub mod text {
         fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings;
         fn split_string(&mut self, delimiter: &str) -> SplitString;
         fn split_string_whitespace(&mut self) -> SplitString;
+        fn decode_csv(&mut self) -> DecodeCsv;
+        fn encode_csv(&mut self) -> EncodeCsv;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -19,6 +21,8 @@ pub mod text {
     pub enum TextBlockTag {
         ConcatStrings,
         SplitString,
+        DecodeCsv,
+        EncodeCsv,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -33,7 +37,17 @@ pub mod text {
             input: InputPortName,
             output: OutputPortName,
             delimiter: Option<String>
-        }
+        },
+        DecodeCsv {
+            input: InputPortName,
+            header: OutputPortName,
+            rows: OutputPortName,
+        },
+        EncodeCsv {
+            header: InputPortName,
+            rows: InputPortName,
+            output: OutputPortName,
+        },
     }
 
     impl Named for TextBlockConfig {
@@ -42,6 +56,8 @@ pub mod text {
             Cow::Borrowed(match self {
                 ConcatStrings { .. } => "ConcatStrings",
                 SplitString { .. } => "SplitString",
+                DecodeCsv { .. } => "DecodeCsv",
+                EncodeCsv { .. } => "EncodeCsv"
             })
         }
     }
@@ -51,8 +67,12 @@ pub mod text {
             use TextBlockConfig::*;
             match self {
                 ConcatStrings { output, .. }
-                | SplitString { output, .. } => {
+                | SplitString { output, .. }
+                | EncodeCsv { output, .. }=> {
                     vec![("output", Some(output.clone()))]
+                }
+                DecodeCsv { header, rows, .. } => {
+                    vec![("header", Some(header.clone())), ("rows", Some(rows.clone()))]
                 }
             }
         }
@@ -68,6 +88,12 @@ pub mod text {
                 SplitString { delimiter, .. } => {
                     Box::new(super::SplitString::with_system(system, delimiter.clone()))
                 }
+                DecodeCsv { .. } => {
+                    Box::new(super::DecodeCsv::with_system(system))
+                }
+                EncodeCsv { .. } => {
+                    Box::new(super::EncodeCsv::with_system(system))
+                }
             }
         }
     }
@@ -77,6 +103,12 @@ pub mod text {
 
     mod split_string;
     pub use split_string::*;
+
+    mod decode_csv;
+    pub use decode_csv::*;
+
+    mod encode_csv;
+    pub use encode_csv::*;
 }
 
 pub use text::*;

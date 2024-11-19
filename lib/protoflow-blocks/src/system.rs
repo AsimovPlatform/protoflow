@@ -5,8 +5,8 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
-    EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
+    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, DecodeCsv, Encode,
+    EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
     ReadFile, ReadStdin, SplitString, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
@@ -251,5 +251,12 @@ impl TextBlocks for System {
 
     fn split_string_whitespace(&mut self) -> SplitString {
         self.0.block(SplitString::with_system(self, Some(r"\s+".to_string())))
+    }
+
+    fn decode_csv(&mut self) -> DecodeCsv {
+        self.0.block(DecodeCsv::with_system(self))
+    }
+    fn encode_csv(&mut self) -> EncodeCsv {
+        self.0.block(EncodeCsv::with_system(self))
     }
 }
