@@ -34,6 +34,7 @@ pub trait Transport: AsTransport + Send + Sync {
     fn connect_system(&self, system: &System) -> PortResult<()> {
         system
             .connections
+            .borrow()
             .iter()
             .try_for_each(|&(output, input)| self.connect(output, input).map(|_| ()))
     }

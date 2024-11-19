@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{fmt, Arc, BTreeSet, Box, Bytes, PhantomData, Rc, String, Vec, VecDeque},
+    prelude::{fmt, Arc, BTreeSet, Box, Bytes, PhantomData, Rc, RefCell, String, Vec, VecDeque},
     runtimes::StdRuntime,
     transports::MpscTransport,
     types::Any,
@@ -80,7 +80,7 @@ pub struct System<X: Transport + Default + 'static = MpscTransport> {
     /// The registered blocks in the system.
     pub(crate) blocks: VecDeque<BoxedBlockType>,
 
-    pub(crate) connections: BTreeSet<(OutputPortID, InputPortID)>,
+    pub(crate) connections: RefCell<BTreeSet<(OutputPortID, InputPortID)>>,
 
     _phantom: PhantomData<X>,
 }
@@ -110,7 +110,7 @@ impl<X: Transport + Default + 'static> System<X> {
         Self {
             runtime: runtime.clone(),
             blocks: VecDeque::new(),
-            connections: BTreeSet::default(),
+            connections: BTreeSet::default().into(),
             _phantom: PhantomData,
         }
     }
@@ -159,14 +159,14 @@ impl<X: Transport + Default + 'static> System<X> {
         self.blocks.get(block_id.into())
     }
 
-    pub fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
+    pub fn connect<M: Message>(&self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         self.connect_by_id(PortID::Output(source.id), PortID::Input(target.id))
             .unwrap()
     }
 
     #[doc(hidden)]
-    pub fn connect_by_id(&mut self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
-        self.connections.insert((
+    pub fn connect_by_id(&self, source_id: PortID, target_id: PortID) -> PortResult<bool> {
+        self.connections.borrow_mut().insert((
             OutputPortID(source_id.into()),
             InputPortID(target_id.into()),
         ));
@@ -197,7 +197,7 @@ impl SystemBuilding for System {
     }
 
     fn connections(&self) -> Vec<(OutputPortID, InputPortID)> {
-        self.connections.clone().into_iter().collect()
+        self.connections.borrow().clone().into_iter().collect()
     }
 
     fn validate(&self) -> BlockResult<()> {
