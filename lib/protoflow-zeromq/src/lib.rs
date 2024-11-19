@@ -9,7 +9,7 @@ pub use protoflow_core::prelude;
 extern crate std;
 
 use protoflow_core::{
-    prelude::{BTreeMap, Bytes},
+    prelude::{BTreeMap, Bytes, ToString},
     InputPortID, OutputPortID, PortError, PortResult, PortState, Transport,
 };
 
@@ -18,7 +18,8 @@ use std::sync::mpsc::{Receiver, SyncSender};
 use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend};
 
 pub struct ZMQTransport {
-    sock: Mutex<zeromq::RouterSocket>,
+    psock: Mutex<zeromq::PubSocket>,
+    ssock: Mutex<zeromq::SubSocket>,
     tokio: tokio::runtime::Handle,
     outputs: BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>,
     inputs: BTreeMap<InputPortID, RwLock<ZmqInputPortState>>,
@@ -52,20 +53,42 @@ impl ZMQTransport {
         let tokio = tokio::runtime::Handle::current();
 
         let peer_id = PeerIdentity::new();
-        let mut sock_opts = SocketOptions::default();
-        sock_opts.peer_identity(peer_id);
 
-        let mut sock = zeromq::RouterSocket::with_options(sock_opts);
-        tokio
-            .block_on(sock.connect(url))
-            .expect("failed to connect");
-        let sock = Mutex::new(sock);
+        let psock = {
+            let peer_id = peer_id.clone();
+            let mut sock_opts = SocketOptions::default();
+            sock_opts.peer_identity(peer_id);
+
+            let mut psock = zeromq::PubSocket::with_options(sock_opts);
+            tokio
+                .block_on(psock.connect(url))
+                .expect("failed to connect PUB");
+            Mutex::new(psock)
+        };
+
+        let ssock = {
+            let mut sock_opts = SocketOptions::default();
+            sock_opts.peer_identity(peer_id);
+
+            let mut ssock = zeromq::SubSocket::with_options(sock_opts);
+            tokio
+                .block_on(ssock.connect(url))
+                .expect("failed to connect SUB");
+            Mutex::new(ssock)
+        };
+
+        // let mut sock = zeromq::RouterSocket::with_options(sock_opts);
+        // tokio
+        //     .block_on(sock.connect(url))
+        //     .expect("failed to connect");
+        // let sock = Mutex::new(sock);
 
         let outputs = BTreeMap::default();
         let inputs = BTreeMap::default();
 
         Self {
-            sock,
+            psock,
+            ssock,
             tokio,
             outputs,
             inputs,
@@ -83,11 +106,18 @@ impl Transport for ZMQTransport {
     }
 
     fn open_input(&self) -> PortResult<InputPortID> {
-        todo!();
+        let id = self.inputs.len() + 1;
+        InputPortID::try_from(id as isize).map_err(|e| PortError::Other(e.to_string()))
     }
 
     fn open_output(&self) -> PortResult<OutputPortID> {
-        todo!();
+        let id = self.inputs.len() + 1;
+        let id =
+            OutputPortID::try_from(id as isize).map_err(|e| PortError::Other(e.to_string()))?;
+        self.outputs
+            .insert(id, RwLock::new(ZmqOutputPortState::Open))
+            .unwrap();
+        Ok(id)
     }
 
     fn close_input(&self, input: InputPortID) -> PortResult<bool> {
