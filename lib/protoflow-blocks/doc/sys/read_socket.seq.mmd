@@ -7,9 +7,10 @@ sequenceDiagram
     ReadSocket-->>BlockA: Connect
 
     loop ReadSocket process
-        ReadSocket->>ReadSocket: Read proto message from TCP port
-        ReadSocket->>BlockA: Message (proto)
+        ReadSocket->>ReadSocket: Read bytes from a TCP socket
+        ReadSocket->>BlockA: Message (Bytes)
     end
 
     ReadSocket-->>ReadSocket.output: Close
     ReadSocket-->>BlockA: Disconnect
+    

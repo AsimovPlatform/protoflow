@@ -7,9 +7,10 @@ sequenceDiagram
     BlockA-->>WriteSocket: Connect
 
     loop WriteSocket process
-        BlockA->>WriteSocket: Message (proto)
-        WriteSocket->>WriteSocket: Write proto message to TCP port
+        BlockA->>WriteSocket: Message (Bytes)
+        WriteSocket->>WriteSocket: Write bytes to a TCP socket
     end
 
     BlockA-->>WriteSocket: Disconnect
     WriteSocket-->>WriteSocket.input: Close
+        

@@ -13,16 +13,16 @@ pub mod sys {
         types::ByteSize,
         BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
-    use protoflow_core::{Block, Message};
+    use protoflow_core::Block;
 
     pub trait SysBlocks {
         fn read_dir(&mut self) -> ReadDir;
         fn read_env(&mut self) -> ReadEnv;
         fn read_file(&mut self) -> ReadFile;
-        fn read_socket<T: Message + 'static>(&mut self) -> ReadSocket<T>;
+        fn read_socket(&mut self) -> ReadSocket;
         fn read_stdin(&mut self) -> ReadStdin;
         fn write_file(&mut self) -> WriteFile;
-        fn write_socket<T: Message + 'static>(&mut self) -> WriteSocket<T>;
+        fn write_socket(&mut self) -> WriteSocket;
         fn write_stderr(&mut self) -> WriteStderr;
         fn write_stdout(&mut self) -> WriteStdout;
     }
@@ -131,15 +131,14 @@ pub mod sys {
                 ReadDir { .. } => Box::new(super::ReadDir::with_system(system)),
                 ReadEnv { .. } => Box::new(super::ReadEnv::<String>::with_system(system)),
                 ReadFile { .. } => Box::new(super::ReadFile::with_system(system)),
-                ReadSocket { config, .. } => Box::new(super::ReadSocket::<String>::with_system(
-                    system,
-                    Some(config.clone()),
-                )),
+                ReadSocket { config, .. } => {
+                    Box::new(super::ReadSocket::with_system(system, Some(config.clone())))
+                }
                 ReadStdin { buffer_size, .. } => {
                     Box::new(super::ReadStdin::with_system(system, *buffer_size))
                 }
                 WriteFile { flags, .. } => Box::new(super::WriteFile::with_system(system, *flags)),
-                WriteSocket { config, .. } => Box::new(super::WriteSocket::<String>::with_system(
+                WriteSocket { config, .. } => Box::new(super::WriteSocket::with_system(
                     system,
                     Some(config.clone()),
                 )),

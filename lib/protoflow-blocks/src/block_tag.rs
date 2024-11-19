@@ -172,14 +172,14 @@ impl BlockInstantiation for BlockTag {
             ReadFile => Box::new(super::ReadFile::with_system(system)),
             #[cfg(feature = "std")]
             //todo: evren add param
-            ReadSocket => Box::new(super::ReadSocket::<Any>::with_system(system, None)),
+            ReadSocket => Box::new(super::ReadSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
             #[cfg(feature = "std")]
             //todo: evren add param
-            WriteSocket => Box::new(super::WriteSocket::<Any>::with_system(system, None)),
+            WriteSocket => Box::new(super::WriteSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),
             #[cfg(feature = "std")]

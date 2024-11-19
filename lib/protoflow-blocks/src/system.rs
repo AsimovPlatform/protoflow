@@ -193,8 +193,8 @@ impl SysBlocks for System {
         self.0.block(ReadFile::with_system(self))
     }
 
-    fn read_socket<T: Message + 'static>(&mut self) -> ReadSocket<T> {
-        self.0.block(ReadSocket::<T>::with_system(self, None))
+    fn read_socket(&mut self) -> ReadSocket {
+        self.0.block(ReadSocket::with_system(self, None))
     }
 
     fn read_stdin(&mut self) -> ReadStdin {
@@ -205,8 +205,8 @@ impl SysBlocks for System {
         self.0.block(WriteFile::with_system(self, None))
     }
 
-    fn write_socket<T: Message + 'static>(&mut self) -> WriteSocket<T> {
-        self.0.block(WriteSocket::<T>::with_system(self, None))
+    fn write_socket(&mut self) -> WriteSocket {
+        self.0.block(WriteSocket::with_system(self, None))
     }
 
     fn write_stderr(&mut self) -> WriteStderr {

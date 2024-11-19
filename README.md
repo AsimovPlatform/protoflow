@@ -119,10 +119,10 @@ The built-in blocks provided by Protoflow are listed below:
 | [`ReadDir`]     | Reads file names from a file system directory.             |
 | [`ReadEnv`]     | Reads the value of an environment variable.                |
 | [`ReadFile`]    | Reads bytes from the contents of a file.                   |
-| [`ReadSocket`]  | Reads proto message from a TCP port.                       |
+| [`ReadSocket`]  | Reads bytes from a TCP socket.                               |
 | [`ReadStdin`]   | Reads bytes from standard input (aka stdin).               |
 | [`WriteFile`]   | Writes or appends bytes to the contents of a file.         |
-| [`WriteSocket`] | Writes a proto message to a TCP port                       |
+| [`WriteSocket`] | Writes bytes to a TCP socket                                 |
 | [`WriteStderr`] | Writes bytes to standard error (aka stderr).               |
 | [`WriteStdout`] | Writes bytes to standard output (aka stdout).              |
 
@@ -468,9 +468,10 @@ block-beta
 ```bash
 protoflow execute ReadFile path=/tmp/file.txt
 ```
+
 #### [`ReadSocket`]
 
-A block that reads proto messages from a TCP port.
+A block that reads bytes from a TCP socket.
 
 ```mermaid
 block-beta
@@ -485,7 +486,7 @@ block-beta
 ```
 
 ```bash
-protoflow execute ReadSocket host="127.0.0.1" port=7077 buffer_size=1024
+protoflow execute ReadSocket connection=tcp://127.0.0.1:7077 buffer_size=1024
 ```
 
 #### [`ReadStdin`]
@@ -532,9 +533,10 @@ block-beta
 ```bash
 protoflow execute WriteFile path=/tmp/file.txt
 ```
+
 #### [`WriteSocket`]
 
-A block that writes proto messages to TCP port.
+A block that writes bytes to TCP socket.
 
 ```mermaid
 block-beta
@@ -549,8 +551,9 @@ block-beta
 ```
 
 ```bash
-protoflow execute WriteSocket host="127.0.0.1" port=7077 buffer_size=1024
+protoflow execute WriteSocket connection=tcp://127.0.0.1:7077 buffer_size=1024
 ```
+
 #### [`WriteStderr`]
 
 A block that writes bytes to standard error (aka stderr).
@@ -628,7 +631,7 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
 [`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadFile.html
-[`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadSocket.html
+[`ReadSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadSocket.html
 [`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
 [`WriteSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteSocket.html
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html

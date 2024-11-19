@@ -1,9 +1,9 @@
 extern crate std;
-use crate::prelude::{vec, String};
-use crate::{IoBlocks, StdioConfig, StdioError, StdioSystem, System};
+
+use crate::prelude::{vec, Bytes, String};
+use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
-    types::Any, Block, BlockError, BlockResult, BlockRuntime, Message, OutputPort, Port,
-    PortResult, SystemBuilding,
+    Block, BlockError, BlockResult, BlockRuntime, OutputPort, Port, PortResult, SystemBuilding,
 };
 use protoflow_derive::Block;
 use serde::{Deserialize, Serialize};
@@ -12,10 +12,10 @@ use std::{
     format,
     io::Read,
     net::{TcpListener, TcpStream},
-    string::ToString,
     sync::{Arc, Mutex, PoisonError},
 };
 use tracing::{error, info};
+
 /// A block that reads a proto object from a TCP port.
 ///
 /// # Block Diagram
@@ -40,13 +40,13 @@ use tracing::{error, info};
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute ReadSocket host="127.0.0.1" port="7077" buffer_size="1024"
+/// $ protoflow execute ReadSocket connection=tcp://127.0.0.1:7077 buffer_size="1024"
 /// ```
 ///
 #[derive(Block, Clone)]
-pub struct ReadSocket<T: Message = Any> {
+pub struct ReadSocket {
     #[output]
-    pub output: OutputPort<T>,
+    pub output: OutputPort<Bytes>,
     #[parameter]
     pub config: ReadSocketConfig,
     #[cfg(feature = "std")]
@@ -57,54 +57,50 @@ pub struct ReadSocket<T: Message = Any> {
     pub stream: Arc<Mutex<Option<TcpStream>>>,
 }
 
-impl<T: Message> ReadSocket<T> {
-    pub fn with_params(output: OutputPort<T>, config: Option<ReadSocketConfig>) -> Self {
+impl ReadSocket {
+    pub fn with_params(output: OutputPort<Bytes>, config: Option<ReadSocketConfig>) -> Self {
         Self {
             output,
-            config: config.unwrap_or(Default::default()),
+            config: config.unwrap_or(ReadSocketConfig {
+                connection: String::from("tcp://127.0.0.1:7077"),
+                buffer_size: 1024,
+            }),
             listener: Arc::new(Mutex::new(None)),
             stream: Arc::new(Mutex::new(None)),
         }
     }
-}
 
-impl<T: Message + 'static> ReadSocket<T> {
     pub fn with_system(system: &System, config: Option<ReadSocketConfig>) -> Self {
         Self::with_params(system.output(), config)
     }
 }
 
-impl<T: Message + ToString + 'static> StdioSystem for ReadSocket<T> {
+impl StdioSystem for ReadSocket {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        config.allow_only(vec!["host", "port", "buffer_size"])?;
+        config.allow_only(vec!["connection", "buffer_size"])?;
 
-        let host_string = config.get_string("host")?;
-        let port: u16 = config.get("port")?;
+        let connection = config.get_string("connection")?;
         let buffer_size: usize = config.get("buffer_size")?;
 
         Ok(System::build(|s| {
-            let line_encoder = s.encode_with(config.encoding);
             let stdout = config.write_stdout(s);
-            let read_socket: ReadSocket<T> = s.block(ReadSocket::with_system(
+            let read_socket = s.block(ReadSocket::with_system(
                 s,
                 Some(ReadSocketConfig {
-                    host: host_string,
-                    port,
+                    connection,
                     buffer_size,
                 }),
             ));
-            s.connect(&read_socket.output, &line_encoder.input);
-            s.connect(&line_encoder.output, &stdout.input);
+            s.connect(&read_socket.output, &stdout.input);
         }))
     }
 }
 
-impl<T: Message + 'static> Block for ReadSocket<T> {
+impl Block for ReadSocket {
     fn prepare(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let address = format!("{}:{}", &self.config.host, &self.config.port);
-        let listener = TcpListener::bind(&address)?;
+        let listener = TcpListener::bind(&self.config.connection)?;
         *self.listener.lock().map_err(lock_error)? = Some(listener);
-        info!("Server listening on {}", address);
+        info!("Server listening on {}", &self.config.connection);
         Ok(())
     }
 
@@ -127,7 +123,7 @@ impl<T: Message + 'static> Block for ReadSocket<T> {
         }
 
         if let Some(stream) = stream_guard.as_mut() {
-            handle_client::<T, _>(stream, self.config.buffer_size, |message| {
+            handle_client::<_>(stream, self.config.buffer_size, |message| {
                 info!("Processing received message");
                 if self.output.is_connected() {
                     self.output.send(message)?;
@@ -148,32 +144,31 @@ fn lock_error<T>(err: PoisonError<T>) -> BlockError {
     BlockError::Other(format!("Failed to acquire lock: {:?}", err))
 }
 
-fn handle_client<M, F>(
+fn handle_client<F>(
     stream: &mut TcpStream,
     buffer_size: usize,
     process_fn: F,
 ) -> Result<(), BlockError>
 where
-    M: Message + Default,
-    F: Fn(&M) -> PortResult<()>,
+    F: Fn(&Bytes) -> PortResult<()>,
 {
     let mut buffer = vec![0; buffer_size];
 
-    while let Ok(bytes_read) = Read::read(stream, &mut buffer) {
+    loop {
+        let bytes_read = stream.read(&mut buffer)?;
+
         if bytes_read == 0 {
             info!("Client disconnected");
             break;
         }
 
-        let message = M::decode(&buffer[..bytes_read])
-            .map_err(|_| BlockError::Other("Failed to decode message".into()))?;
-
+        let message = Bytes::copy_from_slice(&buffer[..bytes_read]);
         info!("Received message: {:?}", message);
 
-        process_fn(&message).map_err(|e| {
-            error!("Failed to send response: {:?}", e);
-            BlockError::Other("Failed to send response".into())
-        })?;
+        if let Err(e) = process_fn(&message) {
+            error!("Failed to process message: {:?}", e);
+            return Err(BlockError::Other("Failed to process message".into()));
+        }
     }
 
     Ok(())
@@ -181,29 +176,18 @@ where
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReadSocketConfig {
-    pub host: String,
-    pub port: u16,
+    pub connection: String,
     pub buffer_size: usize,
 }
 
-impl Default for ReadSocketConfig {
-    fn default() -> Self {
-        Self {
-            host: String::from("127.0.0.1"),
-            port: 7070,
-            buffer_size: 512,
-        }
-    }
-}
 #[cfg(test)]
 pub mod read_socket_tests {
 
     use protoflow_core::SystemBuilding;
 
-    use crate::{Encoding, SysBlocks, System};
+    use crate::{SysBlocks, System};
 
     use super::ReadSocket;
-    use std::string::String;
     extern crate std;
 
     #[test]
@@ -211,7 +195,7 @@ pub mod read_socket_tests {
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(ReadSocket::<String>::with_system(s, None));
+            let _ = s.block(ReadSocket::with_system(s, None));
         });
     }
     #[test]
@@ -221,18 +205,15 @@ pub mod read_socket_tests {
         use SystemBuilding;
         if let Err(e) = System::run(|s| {
             let std_out = s.write_stdout();
-            let message_encoder = s.encode_with::<String>(Encoding::TextWithNewlineSuffix);
 
-            let read_socket = s.block(ReadSocket::<String>::with_system(
+            let read_socket = s.block(ReadSocket::with_system(
                 s,
                 Some(ReadSocketConfig {
-                    host: String::from("127.0.0.1"),
-                    port: 7070,
+                    connection: String::from("tcp://127.0.0.1:7077"),
                     buffer_size: 512,
                 }),
             ));
-            s.connect(&read_socket.output, &message_encoder.input);
-            s.connect(&message_encoder.output, &std_out.input);
+            s.connect(&read_socket.output, &std_out.input);
         }) {
             error!("{}", e)
         }
