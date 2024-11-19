@@ -44,6 +44,8 @@ pub enum BlockTag {
     #[cfg(feature = "std")]
     WriteStdout,
     // TextBlocks
+    ConcatStrings,
+    SplitString,
 }
 
 impl BlockTag {
@@ -85,6 +87,8 @@ impl BlockTag {
             WriteStderr => "WriteStderr",
             #[cfg(feature = "std")]
             WriteStdout => "WriteStdout",
+            ConcatStrings => "ConcatStrings",
+            SplitString => "SplitString",
         }
     }
 }
@@ -122,6 +126,8 @@ impl FromStr for BlockTag {
             "WriteStderr" => WriteStderr,
             #[cfg(feature = "std")]
             "WriteStdout" => WriteStdout,
+            "ConcatStrings" => ConcatStrings,
+            "SplitString" => SplitString,
             _ => return Err(()),
         })
     }
@@ -170,6 +176,8 @@ impl BlockInstantiation for BlockTag {
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),
             #[cfg(feature = "std")]
             WriteStdout => Box::new(super::WriteStdout::with_system(system)),
+            ConcatStrings => Box::new(super::ConcatStrings::with_system(system, None)),
+            SplitString => Box::new(super::SplitString::with_system(system, None)),
         }
     }
 }

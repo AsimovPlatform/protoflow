@@ -61,6 +61,11 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     .map(BlockConfig::Sys)
                     .unwrap(),
 
+                "ConcatStrings" | "SplitString" => TextBlockConfig::deserialize(value.clone())
+                    .map(BlockConfig::Text)
+                    .unwrap(),
+
+
                 _ => return Err(serde::de::Error::custom("unknown Protoflow block type")),
             }),
 
