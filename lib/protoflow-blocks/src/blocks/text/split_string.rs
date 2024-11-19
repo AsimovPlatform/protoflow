@@ -3,7 +3,7 @@
 extern crate std;
 
 use crate::{
-    prelude::{String, ToString, Vec, vec},
+    prelude::{String, ToString, vec},
     StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{
@@ -28,6 +28,10 @@ use simple_mermaid::mermaid;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
+///     let config = StdioConfig {
+///         encoding: Default::default(),
+///         params: Default::default(),
+///     };
 ///     let delimiter = " ";
 ///     let stdin = s.read_stdin();
 ///     let line_decoder = s.decode_with(config.encoding);
@@ -85,9 +89,8 @@ impl Block for SplitString {
         runtime.wait_for(&self.input)?;
 
         while let Some(input) = self.input.recv()? {
-            let outputs: Vec<String> = input.split(&self.delimiter).map(|s| s.to_string()).collect();
-            for output in outputs {
-                self.output.send(&output)?;
+            for output in input.split(&self.delimiter) {
+                self.output.send(&output.to_string())?;
             }
         }
 
@@ -119,6 +122,9 @@ impl StdioSystem for SplitString {
 
 #[cfg(test)]
 mod tests {
+
+    use super::SplitString;
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
