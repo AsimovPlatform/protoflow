@@ -102,30 +102,31 @@ pub fn main() -> BlockResult {
 
 The built-in blocks provided by Protoflow are listed below:
 
-| Block             | Description                                                                                                 |
-|:------------------|:------------------------------------------------------------------------------------------------------------|
-| [`Buffer`]        | Stores all messages it receives.                                                                            |
-| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message. |
-| [`Const`]         | Sends a constant value.                                                                                     |
-| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                           |
-| [`Decode`]        | Decodes messages from a byte stream.                                                                        |
-| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                   |
-| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                  |
-| [`Drop`]          | Discards all messages it receives.                                                                          |
-| [`Encode`]        | Encodes messages to a byte stream.                                                                          |
-| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                |
-| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                          |
-| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                           |
-| [`Random`]        | Generates and sends a random value.                                                                         |
-| [`ReadDir`]       | Reads file names from a file system directory.                                                              |
-| [`ReadEnv`]       | Reads the value of an environment variable.                                                                 |
-| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                    |
-| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                |
-| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                             |
-| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                          |
-| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                |
-| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                               |
-| [`DecodeCsv`]     | Decodes the received input bytes message.                                                                   |
+| Block             | Description                                                                                                                    |
+|:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
+| [`Buffer`]        | Stores all messages it receives.                                                                                               |
+| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
+| [`Const`]         | Sends a constant value.                                                                                                        |
+| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
+| [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
+| [`DecodeCsv`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
+| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
+| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
+| [`Drop`]          | Discards all messages it receives.                                                                                             |
+| [`Encode`]        | Encodes messages to a byte stream.                                                                                             |
+| [`EncodeCsv`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
+| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
+| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
+| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
+| [`Random`]        | Generates and sends a random value.                                                                                            |
+| [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
+| [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
+| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                                       |
+| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                                   |
+| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                                                |
+| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                                             |
+| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                                   |
+| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                                  |
 
 #### [`Buffer`]
 
