@@ -49,7 +49,7 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     .map(BlockConfig::Hash)
                     .unwrap(),
 
-                "Decode" | "Encode" | "EncodeHex" | "EncodeJSON" => {
+                "Decode" | "DecodeJSON" | "Encode" | "EncodeHex" | "EncodeJSON" => {
                     IoBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Io)
                         .unwrap()
@@ -60,6 +60,11 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                 | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
                     .map(BlockConfig::Sys)
                     .unwrap(),
+
+                "ConcatStrings" | "SplitString" => TextBlockConfig::deserialize(value.clone())
+                    .map(BlockConfig::Text)
+                    .unwrap(),
+
 
                 _ => return Err(serde::de::Error::custom("unknown Protoflow block type")),
             }),

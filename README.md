@@ -35,7 +35,7 @@ dataflow systems consisting of interconnected blocks that process messages.
 ### Installation via Homebrew
 
 ```bash
-brew tap AsimovPlatform/tap
+brew tap asimov-platform/tap
 brew install protoflow --HEAD
 ```
 
@@ -102,30 +102,30 @@ pub fn main() -> BlockResult {
 
 The built-in blocks provided by Protoflow are listed below:
 
-| Block             | Description                                                                                              |
-|:------------------|:---------------------------------------------------------------------------------------------------------|
-| [`Buffer`]        | Stores all messages it receives.                                                                         |
-| [`Const`]         | Sends a constant value.                                                                                  |
-| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                        |
-| [`Decode`]        | Decodes messages from a byte stream.                                                                     |
-| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                |
-| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                               |
-| [`Drop`]          | Discards all messages it receives.                                                                       |
-| [`Encode`]        | Encodes messages to a byte stream.                                                                       |
-| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                             |
-| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                       |
-| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                        |
-| [`Random`]        | Generates and sends a random value.                                                                      |
-| [`ReadDir`]       | Reads file names from a file system directory.                                                           |
-| [`ReadEnv`]       | Reads the value of an environment variable.                                                              |
-| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                 |
-| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                             |
-| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                       |
-| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                             |
-| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                            |
-| [`ConcatStrings`] | Concatenates the received string messages, with an optional joiner string inserted between each message. |
-| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                          |
-| [`DecodeCsv`]     | Decodes the received input bytes message.                                                                |
+| Block             | Description                                                                                                 |
+|:------------------|:------------------------------------------------------------------------------------------------------------|
+| [`Buffer`]        | Stores all messages it receives.                                                                            |
+| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message. |
+| [`Const`]         | Sends a constant value.                                                                                     |
+| [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                           |
+| [`Decode`]        | Decodes messages from a byte stream.                                                                        |
+| [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                   |
+| [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                  |
+| [`Drop`]          | Discards all messages it receives.                                                                          |
+| [`Encode`]        | Encodes messages to a byte stream.                                                                          |
+| [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                |
+| [`EncodeJSON`]    | Encodes messages into JSON format.                                                                          |
+| [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                           |
+| [`Random`]        | Generates and sends a random value.                                                                         |
+| [`ReadDir`]       | Reads file names from a file system directory.                                                              |
+| [`ReadEnv`]       | Reads the value of an environment variable.                                                                 |
+| [`ReadFile`]      | Reads bytes from the contents of a file.                                                                    |
+| [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                |
+| [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                             |
+| [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                          |
+| [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                |
+| [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                               |
+| [`DecodeCsv`]     | Decodes the received input bytes message.                                                                   |
 
 #### [`Buffer`]
 
@@ -145,6 +145,28 @@ block-beta
 
 ```bash
 protoflow execute Buffer
+```
+
+#### [`ConcatStrings`]
+
+A block for concatenating all string messages it receives, with an optional delimiter string inserted between each message
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 ConcatStrings space:2 Sink
+    Source-- "input" -->ConcatStrings
+    ConcatStrings-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ConcatStrings block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute ConcatStrings delimiter=","
 ```
 
 #### [`Const`]
@@ -490,6 +512,28 @@ block-beta
 protoflow execute ReadStdin < input.txt
 ```
 
+#### [`SplitString`]
+
+A block that splits the received input message, with an optional delimiter string parameter
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 SplitString space:2 Sink
+    Source-- "input" -->SplitString
+    SplitString-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class SplitString block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute SplitString delimiter=","
+```
+
 #### [`WriteFile`]
 
 A block that writes or appends bytes to the contents of a file.
@@ -555,50 +599,6 @@ block-beta
 protoflow execute WriteStdout < input.txt > output.txt
 ```
 
-#### [`ConcatStrings`]
-
-A block for concatenating all string messages it receives
-
-```mermaid
-block-beta
-    columns 7
-    Source space:2 ConcatStrings space:2 Sink
-    Source-- "input" -->ConcatStrings
-    ConcatStrings-- "output" -->Sink
-
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class ConcatStrings block
-    class Source hidden
-    class Sink hidden
-```
-
-```bash
-protoflow execute ConcatStrings joiner=","
-```
-
-#### [`SplitString`]
-
-A block that splits string
-
-```mermaid
-block-beta
-    columns 7
-    Source space:2 SplitString space:2 Sink
-    Source-- "input" -->SplitString
-    SplitString-- "output" -->Sink
-
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class SplitString block
-    class Source hidden
-    class Sink hidden
-```
-
-```bash
-protoflow execute SplitString delimiter=","
-```
-
 #### [`DecodeCsv`]
 
 A block that decodes csv file
@@ -628,15 +628,15 @@ protoflow execute DecodeCsv path="your-file.csv"
 ## 👨‍💻 Development
 
 ```bash
-git clone https://github.com/AsimovPlatform/protoflow.git
+git clone https://github.com/asimov-platform/protoflow.git
 ```
 
 - - -
 
-[![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/AsimovPlatform/protoflow&text=Protoflow)
-[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/AsimovPlatform/protoflow&title=Protoflow)
-[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/AsimovPlatform/protoflow&t=Protoflow)
-[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/AsimovPlatform/protoflow)
+[![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/asimov-platform/protoflow&text=Protoflow)
+[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/asimov-platform/protoflow&title=Protoflow)
+[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/asimov-platform/protoflow&t=Protoflow)
+[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/asimov-platform/protoflow)
 
 [Protocol Buffers]: https://protobuf.dev
 [Rust]: https://rust-lang.org
@@ -648,6 +648,7 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`examples`]: lib/protoflow/examples
 
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
+[`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
@@ -663,9 +664,8 @@ git clone https://github.com/AsimovPlatform/protoflow.git
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
 [`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadFile.html
 [`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
+[`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
-[`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
-[`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html
 [`DecodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html

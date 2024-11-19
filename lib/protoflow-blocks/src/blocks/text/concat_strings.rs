@@ -28,10 +28,14 @@ use simple_mermaid::mermaid;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
-///     let joiner = ",";
+///     let config = StdioConfig {
+///         encoding: Default::default(),
+///         params: Default::default(),
+///     };
+///     let delimiter = ",";
 ///     let stdin = s.read_stdin();
 ///     let line_decoder = s.decode_with(config.encoding);
-///     let concat_strings = s.concat_strings_by(&joiner);
+///     let concat_strings = s.concat_strings_by(&delimiter);
 ///     let line_encoder = s.encode_with(config.encoding);
 ///     let stdout = config.write_stdout(s);
 ///     s.connect(&stdin.output, &line_decoder.input);
@@ -45,7 +49,7 @@ use simple_mermaid::mermaid;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute ConcatStrings joiner=","
+/// $ protoflow execute ConcatStrings delimiter=","
 /// ```
 ///
 #[derive(Block, Clone)]
@@ -58,7 +62,7 @@ pub struct ConcatStrings {
     pub output: OutputPort<String>,
     /// A parameter placed between each input parameter
     #[parameter]
-    pub joiner: String
+    pub delimiter: String
 }
 
 impl ConcatStrings {
@@ -66,16 +70,16 @@ impl ConcatStrings {
         Self::with_params(input, output, None)
     }
 
-    pub fn with_system(system: &System, joiner: Option<String>) -> Self {
+    pub fn with_system(system: &System, delimiter: Option<String>) -> Self {
         use crate::SystemBuilding;
-        Self::with_params(system.input(), system.output(), joiner)
+        Self::with_params(system.input(), system.output(), delimiter)
     }
 
-    pub fn with_params(input: InputPort<String>, output: OutputPort<String>, joiner: Option<String>) -> Self {
+    pub fn with_params(input: InputPort<String>, output: OutputPort<String>, delimiter: Option<String>) -> Self {
         Self {
             input,
             output,
-            joiner: joiner.unwrap_or_default()
+            delimiter: delimiter.unwrap_or_default()
         }
     }
 }
@@ -86,10 +90,10 @@ impl Block for ConcatStrings {
 
         let mut inputs = Vec::new();
         while let Some(input) = self.input.recv()? {
-            if !input.is_empty() { inputs.push(input); }
+            inputs.push(input);
         }
 
-        self.output.send(&inputs.join(&self.joiner))?;
+        self.output.send(&inputs.join(&self.delimiter))?;
 
         Ok(())
     }
@@ -100,13 +104,13 @@ impl StdioSystem for ConcatStrings {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{TextBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
-        config.allow_only(vec!["joiner"])?;
-        let joiner = config.get_string("joiner")?;
+        config.allow_only(vec!["delimiter"])?;
+        let delimiter = config.get_string("delimiter")?;
 
         Ok(System::build(|s| {
             let stdin = s.read_stdin();
             let line_decoder = s.decode_with(config.encoding);
-            let concat_strings = s.concat_strings_by(&joiner);
+            let concat_strings = s.concat_strings_by(&delimiter);
             let line_encoder = s.encode_with(config.encoding);
             let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &line_decoder.input);
@@ -119,6 +123,9 @@ impl StdioSystem for ConcatStrings {
 
 #[cfg(test)]
 mod tests {
+
+    use super::ConcatStrings;
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {

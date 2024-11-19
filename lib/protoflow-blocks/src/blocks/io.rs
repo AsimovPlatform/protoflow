@@ -37,9 +37,9 @@ pub mod io {
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum IoBlockTag {
         Decode,
+        DecodeJson,
         Encode,
         EncodeHex,
-        DecodeJson,
         EncodeJson,
     }
 
