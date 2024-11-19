@@ -28,6 +28,10 @@ use simple_mermaid::mermaid;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
+///     let config = StdioConfig {
+///         encoding: Default::default(),
+///         params: Default::default(),
+///     };
 ///     let delimiter = ",";
 ///     let stdin = s.read_stdin();
 ///     let line_decoder = s.decode_with(config.encoding);
@@ -119,6 +123,9 @@ impl StdioSystem for ConcatStrings {
 
 #[cfg(test)]
 mod tests {
+
+    use super::ConcatStrings;
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {
