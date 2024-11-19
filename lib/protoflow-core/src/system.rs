@@ -61,7 +61,7 @@ pub trait SystemBuilding {
     fn connections(&self) -> Vec<(OutputPortID, InputPortID)>;
 
     /// Validates system for execution.
-    fn validate(self) -> BlockResult<()>;
+    fn validate(&self) -> BlockResult<()>;
 }
 
 pub trait SystemExecution {
@@ -200,7 +200,7 @@ impl SystemBuilding for System {
         self.connections.clone().into_iter().collect()
     }
 
-    fn validate(self) -> BlockResult<()> {
+    fn validate(&self) -> BlockResult<()> {
         Ok(()) // TODO
     }
 }

@@ -127,7 +127,7 @@ impl SystemBuilding for System {
         self.0.connections()
     }
 
-    fn validate(self) -> BlockResult<()> {
+    fn validate(&self) -> BlockResult<()> {
         self.0.validate()
     }
 }
