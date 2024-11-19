@@ -5,9 +5,9 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
+    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
     EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
-    ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    ReadFile, ReadStdin, SplitString, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -236,4 +236,20 @@ impl SysBlocks for System {
     }
 }
 
-impl TextBlocks for System {}
+impl TextBlocks for System {
+    fn concat_strings(&mut self) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, None))
+    }
+
+    fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, Some(delimiter.to_string())))
+    }
+
+    fn split_string(&mut self, delimiter: &str) -> SplitString {
+        self.0.block(SplitString::with_system(self, Some(delimiter.to_string())))
+    }
+
+    fn split_string_whitespace(&mut self) -> SplitString {
+        self.0.block(SplitString::with_system(self, Some(r"\s+".to_string())))
+    }
+}

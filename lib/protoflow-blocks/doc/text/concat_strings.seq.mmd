@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant ConcatStrings.input as ConcatStrings.input port
+    participant ConcatStrings as ConcatStrings block
+    participant ConcatStrings.output as ConcatStrings.output port
+    participant BlockB as Another block
+
+    BlockA-->>ConcatStrings: Connect
+    ConcatStrings-->>BlockB: Connect
+
+    loop ConcatStrings process
+        BlockA->>ConcatStrings: Message
+        ConcatStrings->>ConcatStrings: Concat strings
+        ConcatStrings->>BlockB: Message
+    end
+
+    BlockA-->>ConcatStrings: Disconnect
+    ConcatStrings-->>ConcatStrings.input: Close
+    ConcatStrings-->>ConcatStrings.output: Close
+    ConcatStrings-->>BlockB: Disconnect
