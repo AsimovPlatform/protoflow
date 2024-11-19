@@ -3,7 +3,7 @@
 extern crate std;
 
 use crate::{
-    prelude::{Bytes, ToString, vec},
+    prelude::{Bytes, ToString},
     StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{
@@ -13,7 +13,7 @@ use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 use csv::ReaderBuilder;
 use std::io::Cursor;
-/// A block that decodes csv files.
+/// A block that decodes CSV files from a byte stream into a header and rows represented as `prost_types::Value`.
 ///
 /// # Block Diagram
 #[doc = mermaid!("../../../doc/text/decode_csv.mmd")]
@@ -29,7 +29,7 @@ use std::io::Cursor;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
-///     todo
+///     // TODO
 /// });
 /// # }
 /// ```
@@ -37,7 +37,7 @@ use std::io::Cursor;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute DecodeCsv path="file.csv"
+/// $ protoflow execute DecodeCsv
 /// ```
 ///
 #[derive(Block, Clone)]
@@ -110,29 +110,18 @@ impl Block for DecodeCsv {
 #[cfg(feature = "std")]
 impl StdioSystem for DecodeCsv {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        // use crate::{TextBlocks, IoBlocks, CoreBlocks, SysBlocks, SystemBuilding};
 
-        config.allow_only(vec!["path"])?;
-        // let path = config.get_string("path")?;
+        config.reject_any()?;
 
-        Ok(System::build(|_s| {
-            // let path = s.const_string(path);
-            // let read_file = s.read_file();
-            // let decode_csv = s.decode_csv();
-            // let encoder = s.encode_with(config.encoding);
-            // let stdout = config.write_stdout(s);
-            // s.connect(&path.output, &read_file.path);
-            // s.connect(&read_file.output, &decode_csv.input);
-            // s.connect(&decode_csv.header, &encoder.input);
-            // s.connect(&decode_csv.rows, &encoder.input);
-            // s.connect(&encoder.output, &stdout.input);
-            todo!()
-        }))
+        Ok(System::build(|_s| { todo!() }))
     }
 }
 
 #[cfg(test)]
 mod tests {
+
+    use super::DecodeCsv;
+    use crate::{System, SystemBuilding};
 
     #[test]
     fn instantiate_block() {

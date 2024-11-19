@@ -13,6 +13,7 @@ pub mod text {
         fn split_string(&mut self, delimiter: &str) -> SplitString;
         fn split_string_whitespace(&mut self) -> SplitString;
         fn decode_csv(&mut self) -> DecodeCsv;
+        fn encode_csv(&mut self) -> EncodeCsv;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -21,6 +22,7 @@ pub mod text {
         ConcatStrings,
         SplitString,
         DecodeCsv,
+        EncodeCsv,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -41,6 +43,11 @@ pub mod text {
             header: OutputPortName,
             rows: OutputPortName,
         },
+        EncodeCsv {
+            header: InputPortName,
+            rows: InputPortName,
+            output: OutputPortName,
+        },
     }
 
     impl Named for TextBlockConfig {
@@ -49,7 +56,8 @@ pub mod text {
             Cow::Borrowed(match self {
                 ConcatStrings { .. } => "ConcatStrings",
                 SplitString { .. } => "SplitString",
-                DecodeCsv { .. } => "DecodeCsv"
+                DecodeCsv { .. } => "DecodeCsv",
+                EncodeCsv { .. } => "EncodeCsv"
             })
         }
     }
@@ -59,7 +67,8 @@ pub mod text {
             use TextBlockConfig::*;
             match self {
                 ConcatStrings { output, .. }
-                | SplitString { output, .. } => {
+                | SplitString { output, .. }
+                | EncodeCsv { output, .. }=> {
                     vec![("output", Some(output.clone()))]
                 }
                 DecodeCsv { header, rows, .. } => {
@@ -82,6 +91,9 @@ pub mod text {
                 DecodeCsv { .. } => {
                     Box::new(super::DecodeCsv::with_system(system))
                 }
+                EncodeCsv { .. } => {
+                    Box::new(super::EncodeCsv::with_system(system))
+                }
             }
         }
     }
@@ -94,6 +106,9 @@ pub mod text {
 
     mod decode_csv;
     pub use decode_csv::*;
+
+    mod encode_csv;
+    pub use encode_csv::*;
 }
 
 pub use text::*;

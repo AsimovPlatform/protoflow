@@ -238,6 +238,32 @@ block-beta
 protoflow execute Decode encoding=text
 ```
 
+#### [`DecodeCsv`]
+
+A block that decodes CSV files from a byte stream into a header and rows represented as `prost_types::Value`
+
+```mermaid
+block-beta
+    columns 7
+    space:5 Sink1 space:1
+    space:1 Source space:1 DecodeCsv space:3
+    space:5 Sink2 space:1
+    Source-- "input" -->DecodeCsv
+    DecodeCsv-- "header" -->Sink1
+    DecodeCsv-- "rows" -->Sink2
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeCsv block
+    class Source hidden
+    class Sink1 hidden
+    class Sink2 hidden
+```
+
+```bash
+protoflow execute DecodeCsv
+```
+
 #### [`DecodeJSON`]
 
 A block that decodes JSON messages from a byte stream.
@@ -323,6 +349,32 @@ block-beta
 ```bash
 protoflow execute Encode encoding=text
 protoflow execute Encode encoding=protobuf
+```
+
+#### [`EncodeCsv`]
+
+A block that encodes CSV files by converting a header and rows, provided as `prost_types::Value` streams, into a byte stream
+
+```mermaid
+block-beta
+    columns 7
+    space:1 Source1 space:5
+    space:3 DecodeCsv space:1 Sink space:1
+    space:1 Source2 space:5
+    Source1-- "header" -->DecodeCsv
+    Source2-- "rows" -->DecodeCsv
+    DecodeCsv-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeCsv block
+    class Source1 hidden
+    class Source2 hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute EncodeCsv
 ```
 
 #### [`EncodeHex`]
@@ -599,32 +651,6 @@ block-beta
 protoflow execute WriteStdout < input.txt > output.txt
 ```
 
-#### [`DecodeCsv`]
-
-A block that decodes csv file
-
-```mermaid
-block-beta
-    columns 7
-    space:5 Sink1 space:1
-    space:1 Source space:1 DecodeCsv space:3
-    space:5 Sink2 space:1
-    Source-- "input" -->DecodeCsv
-    DecodeCsv-- "header" -->Sink1
-    DecodeCsv-- "rows" -->Sink2
-
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class DecodeCsv block
-    class Source hidden
-    class Sink1 hidden
-    class Sink2 hidden
-```
-
-```bash
-protoflow execute DecodeCsv path="your-file.csv"
-```
-
 ## 👨‍💻 Development
 
 ```bash
@@ -656,6 +682,7 @@ git clone https://github.com/asimov-platform/protoflow.git
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
+[`EncodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeCsv.html
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
