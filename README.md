@@ -35,7 +35,7 @@ dataflow systems consisting of interconnected blocks that process messages.
 ### Installation via Homebrew
 
 ```bash
-brew tap AsimovPlatform/tap
+brew tap asimov-platform/tap
 brew install protoflow --HEAD
 ```
 
@@ -601,15 +601,15 @@ protoflow execute WriteStdout < input.txt > output.txt
 ## 👨‍💻 Development
 
 ```bash
-git clone https://github.com/AsimovPlatform/protoflow.git
+git clone https://github.com/asimov-platform/protoflow.git
 ```
 
 - - -
 
-[![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/AsimovPlatform/protoflow&text=Protoflow)
-[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/AsimovPlatform/protoflow&title=Protoflow)
-[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/AsimovPlatform/protoflow&t=Protoflow)
-[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/AsimovPlatform/protoflow)
+[![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/asimov-platform/protoflow&text=Protoflow)
+[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-red?logo=reddit)](https://reddit.com/submit?url=https://github.com/asimov-platform/protoflow&title=Protoflow)
+[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-orange?logo=ycombinator)](https://news.ycombinator.com/submitlink?u=https://github.com/asimov-platform/protoflow&t=Protoflow)
+[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1976D2?logo=facebook)](https://www.facebook.com/sharer/sharer.php?u=https://github.com/asimov-platform/protoflow)
 
 [Protocol Buffers]: https://protobuf.dev
 [Rust]: https://rust-lang.org
