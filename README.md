@@ -679,6 +679,7 @@ git clone https://github.com/asimov-platform/protoflow.git
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
+[`DecodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
@@ -696,4 +697,3 @@ git clone https://github.com/asimov-platform/protoflow.git
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
-[`DecodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
