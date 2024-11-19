@@ -214,8 +214,8 @@ impl TextBlocks for System {
         self.0.block(ConcatStrings::with_system(self, None))
     }
 
-    fn concat_strings_by(&mut self, joiner: &str) -> ConcatStrings {
-        self.0.block(ConcatStrings::with_system(self, Some(joiner.to_string())))
+    fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, Some(delimiter.to_string())))
     }
 
     fn split_string(&mut self, delimiter: &str) -> SplitString {

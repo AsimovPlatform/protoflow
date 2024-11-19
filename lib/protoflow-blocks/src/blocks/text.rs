@@ -9,7 +9,7 @@ pub mod text {
 
     pub trait TextBlocks {
         fn concat_strings(&mut self) -> ConcatStrings;
-        fn concat_strings_by(&mut self, joiner: &str) -> ConcatStrings;
+        fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings;
         fn split_string(&mut self, delimiter: &str) -> SplitString;
         fn split_string_whitespace(&mut self) -> SplitString;
     }
@@ -27,7 +27,7 @@ pub mod text {
         ConcatStrings {
             input: InputPortName,
             output: OutputPortName,
-            joiner: Option<String>
+            delimiter: Option<String>
         },
         SplitString {
             input: InputPortName,
@@ -62,8 +62,8 @@ pub mod text {
         fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
             use TextBlockConfig::*;
             match self {
-                ConcatStrings { joiner, .. } => {
-                    Box::new(super::ConcatStrings::with_system(system, joiner.clone()))
+                ConcatStrings { delimiter, .. } => {
+                    Box::new(super::ConcatStrings::with_system(system, delimiter.clone()))
                 }
                 SplitString { delimiter, .. } => {
                     Box::new(super::SplitString::with_system(system, delimiter.clone()))

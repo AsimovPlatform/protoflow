@@ -11,7 +11,6 @@ use protoflow_core::{
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
-use regex::Regex;
 
 /// A block that splits string.
 ///
@@ -85,19 +84,8 @@ impl Block for SplitString {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.input)?;
 
-        let regex = if self.delimiter.is_empty() {
-            None
-        } else {
-            Regex::new(&self.delimiter).ok()
-        };
-
         while let Some(input) = self.input.recv()? {
-            let outputs: Vec<String> = if let Some(ref regex) = regex {
-                regex.split(&input).map(|s| s.to_string()).collect()
-            } else {
-                input.split(&self.delimiter).map(|s| s.to_string()).collect()
-            };
-
+            let outputs: Vec<String> = input.split(&self.delimiter).map(|s| s.to_string()).collect();
             for output in outputs {
                 self.output.send(&output)?;
             }
