@@ -13,7 +13,6 @@ pub mod text {
         fn decode_csv(&mut self) -> DecodeCsv;
         fn encode_csv(&mut self) -> EncodeCsv;
         fn split_string(&mut self, delimiter: &str) -> SplitString;
-        fn split_string_whitespace(&mut self) -> SplitString;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -33,11 +32,13 @@ pub mod text {
             output: OutputPortName,
             delimiter: Option<String>
         },
+        #[cfg_attr(feature = "serde", serde(rename = "DecodeCSV"))]
         DecodeCsv {
             input: InputPortName,
             header: OutputPortName,
             rows: OutputPortName,
         },
+        #[cfg_attr(feature = "serde", serde(rename = "EncodeCSV"))]
         EncodeCsv {
             header: InputPortName,
             rows: InputPortName,
@@ -55,8 +56,8 @@ pub mod text {
             use TextBlockConfig::*;
             Cow::Borrowed(match self {
                 ConcatStrings { .. } => "ConcatStrings",
-                DecodeCsv { .. } => "DecodeCsv",
-                EncodeCsv { .. } => "EncodeCsv"
+                DecodeCsv { .. } => "DecodeCSV",
+                EncodeCsv { .. } => "EncodeCSV",
                 SplitString { .. } => "SplitString",
             })
         }
@@ -101,14 +102,14 @@ pub mod text {
     mod concat_strings;
     pub use concat_strings::*;
 
-    mod split_string;
-    pub use split_string::*;
-
     mod decode_csv;
     pub use decode_csv::*;
 
     mod encode_csv;
     pub use encode_csv::*;
+
+    mod split_string;
+    pub use split_string::*;
 }
 
 pub use text::*;

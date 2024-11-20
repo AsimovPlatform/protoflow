@@ -61,7 +61,7 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     .map(BlockConfig::Sys)
                     .unwrap(),
 
-                "ConcatStrings" | "SplitString" | "DecodeCsv" | "EncodeCsv" => {
+                "ConcatStrings" | "DecodeCSV" | "EncodeCSV" | "SplitString" => {
                     TextBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Text)
                         .unwrap()

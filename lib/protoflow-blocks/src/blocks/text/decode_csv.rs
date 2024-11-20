@@ -7,7 +7,8 @@ use crate::{
     StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{
-    types::{Value, value::Kind::*, ListValue as LV}, Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort,
+    types::{Value, value::Kind::*, ListValue as LV},
+    Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -37,7 +38,7 @@ use std::io::Cursor;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute DecodeCsv
+/// $ protoflow execute DecodeCSV
 /// ```
 ///
 #[derive(Block, Clone)]
@@ -51,6 +52,7 @@ pub struct DecodeCsv {
     /// The csv rows message stream.
     #[output]
     pub rows: OutputPort<Value>,
+    // TODO for the future to add a delimiter parameter.
 }
 
 impl DecodeCsv {
@@ -65,9 +67,7 @@ impl DecodeCsv {
 }
 
 impl Block for DecodeCsv {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
-        runtime.wait_for(&self.input)?;
-
+    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(input) = self.input.recv()? {
             let cursor = Cursor::new(input);
             let mut rdr = ReaderBuilder::new()

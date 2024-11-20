@@ -37,7 +37,7 @@ use std::io::Cursor;
 /// ## Running the block via the CLI
 ///
 /// ```console
-/// $ protoflow execute EncodeCsv
+/// $ protoflow execute EncodeCSV
 /// ```
 ///
 #[derive(Block, Clone)]
@@ -51,6 +51,7 @@ pub struct EncodeCsv {
     /// The output message stream.
     #[output]
     pub output: OutputPort<Bytes>,
+    // TODO for the future to add a delimiter parameter.
 }
 
 impl EncodeCsv {
@@ -65,49 +66,42 @@ impl EncodeCsv {
 }
 
 impl Block for EncodeCsv {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
-        runtime.wait_for(&self.header)?;
-        runtime.wait_for(&self.rows)?;
-
-        let mut buffer = Cursor::new(Vec::new());
-        {
-            let mut wtr = WriterBuilder::new()
-                .has_headers(false)
-                .from_writer(&mut buffer);
-
-            if let Some(header) = self.header.recv()? {
-                if let Some(ListValue(lv)) = header.kind {
-                    let header_row: Vec<String> = lv.values
-                        .into_iter()
-                        .filter_map(|v| if let Some(StringValue(s)) = v.kind { Some(s) } else { None })
-                        .collect();
-
-                    wtr.write_record(header_row)
-                        .map_err(|e| BlockError::Other(e.to_string()))?;
-                }
-            }
-
-            while let Some(row) = self.rows.recv()? {
-                if let Some(ListValue(lv)) = row.kind {
-                    let row_values: Vec<String> = lv.values
-                        .into_iter()
-                        .filter_map(|v| if let Some(StringValue(s)) = v.kind { Some(s) } else { None })
-                        .collect();
-
-                    wtr.write_record(row_values)
-                        .map_err(|e| BlockError::Other(e.to_string()))?;
-                }
-            }
-
-            wtr.flush().map_err(|e| BlockError::Other(e.to_string()))?;
+    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
+        if let Some(header) = self.header.recv()? {
+            self.output.send(&encode_value_to_csv(&header)?)?;
         }
 
-        self.output.send(&Bytes::from(buffer.into_inner()))?;
+        while let Some(row) = self.rows.recv()? {
+            self.output.send(&encode_value_to_csv(&row)?)?;
+        }
 
         Ok(())
     }
 }
 
+fn encode_value_to_csv(value: &Value) -> Result<Bytes, BlockError> {
+    let mut buffer = Cursor::new(Vec::new());
+
+    {
+        let mut wtr = WriterBuilder::new()
+            .has_headers(false)
+            .from_writer(&mut buffer);
+
+        if let Some(ListValue(lv)) = &value.kind {
+            let row: Vec<String> = lv
+                .values
+                .iter()
+                .filter_map(|v| if let Some(StringValue(s)) = &v.kind { Some(s.clone()) } else { None })
+                .collect();
+
+            wtr.write_record(row)
+                .map_err(|e| BlockError::Other(e.to_string()))?;
+            wtr.flush().map_err(|e| BlockError::Other(e.to_string()))?;
+        }
+    }
+
+    Ok(Bytes::from(buffer.into_inner()))
+}
 
 #[cfg(feature = "std")]
 impl StdioSystem for EncodeCsv {
@@ -122,8 +116,10 @@ impl StdioSystem for EncodeCsv {
 #[cfg(test)]
 mod tests {
 
-    use super::EncodeCsv;
+    use super::*;
+    use crate::prelude::vec;
     use crate::{System, SystemBuilding};
+    use protoflow_core::types::{value::Kind, Value};
 
     #[test]
     fn instantiate_block() {
@@ -131,5 +127,59 @@ mod tests {
         let _ = System::build(|s| {
             let _ = s.block(EncodeCsv::new(s.input(), s.input(), s.output()));
         });
+    }
+
+    #[test]
+    fn test_encode_value_to_csv_valid_header() {
+        let value = Value {
+            kind: Some(ListValue(protoflow_core::types::ListValue {
+                values: vec![
+                    Value { kind: Some(StringValue("col1".to_string())) },
+                    Value { kind: Some(StringValue("col2".to_string())) },
+                    Value { kind: Some(StringValue("col3".to_string())) },
+                ],
+            })),
+        };
+
+        let bytes = encode_value_to_csv(&value).expect("Encoding should succeed");
+        assert_eq!(String::from_utf8(bytes.to_vec()).unwrap(), "col1,col2,col3\n");
+    }
+
+    #[test]
+    fn test_encode_value_to_csv_empty_row() {
+        let value = Value {
+            kind: Some(ListValue(protoflow_core::types::ListValue {
+                values: vec![],
+            })),
+        };
+
+        let bytes = encode_value_to_csv(&value).expect("Encoding should succeed");
+        assert_eq!(String::from_utf8(bytes.to_vec()).unwrap(), "\"\"\n");
+    }
+
+    #[test]
+    fn test_encode_value_to_csv_ignores_non_string_values() {
+        let value = Value {
+            kind: Some(ListValue(protoflow_core::types::ListValue {
+                values: vec![
+                    Value { kind: Some(StringValue("valid".to_string())) },
+                    Value { kind: None }, // Invalid (None)
+                    Value { kind: Some(Kind::NumberValue(42.0)) }, // Unsupported type
+                ],
+            })),
+        };
+
+        let bytes = encode_value_to_csv(&value).expect("Encoding should succeed");
+        assert_eq!(String::from_utf8(bytes.to_vec()).unwrap(), "valid\n");
+    }
+
+    #[test]
+    fn test_encode_value_to_csv_invalid_value() {
+        let value = Value {
+            kind: None, // No kind in value
+        };
+
+        let bytes = encode_value_to_csv(&value).expect("Encoding should succeed");
+        assert_eq!(String::from_utf8(bytes.to_vec()).unwrap(), "");
     }
 }

@@ -1,21 +1,21 @@
 sequenceDiagram
     autonumber
     participant BlockA as Another block
-    participant DecodeCsv.input as DecodeCsv.input port
-    participant DecodeCsv as DecodeCsv block
-    participant DecodeCsv.output as DecodeCsv.output port
+    participant DecodeCSV.input as DecodeCSV.input port
+    participant DecodeCSV as DecodeCSV block
+    participant DecodeCSV.output as DecodeCSV.output port
     participant BlockB as Another block
 
-    BlockA-->>DecodeCsv: Connect
-    DecodeCsv-->>BlockB: Connect
+    BlockA-->>DecodeCSV: Connect
+    DecodeCSV-->>BlockB: Connect
 
-    loop DecodeCsv process
-        BlockA->>DecodeCsv: Message
-        DecodeCsv->>DecodeCsv: Decodes csv file
-        DecodeCsv->>BlockB: Message
+    loop DecodeCSV process
+        BlockA->>DecodeCSV: Message
+        DecodeCSV->>DecodeCSV: Decodes CSV file
+        DecodeCSV->>BlockB: Message
     end
 
-    BlockA-->>DecodeCsv: Disconnect
-    DecodeCsv-->>DecodeCsv.input: Close
-    DecodeCsv-->>DecodeCsv.output: Close
-    DecodeCsv-->>BlockB: Disconnect
+    BlockA-->>DecodeCSV: Disconnect
+    DecodeCSV-->>DecodeCSV.input: Close
+    DecodeCSV-->>DecodeCSV.output: Close
+    DecodeCSV-->>BlockB: Disconnect

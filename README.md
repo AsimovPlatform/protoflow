@@ -117,12 +117,12 @@ The built-in blocks provided by Protoflow are listed below:
 | [`Const`]         | Sends a constant value.                                                                                                        |
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
 | [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
-| [`DecodeCsv`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
+| [`DecodeCSV`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
 | [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
 | [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
 | [`Drop`]          | Discards all messages it receives.                                                                                             |
 | [`Encode`]        | Encodes messages to a byte stream.                                                                                             |
-| [`EncodeCsv`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
+| [`EncodeCSV`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
 | [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
 | [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
 | [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
@@ -247,7 +247,7 @@ block-beta
 protoflow execute Decode encoding=text
 ```
 
-#### [`DecodeCsv`]
+#### [`DecodeCSV`]
 
 A block that decodes CSV files from a byte stream into a header and rows represented as `prost_types::Value`
 
@@ -255,22 +255,22 @@ A block that decodes CSV files from a byte stream into a header and rows represe
 block-beta
     columns 7
     space:5 Sink1 space:1
-    space:1 Source space:1 DecodeCsv space:3
+    space:1 Source space:1 DecodeCSV space:3
     space:5 Sink2 space:1
-    Source-- "input" -->DecodeCsv
-    DecodeCsv-- "header" -->Sink1
-    DecodeCsv-- "rows" -->Sink2
+    Source-- "input" -->DecodeCSV
+    DecodeCSV-- "header" -->Sink1
+    DecodeCSV-- "content" -->Sink2
 
     classDef block height:48px,padding:8px;
     classDef hidden visibility:none;
-    class DecodeCsv block
+    class DecodeCSV block
     class Source hidden
     class Sink1 hidden
     class Sink2 hidden
 ```
 
 ```bash
-protoflow execute DecodeCsv
+protoflow execute DecodeCSV
 ```
 
 #### [`DecodeJSON`]
@@ -360,7 +360,7 @@ protoflow execute Encode encoding=text
 protoflow execute Encode encoding=protobuf
 ```
 
-#### [`EncodeCsv`]
+#### [`EncodeCSV`]
 
 A block that encodes CSV files by converting a header and rows, provided as `prost_types::Value` streams, into a byte stream
 
@@ -368,22 +368,22 @@ A block that encodes CSV files by converting a header and rows, provided as `pro
 block-beta
     columns 7
     space:1 Source1 space:5
-    space:3 DecodeCsv space:1 Sink space:1
+    space:3 EncodeCSV space:1 Sink space:1
     space:1 Source2 space:5
-    Source1-- "header" -->DecodeCsv
-    Source2-- "rows" -->DecodeCsv
-    DecodeCsv-- "output" -->Sink
+    Source1-- "header" -->EncodeCSV
+    Source2-- "rows" -->EncodeCSV
+    EncodeCSV-- "output" -->Sink
 
     classDef block height:48px,padding:8px;
     classDef hidden visibility:none;
-    class DecodeCsv block
+    class EncodeCSV block
     class Source1 hidden
     class Source2 hidden
     class Sink hidden
 ```
 
 ```bash
-protoflow execute EncodeCsv
+protoflow execute EncodeCSV
 ```
 
 #### [`EncodeHex`]
@@ -734,12 +734,12 @@ To add a new block type implementation, make sure to examine and amend:
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
-[`DecodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
+[`DecodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
-[`EncodeCsv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeCsv.html
+[`EncodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeCsv.html
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html

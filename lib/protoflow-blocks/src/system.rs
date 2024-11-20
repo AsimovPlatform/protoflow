@@ -261,9 +261,4 @@ impl TextBlocks for System {
         self.0
             .block(SplitString::with_system(self, Some(delimiter.to_string())))
     }
-
-    fn split_string_whitespace(&mut self) -> SplitString {
-        self.0
-            .block(SplitString::with_system(self, Some(r"\s+".to_string())))
-    }
 }

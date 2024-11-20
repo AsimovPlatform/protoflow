@@ -90,8 +90,8 @@ impl BlockTag {
             #[cfg(feature = "std")]
             WriteStdout => "WriteStdout",
             ConcatStrings => "ConcatStrings",
-            DecodeCsv => "DecodeCsv",
-            EncodeCsv => "EncodeCsv",
+            DecodeCsv => "DecodeCSV",
+            EncodeCsv => "EncodeCSV",
             SplitString => "SplitString",
         }
     }
@@ -131,8 +131,8 @@ impl FromStr for BlockTag {
             #[cfg(feature = "std")]
             "WriteStdout" => WriteStdout,
             "ConcatStrings" => ConcatStrings,
-            "DecodeCsv" => DecodeCsv,
-            "EncodeCsv" => EncodeCsv,
+            "DecodeCSV" => DecodeCsv,
+            "EncodeCSV" => EncodeCsv,
             "SplitString" => SplitString,
             _ => return Err(()),
         })
