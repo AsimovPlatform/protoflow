@@ -65,8 +65,7 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     TextBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Text)
                         .unwrap()
-                },
-
+                }
 
                 _ => return Err(serde::de::Error::custom("unknown Protoflow block type")),
             }),
