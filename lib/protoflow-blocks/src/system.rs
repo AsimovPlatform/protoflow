@@ -5,21 +5,27 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
-    EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
-    ReadFile, ReadSocket, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr,
-    WriteStdout,
+    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeJson,
+    Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks,
+    MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString, SysBlocks,
+    TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
-    Block, BlockID, BlockResult, InputPort, Message, OutputPort, PortID, PortResult, Process,
-    SystemBuilding, SystemExecution,
+    Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
+    PortResult, Process, SystemBuilding, SystemExecution,
 };
 
 #[cfg(feature = "hash")]
 use crate::{types::HashAlgorithm, Hash};
 
+#[cfg(feature = "tokio")]
+use protoflow_core::AsyncBlock;
+
 type Transport = protoflow_core::transports::MpscTransport;
 type Runtime = protoflow_core::runtimes::StdRuntime<Transport>;
+
+#[cfg(feature = "tokio")]
+use protoflow_core::runtimes::TokioRuntime;
 
 pub struct System(protoflow_core::System<Transport>);
 
@@ -27,6 +33,12 @@ impl System {
     /// Builds and executes a system, blocking until completion.
     pub fn run<F: FnOnce(&mut System)>(f: F) -> BlockResult {
         Self::build(f).execute()?.join()
+    }
+
+    /// Builds and executes a system that supports async blocks, blocking until completion.
+    #[cfg(feature = "tokio")]
+    pub fn run_async<F: FnOnce(&mut System)>(tokio_runtime: TokioRuntime, f: F) -> BlockResult {
+        Self::build_async(tokio_runtime, f).execute()?.join()
     }
 
     /// Builds and executes a system, returning immediately.
@@ -43,6 +55,16 @@ impl System {
         system
     }
 
+    /// Builds a new system that supports async blocks.
+    #[cfg(feature = "tokio")]
+    pub fn build_async<F: FnOnce(&mut System)>(tokio_runtime: TokioRuntime, f: F) -> Self {
+        let transport = Transport::default();
+        let runtime = Runtime::new_async(transport, tokio_runtime).unwrap();
+        let mut system = System::new(&runtime);
+        f(&mut system);
+        system
+    }
+
     /// Instantiates a new system.
     pub fn new(runtime: &Arc<Runtime>) -> Self {
         Self(protoflow_core::System::<Transport>::new(runtime))
@@ -54,7 +76,7 @@ impl System {
     }
 
     #[doc(hidden)]
-    pub fn get_block(&self, block_id: BlockID) -> Option<&Box<dyn Block>> {
+    pub fn get_block(&self, block_id: BlockID) -> Option<&BoxedBlockType> {
         self.0.get_block(block_id)
     }
 
@@ -87,6 +109,11 @@ impl SystemBuilding for System {
 
     fn block<B: Block + Clone + 'static>(&mut self, block: B) -> B {
         self.0.block(block)
+    }
+
+    #[cfg(feature = "tokio")]
+    fn block_async<B: AsyncBlock + Clone + 'static>(&mut self, block: B) -> B {
+        self.0.block_async(block)
     }
 
     fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
@@ -218,4 +245,28 @@ impl SysBlocks for System {
     }
 }
 
-impl TextBlocks for System {}
+impl TextBlocks for System {
+    fn concat_strings(&mut self) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, None))
+    }
+
+    fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(
+            self,
+            Some(delimiter.to_string()),
+        ))
+    }
+
+    fn decode_csv(&mut self) -> DecodeCsv {
+        self.0.block(DecodeCsv::with_system(self))
+    }
+
+    fn encode_csv(&mut self) -> EncodeCsv {
+        self.0.block(EncodeCsv::with_system(self))
+    }
+
+    fn split_string(&mut self, delimiter: &str) -> SplitString {
+        self.0
+            .block(SplitString::with_system(self, Some(delimiter.to_string())))
+    }
+}
