@@ -249,6 +249,14 @@ impl TextBlocks for System {
         ))
     }
 
+    fn decode_csv(&mut self) -> DecodeCsv {
+        self.0.block(DecodeCsv::with_system(self))
+    }
+
+    fn encode_csv(&mut self) -> EncodeCsv {
+        self.0.block(EncodeCsv::with_system(self))
+    }
+
     fn split_string(&mut self, delimiter: &str) -> SplitString {
         self.0
             .block(SplitString::with_system(self, Some(delimiter.to_string())))
@@ -257,12 +265,5 @@ impl TextBlocks for System {
     fn split_string_whitespace(&mut self) -> SplitString {
         self.0
             .block(SplitString::with_system(self, Some(r"\s+".to_string())))
-    }
-
-    fn decode_csv(&mut self) -> DecodeCsv {
-        self.0.block(DecodeCsv::with_system(self))
-    }
-    fn encode_csv(&mut self) -> EncodeCsv {
-        self.0.block(EncodeCsv::with_system(self))
     }
 }

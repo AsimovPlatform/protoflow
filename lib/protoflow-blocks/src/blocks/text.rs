@@ -10,30 +10,25 @@ pub mod text {
     pub trait TextBlocks {
         fn concat_strings(&mut self) -> ConcatStrings;
         fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings;
-        fn split_string(&mut self, delimiter: &str) -> SplitString;
-        fn split_string_whitespace(&mut self) -> SplitString;
         fn decode_csv(&mut self) -> DecodeCsv;
         fn encode_csv(&mut self) -> EncodeCsv;
+        fn split_string(&mut self, delimiter: &str) -> SplitString;
+        fn split_string_whitespace(&mut self) -> SplitString;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum TextBlockTag {
         ConcatStrings,
-        SplitString,
         DecodeCsv,
         EncodeCsv,
+        SplitString,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
     pub enum TextBlockConfig {
         ConcatStrings {
-            input: InputPortName,
-            output: OutputPortName,
-            delimiter: Option<String>
-        },
-        SplitString {
             input: InputPortName,
             output: OutputPortName,
             delimiter: Option<String>
@@ -48,6 +43,11 @@ pub mod text {
             rows: InputPortName,
             output: OutputPortName,
         },
+        SplitString {
+            input: InputPortName,
+            output: OutputPortName,
+            delimiter: Option<String>
+        },
     }
 
     impl Named for TextBlockConfig {
@@ -55,9 +55,9 @@ pub mod text {
             use TextBlockConfig::*;
             Cow::Borrowed(match self {
                 ConcatStrings { .. } => "ConcatStrings",
-                SplitString { .. } => "SplitString",
                 DecodeCsv { .. } => "DecodeCsv",
                 EncodeCsv { .. } => "EncodeCsv"
+                SplitString { .. } => "SplitString",
             })
         }
     }
@@ -67,8 +67,8 @@ pub mod text {
             use TextBlockConfig::*;
             match self {
                 ConcatStrings { output, .. }
-                | SplitString { output, .. }
-                | EncodeCsv { output, .. }=> {
+                | EncodeCsv { output, .. }
+                | SplitString { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
                 DecodeCsv { header, rows, .. } => {
@@ -85,14 +85,14 @@ pub mod text {
                 ConcatStrings { delimiter, .. } => {
                     Box::new(super::ConcatStrings::with_system(system, delimiter.clone()))
                 }
-                SplitString { delimiter, .. } => {
-                    Box::new(super::SplitString::with_system(system, delimiter.clone()))
-                }
                 DecodeCsv { .. } => {
                     Box::new(super::DecodeCsv::with_system(system))
                 }
                 EncodeCsv { .. } => {
                     Box::new(super::EncodeCsv::with_system(system))
+                }
+                SplitString { delimiter, .. } => {
+                    Box::new(super::SplitString::with_system(system, delimiter.clone()))
                 }
             }
         }
