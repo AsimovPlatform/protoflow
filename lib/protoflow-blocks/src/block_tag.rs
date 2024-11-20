@@ -45,9 +45,9 @@ pub enum BlockTag {
     WriteStdout,
     // TextBlocks
     ConcatStrings,
-    SplitString,
     DecodeCsv,
     EncodeCsv,
+    SplitString,
 }
 
 impl BlockTag {
@@ -90,9 +90,9 @@ impl BlockTag {
             #[cfg(feature = "std")]
             WriteStdout => "WriteStdout",
             ConcatStrings => "ConcatStrings",
-            SplitString => "SplitString",
             DecodeCsv => "DecodeCsv",
             EncodeCsv => "EncodeCsv",
+            SplitString => "SplitString",
         }
     }
 }
@@ -131,9 +131,9 @@ impl FromStr for BlockTag {
             #[cfg(feature = "std")]
             "WriteStdout" => WriteStdout,
             "ConcatStrings" => ConcatStrings,
-            "SplitString" => SplitString,
             "DecodeCsv" => DecodeCsv,
             "EncodeCsv" => EncodeCsv,
+            "SplitString" => SplitString,
             _ => return Err(()),
         })
     }
@@ -183,9 +183,9 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "std")]
             WriteStdout => Box::new(super::WriteStdout::with_system(system)),
             ConcatStrings => Box::new(super::ConcatStrings::with_system(system, None)),
-            SplitString => Box::new(super::SplitString::with_system(system, None)),
             DecodeCsv => Box::new(super::DecodeCsv::with_system(system)),
             EncodeCsv => Box::new(super::EncodeCsv::with_system(system)),
+            SplitString => Box::new(super::SplitString::with_system(system, None)),
         }
     }
 }
