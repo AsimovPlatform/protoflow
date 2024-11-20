@@ -11,7 +11,15 @@ _"Τὰ πάντα ῥεῖ καὶ οὐδὲν μένει" — Heraclitus_
 with messages encoded as [Protocol Buffers]. It can be used to implement
 dataflow systems consisting of interconnected blocks that process messages.
 
-🚧 _We are building in public. This is presently under heavy construction._
+> [!TIP]
+> 🚧 _We are building in public. This is presently under heavy construction._
+
+- [Features](#-features)
+- [Prerequisites](#%EF%B8%8F-prerequisites)
+- [Installation](#%EF%B8%8F-installation)
+- [Examples](#-examples)
+- [Reference](#-reference)
+- [Development](#-development)
 
 ## ✨ Features
 
