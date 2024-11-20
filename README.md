@@ -32,17 +32,17 @@ dataflow systems consisting of interconnected blocks that process messages.
 
 ## ⬇️ Installation
 
+### Installation via Cargo
+
+```bash
+cargo install protoflow
+```
+
 ### Installation via Homebrew
 
 ```bash
 brew tap asimov-platform/tap
 brew install protoflow --HEAD
-```
-
-### Installation via Cargo
-
-```bash
-cargo install protoflow
 ```
 
 ## 👉 Examples
@@ -604,6 +604,37 @@ protoflow execute WriteStdout < input.txt > output.txt
 git clone https://github.com/asimov-platform/protoflow.git
 ```
 
+### Guidelines
+
+#### Contributing a pull request
+
+- Do your best to adhere to the existing coding conventions and idioms.
+- Make sure to run `cargo fmt` prior to submitting your pull request.
+- Don't leave trailing whitespace on any line, and make sure all text files
+  include a terminating newline character.
+
+#### Adding a new block type
+
+To add a new block type implementation, make sure to examine:
+
+- The appropriate subdirectory under [`lib/protoflow-blocks/src/blocks/`],
+  such as `core`, `flow`, `hash`, `io`, `math`, `sys`, or `text`.
+- The `BlockTag` enum in [`lib/protoflow-blocks/src/block_tag.rs`],
+  which lists the names of all available block types.
+- The `BlockConfig` enum in [`lib/protoflow-blocks/src/block_config.rs`],
+  which implements block instantiation and Serde deserialization.
+- The system-building DSL in [`lib/protoflow-blocks/src/system.rs`],
+  which provides convenience builder methods for system definition.
+- The `build_stdio_system()` function in [`lib/protoflow-blocks/src/lib.rs`],
+  which is used by the CLI to instantiate blocks for standard I/O.
+- The documented block diagrams and sequence diagrams under
+  [`lib/protoflow-blocks/doc/`], which are embedded in the README and docs.
+
+> [!NOTE]
+> If a block implementation requires additional crate dependencies, it may
+> be appropriate for that block availability to be featured-gated so as to
+> enable developers to opt out of those dependencies.
+
 - - -
 
 [![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/asimov-platform/protoflow&text=Protoflow)
@@ -641,3 +672,10 @@ git clone https://github.com/asimov-platform/protoflow.git
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
+
+[`lib/protoflow-blocks/doc/`]: https://github.com/asimov-platform/protoflow/tree/master/lib/protoflow-blocks/doc
+[`lib/protoflow-blocks/src/blocks/`]: https://github.com/asimov-platform/protoflow/tree/master/lib/protoflow-blocks/src/blocks
+[`lib/protoflow-blocks/src/lib.rs`]: https://github.com/asimov-platform/protoflow/blob/master/lib/protoflow-blocks/src/lib.rs
+[`lib/protoflow-blocks/src/block_config.rs`]: https://github.com/asimov-platform/protoflow/blob/master/lib/protoflow-blocks/src/block_config.rs
+[`lib/protoflow-blocks/src/block_tag.rs`]: https://github.com/asimov-platform/protoflow/blob/master/lib/protoflow-blocks/src/block_tag.rs
+[`lib/protoflow-blocks/src/system.rs`]: https://github.com/asimov-platform/protoflow/blob/master/lib/protoflow-blocks/src/system.rs
