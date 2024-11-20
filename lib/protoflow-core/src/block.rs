@@ -1,7 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::prelude::{fmt, Box};
-use crate::{BlockDescriptor, BlockResult, BlockRuntime};
+use crate::{
+    prelude::{fmt, Box},
+    BlockDescriptor, BlockResult, BlockRuntime,
+};
 
 #[cfg(feature = "tokio")]
 use crate::AsyncBlock;
