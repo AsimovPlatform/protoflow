@@ -39,9 +39,9 @@ pub mod io {
     pub enum IoBlockTag {
         Decode,
         DecodeHex,
+        DecodeJson,
         Encode,
         EncodeHex,
-        DecodeJson,
         EncodeJson,
     }
 
