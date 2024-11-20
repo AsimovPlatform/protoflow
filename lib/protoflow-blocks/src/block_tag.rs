@@ -23,6 +23,7 @@ pub enum BlockTag {
     Hash,
     // IoBlocks
     Decode,
+    DecodeJson,
     Encode,
     EncodeHex,
     EncodeJson,
@@ -43,6 +44,10 @@ pub enum BlockTag {
     #[cfg(feature = "std")]
     WriteStdout,
     // TextBlocks
+    ConcatStrings,
+    DecodeCsv,
+    EncodeCsv,
+    SplitString,
 }
 
 impl BlockTag {
@@ -66,6 +71,7 @@ impl BlockTag {
             #[cfg(feature = "hash")]
             Hash => "Hash",
             Decode => "Decode",
+            DecodeJson => "DecodeJSON",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
@@ -83,6 +89,10 @@ impl BlockTag {
             WriteStderr => "WriteStderr",
             #[cfg(feature = "std")]
             WriteStdout => "WriteStdout",
+            ConcatStrings => "ConcatStrings",
+            DecodeCsv => "DecodeCSV",
+            EncodeCsv => "EncodeCSV",
+            SplitString => "SplitString",
         }
     }
 }
@@ -102,6 +112,7 @@ impl FromStr for BlockTag {
             #[cfg(feature = "hash")]
             "Hash" => Hash,
             "Decode" => Decode,
+            "DecodeJSON" => DecodeJson,
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
@@ -119,6 +130,10 @@ impl FromStr for BlockTag {
             "WriteStderr" => WriteStderr,
             #[cfg(feature = "std")]
             "WriteStdout" => WriteStdout,
+            "ConcatStrings" => ConcatStrings,
+            "DecodeCSV" => DecodeCsv,
+            "EncodeCSV" => EncodeCsv,
+            "SplitString" => SplitString,
             _ => return Err(()),
         })
     }
@@ -149,6 +164,7 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "hash")]
             Hash => Box::new(super::Hash::with_system(system, None)),
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
+            DecodeJson => Box::new(super::DecodeJson::with_system(system)),
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
@@ -166,6 +182,10 @@ impl BlockInstantiation for BlockTag {
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),
             #[cfg(feature = "std")]
             WriteStdout => Box::new(super::WriteStdout::with_system(system)),
+            ConcatStrings => Box::new(super::ConcatStrings::with_system(system, None)),
+            DecodeCsv => Box::new(super::DecodeCsv::with_system(system)),
+            EncodeCsv => Box::new(super::EncodeCsv::with_system(system)),
+            SplitString => Box::new(super::SplitString::with_system(system, None)),
         }
     }
 }

@@ -5,9 +5,10 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString, Vec},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Const, CoreBlocks, Count, Decode, DecodeJson, Delay, Drop, Encode,
-    EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv,
-    ReadFile, ReadStdin, SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeJson,
+    Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks,
+    MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks, TextBlocks,
+    WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, InputPortID, Message, OutputPort,
@@ -248,4 +249,28 @@ impl SysBlocks for System {
     }
 }
 
-impl TextBlocks for System {}
+impl TextBlocks for System {
+    fn concat_strings(&mut self) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(self, None))
+    }
+
+    fn concat_strings_by(&mut self, delimiter: &str) -> ConcatStrings {
+        self.0.block(ConcatStrings::with_system(
+            self,
+            Some(delimiter.to_string()),
+        ))
+    }
+
+    fn decode_csv(&mut self) -> DecodeCsv {
+        self.0.block(DecodeCsv::with_system(self))
+    }
+
+    fn encode_csv(&mut self) -> EncodeCsv {
+        self.0.block(EncodeCsv::with_system(self))
+    }
+
+    fn split_string(&mut self, delimiter: &str) -> SplitString {
+        self.0
+            .block(SplitString::with_system(self, Some(delimiter.to_string())))
+    }
+}
