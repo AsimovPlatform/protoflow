@@ -25,7 +25,7 @@ use std::io::Cursor;
 ///
 /// ## Using the block in a system
 ///
-/// ```rust
+/// ```no_run
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
