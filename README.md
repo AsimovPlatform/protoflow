@@ -615,8 +615,9 @@ git clone https://github.com/asimov-platform/protoflow.git
 
 #### Adding a new block type
 
-To add a new block type implementation, make sure to examine:
+To add a new block type implementation, make sure to examine and amend:
 
+- The block type reference (table and subsections) in this README.
 - The appropriate subdirectory under [`lib/protoflow-blocks/src/blocks/`],
   such as `core`, `flow`, `hash`, `io`, `math`, `sys`, or `text`.
 - The `BlockTag` enum in [`lib/protoflow-blocks/src/block_tag.rs`],
@@ -635,6 +636,20 @@ To add a new block type implementation, make sure to examine:
 > be appropriate for that block availability to be featured-gated so as to
 > enable developers to opt out of those dependencies.
 
+#### Block implementation notes
+
+- Blocks must not panic; use other error-handling strategies. Ideally, block
+  implementations should be robust and infallible. When that's not possible,
+  consider encoding errors by having the output message type be an enum (cf.
+  Rust's `Result`) or consider having a dedicated error output port. If truly
+  necessary, abort block execution by returning a `BlockError`.
+- Blocks should not generally spawn threads.
+- Blocks should document their system resource requirements, if any.
+- Blocks should use the [`tracing`] crate for logging any errors, warnings,
+  and debug output. However, since tracing is an optional feature and
+  dependency, do make sure to feature-gate any use of tracing behind a
+  `#[cfg(feature = "tracing")]` guard.
+
 - - -
 
 [![Share on Twitter](https://img.shields.io/badge/share%20on-twitter-03A9F4?logo=twitter)](https://twitter.com/share?url=https://github.com/asimov-platform/protoflow&text=Protoflow)
@@ -646,6 +661,7 @@ To add a new block type implementation, make sure to examine:
 [Rust]: https://rust-lang.org
 [flow-based programming]: https://jpaulm.github.io/fbp/
 [naming conventions]: https://rust-lang.github.io/api-guidelines/naming.html
+[`tracing`]: https://crates.io/crates/tracing
 
 [`count_lines`]: lib/protoflow/examples/count_lines
 [`echo_lines`]: lib/protoflow/examples/echo_lines
