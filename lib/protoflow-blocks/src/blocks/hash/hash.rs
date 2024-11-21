@@ -3,7 +3,7 @@
 use crate::{
     prelude::{vec, Bytes, BytesMut},
     types::HashAlgorithm,
-    StdioConfig, StdioError, StdioSystem, System,
+    HasherFactory, StdioConfig, StdioError, StdioSystem, System,
 };
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort, Port, PortError};
 use protoflow_derive::Block;
@@ -111,7 +111,7 @@ impl Block for Hash {
 
         runtime.wait_for(&self.hash)?;
 
-        let hash = Bytes::from(self.algorithm.compute_hash(&self.buffer));
+        let hash = Bytes::from(HasherFactory::new(self.algorithm).compute_hash(&self.buffer));
         self.buffer.clear();
         match self.hash.send(&hash) {
             Ok(()) => {}
