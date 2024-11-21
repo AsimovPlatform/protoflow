@@ -118,6 +118,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
 | [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
 | [`DecodeCSV`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
+| [`DecodeHex`]     | Decodes hexadecimal stream to byte stream.                                                                                     |
 | [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
 | [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
 | [`Drop`]          | Discards all messages it receives.                                                                                             |
@@ -271,6 +272,28 @@ block-beta
 
 ```bash
 protoflow execute DecodeCSV
+```
+
+#### [`DecodeHex`]
+
+A block that decodes a hexadecimal byte stream into bytes
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 DecodeHex space:2 Sink
+    Source-- "input" -->DecodeHex
+    DecodeHex-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeHex block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute DecodeHex
 ```
 
 #### [`DecodeJSON`]
@@ -735,6 +758,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
 [`DecodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
+[`DecodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeHex.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
