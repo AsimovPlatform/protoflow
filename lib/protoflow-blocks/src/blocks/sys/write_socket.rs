@@ -1,8 +1,10 @@
 extern crate std;
 
 use super::SysBlocks;
-use crate::prelude::{bytes::Bytes, vec, String};
-use crate::{StdioConfig, StdioError, StdioSystem, System};
+use crate::{
+    prelude::{bytes::Bytes, vec, String},
+    StdioConfig, StdioError, StdioSystem, System,
+};
 use protoflow_core::{Block, BlockError, BlockResult, BlockRuntime, InputPort, SystemBuilding};
 use protoflow_derive::Block;
 use serde::{Deserialize, Serialize};

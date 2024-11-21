@@ -1,7 +1,9 @@
 extern crate std;
 
-use crate::prelude::{vec, Bytes, String};
-use crate::{StdioConfig, StdioError, StdioSystem, System};
+use crate::{
+    prelude::{vec, Bytes, String},
+    StdioConfig, StdioError, StdioSystem, System,
+};
 use protoflow_core::{
     Block, BlockError, BlockResult, BlockRuntime, OutputPort, Port, PortResult, SystemBuilding,
 };
@@ -49,10 +51,8 @@ pub struct ReadSocket {
     pub output: OutputPort<Bytes>,
     #[parameter]
     pub config: ReadSocketConfig,
-    #[cfg(feature = "std")]
     #[state]
     pub listener: Arc<Mutex<Option<TcpListener>>>,
-    #[cfg(feature = "std")]
     #[state]
     pub stream: Arc<Mutex<Option<TcpStream>>>,
 }
