@@ -16,8 +16,19 @@ pub mod hash {
     use protoflow_core::Block;
 
     pub trait HashBlocks {
-        fn hash_blake3(&mut self) -> Hash;
         fn hash(&mut self, algorithm: HashAlgorithm) -> Hash;
+
+        #[cfg(feature = "hash-blake3")]
+        fn hash_blake3(&mut self) -> Hash;
+
+        #[cfg(feature = "hash-md5")]
+        fn hash_md5(&mut self) -> Hash;
+
+        #[cfg(feature = "hash-sha1")]
+        fn hash_sha1(&mut self) -> Hash;
+
+        #[cfg(feature = "hash-sha2")]
+        fn hash_sha2(&mut self) -> Hash;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
