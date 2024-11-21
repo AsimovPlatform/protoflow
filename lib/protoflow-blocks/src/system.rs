@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString, Vec},
+    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeJson,
     Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks,
@@ -11,8 +11,8 @@ use crate::{
     WriteFile, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
-    Block, BlockID, BlockResult, BoxedBlockType, InputPort, InputPortID, Message, OutputPort,
-    OutputPortID, PortID, PortResult, Process, SystemBuilding, SystemExecution,
+    Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
+    PortResult, Process, SystemBuilding, SystemExecution,
 };
 
 #[cfg(feature = "hash")]
@@ -122,10 +122,6 @@ impl SystemBuilding for System {
 
     fn connect<M: Message>(&mut self, source: &OutputPort<M>, target: &InputPort<M>) -> bool {
         self.0.connect(source, target)
-    }
-
-    fn connections(&self) -> Vec<(OutputPortID, InputPortID)> {
-        self.0.connections()
     }
 
     fn validate(&self) -> BlockResult<()> {
