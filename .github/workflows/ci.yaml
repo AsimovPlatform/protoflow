@@ -23,6 +23,10 @@ jobs:
   review-pr:
     name: Review PR
     runs-on: ubuntu-latest
+    needs:
+      - check-formatting
+    permissions:
+      pull-requests: write
     steps:
       - name: Approve PR
         if: ${{ success() }}
