@@ -17,7 +17,10 @@ publish.workspace = true
 [features]
 default = ["all", "std"]
 all = ["hash", "rand", "serde", "sysml", "tracing"]
-hash = ["dep:blake3", "dep:sha2", "dep:sha1", "dep:md-5"]
+sha2=["dep:sha2", "hash"]
+sha1=["dep:sha1", "hash"]
+md-5=["dep:md-5", "hash"]
+hash = ["dep:blake3"]
 rand = ["protoflow-core/rand"]
 std = [
     "blake3?/std",

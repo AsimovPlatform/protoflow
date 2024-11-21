@@ -57,7 +57,7 @@ pub struct Hash {
     #[output]
     pub hash: OutputPort<Bytes>,
 
-    /// A configuration parameter for which algorithm to use.[blake3, sha256, sha1, md5]
+    /// A configuration parameter for which algorithm to use. (blake3, sha256, sha1, md5)
     #[parameter]
     pub algorithm: HashAlgorithm,
 
