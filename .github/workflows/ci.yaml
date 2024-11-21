@@ -48,6 +48,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.80.0
+          components: rustfmt
           targets: ${{ matrix.target }}
       - name: Check formatting
         id: formatting
