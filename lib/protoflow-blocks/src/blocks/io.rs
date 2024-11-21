@@ -13,6 +13,7 @@ pub mod io {
 
     pub trait IoBlocks {
         fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T>;
+        fn decode_hex(&mut self) -> DecodeHex;
         fn decode_json(&mut self) -> DecodeJson;
         fn decode_with<T: Message + FromStr + 'static>(&mut self, encoding: Encoding) -> Decode<T>;
 
@@ -37,9 +38,10 @@ pub mod io {
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum IoBlockTag {
         Decode,
+        DecodeHex,
+        DecodeJson,
         Encode,
         EncodeHex,
-        DecodeJson,
         EncodeJson,
     }
 
@@ -51,7 +53,10 @@ pub mod io {
             output: OutputPortName,
             encoding: Option<Encoding>,
         },
-
+        DecodeHex {
+            input: InputPortName,
+            output: OutputPortName,
+        },
         #[cfg_attr(feature = "serde", serde(rename = "DecodeJSON"))]
         DecodeJson {
             input: InputPortName,
@@ -81,6 +86,7 @@ pub mod io {
             use IoBlockConfig::*;
             Cow::Borrowed(match self {
                 Decode { .. } => "Decode",
+                DecodeHex { .. } => "DecodeHex",
                 DecodeJson { .. } => "DecodeJSON",
                 Encode { .. } => "Encode",
                 EncodeHex { .. } => "EncodeHex",
@@ -94,6 +100,7 @@ pub mod io {
             use IoBlockConfig::*;
             match self {
                 Decode { output, .. }
+                | DecodeHex { output, .. }
                 | DecodeJson { output, .. }
                 | Encode { output, .. }
                 | EncodeHex { output, .. }
@@ -111,6 +118,7 @@ pub mod io {
                 Decode { encoding, .. } => {
                     Box::new(super::Decode::<String>::with_system(system, *encoding))
                 }
+                DecodeHex { .. } => Box::new(super::DecodeHex::with_system(system)),
                 DecodeJson { .. } => Box::new(super::DecodeJson::with_system(system)),
                 Encode { encoding, .. } => {
                     Box::new(super::Encode::<String>::with_system(system, *encoding))
@@ -123,6 +131,9 @@ pub mod io {
 
     mod decode;
     pub use decode::*;
+
+    mod decode_hex;
+    pub use decode_hex::*;
 
     mod decode_json;
     pub use decode_json::*;

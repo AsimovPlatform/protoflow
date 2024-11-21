@@ -1,7 +1,7 @@
-use protoflow::derive::Block;
-use protoflow::types::Any;
-use protoflow::{blocks::*, Message};
-use protoflow::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
+use protoflow::{
+    blocks::*, derive::Block, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message,
+    OutputPort,
+};
 
 use async_trait::async_trait;
 use std::time::Duration;

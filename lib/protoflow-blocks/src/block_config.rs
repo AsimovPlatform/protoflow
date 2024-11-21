@@ -49,17 +49,25 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     .map(BlockConfig::Hash)
                     .unwrap(),
 
-                "Decode" | "Encode" | "EncodeHex" | "EncodeJSON" => {
+                "Decode" | "DecodeHex" | "DecodeJSON" | "Encode" | "EncodeHex" | "EncodeJSON" => {
                     IoBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Io)
                         .unwrap()
                 }
 
                 #[cfg(feature = "std")]
-                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile" | "WriteStderr"
-                | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
-                    .map(BlockConfig::Sys)
-                    .unwrap(),
+                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadSocket" | "ReadStdin" | "WriteFile"
+                | "WriteSocket" | "WriteStderr" | "WriteStdout" => {
+                    SysBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Sys)
+                        .unwrap()
+                }
+
+                "ConcatStrings" | "DecodeCSV" | "EncodeCSV" | "SplitString" => {
+                    TextBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Text)
+                        .unwrap()
+                }
 
                 _ => return Err(serde::de::Error::custom("unknown Protoflow block type")),
             }),

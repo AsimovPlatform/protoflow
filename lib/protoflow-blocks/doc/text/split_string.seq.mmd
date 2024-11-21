@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant SplitString.input as SplitString.input port
+    participant SplitString as SplitString block
+    participant SplitString.output as SplitString.output port
+    participant BlockB as Another block
+
+    BlockA-->>SplitString: Connect
+    SplitString-->>BlockB: Connect
+
+    loop SplitString process
+        BlockA->>SplitString: Message
+        SplitString->>SplitString: Split string
+        SplitString->>BlockB: Message
+    end
+
+    BlockA-->>SplitString: Disconnect
+    SplitString-->>SplitString.input: Close
+    SplitString-->>SplitString.output: Close
+    SplitString-->>BlockB: Disconnect

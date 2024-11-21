@@ -1,7 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::prelude::Box;
-use crate::{BlockDescriptor, BlockHooks, BlockResult, BlockRuntime};
+use crate::{prelude::Box, BlockDescriptor, BlockHooks, BlockResult, BlockRuntime};
 
 use async_trait::async_trait;
 use core::fmt;
