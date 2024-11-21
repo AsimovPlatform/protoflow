@@ -169,22 +169,8 @@ impl HashBlocks for System {
             .block(Hash::with_system(self, Some(HashAlgorithm::BLAKE3)))
     }
 
-    #[cfg(feature = "sha2")]
-    fn hash_sha256(&mut self) -> Hash {
-        self.0
-            .block(Hash::with_system(self, Some(HashAlgorithm::SHA256)))
-    }
-
-    #[cfg(feature = "sha1")]
-    fn hash_sha1(&mut self) -> Hash {
-        self.0
-            .block(Hash::with_system(self, Some(HashAlgorithm::SHA1)))
-    }
-
-    #[cfg(feature = "md-5")]
-    fn hash_md5(&mut self) -> Hash {
-        self.0
-            .block(Hash::with_system(self, Some(HashAlgorithm::MD5)))
+    fn hash(&mut self, algorithm: HashAlgorithm) -> Hash {
+        self.0.block(Hash::with_system(self, Some(algorithm)))
     }
 }
 
