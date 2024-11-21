@@ -49,7 +49,7 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                     .map(BlockConfig::Hash)
                     .unwrap(),
 
-                "Decode" | "DecodeJSON" | "Encode" | "EncodeHex" | "EncodeJSON" => {
+                "Decode" | "DecodeHex" | "DecodeJSON" | "Encode" | "EncodeHex" | "EncodeJSON" => {
                     IoBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Io)
                         .unwrap()
