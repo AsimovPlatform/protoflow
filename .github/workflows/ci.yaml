@@ -33,6 +33,8 @@ jobs:
             target: x86_64-pc-windows-gnu
     name: Check ${{ matrix.name }}
     runs-on: ubuntu-latest
+    needs:
+      - check-formatting
     steps:
       - name: Checkout
         uses: actions/checkout@v3
