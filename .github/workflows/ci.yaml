@@ -24,19 +24,24 @@ jobs:
     name: Review PR
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
+      - name: Approve PR
+        if: ${{ success() }}
+        uses: actions/github-script@v7
         with:
           script: |
-            if (${{ success() }} == true) {
-              await github.rest.pulls.createReview({
-                ...context.repo,
-                pull_number: context.issue.number,
-                event: 'APPROVE',
-              });
-            } else {
-              await github.rest.pulls.createReview({
-                ...context.repo,
-                pull_number: context.issue.number,
-                event: 'REQUEST_CHANGES',
-                body: 'TBD',
-              });
+            await github.rest.pulls.createReview({
+              ...context.repo,
+              pull_number: context.issue.number,
+              event: 'APPROVE',
+            });
+      - name: Request changes
+        if: ${{ failure() }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.createReview({
+              ...context.repo,
+              pull_number: context.issue.number,
+              event: 'REQUEST_CHANGES',
+              body: 'TBD',
+            });
