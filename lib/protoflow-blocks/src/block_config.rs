@@ -56,10 +56,12 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                 }
 
                 #[cfg(feature = "std")]
-                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile" | "WriteStderr"
-                | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
-                    .map(BlockConfig::Sys)
-                    .unwrap(),
+                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadSocket" | "ReadStdin" | "WriteFile"
+                | "WriteSocket" | "WriteStderr" | "WriteStdout" => {
+                    SysBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Sys)
+                        .unwrap()
+                }
 
                 "ConcatStrings" | "DecodeCSV" | "EncodeCSV" | "SplitString" => {
                     TextBlockConfig::deserialize(value.clone())

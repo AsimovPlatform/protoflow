@@ -75,8 +75,10 @@ pub fn build_stdio_system(
         "ReadDir" => ReadDir::build_system(config)?,
         "ReadEnv" => ReadEnv::<String>::build_system(config)?,
         "ReadFile" => ReadFile::build_system(config)?,
+        "ReadSocket" => ReadSocket::build_system(config)?,
         "ReadStdin" => ReadStdin::build_system(config)?,
         "WriteFile" => WriteFile::build_system(config)?,
+        "WriteSocket" => WriteSocket::build_system(config)?,
         "WriteStderr" => WriteStderr::build_system(config)?,
         "WriteStdout" => WriteStdout::build_system(config)?,
         // TextBlocks

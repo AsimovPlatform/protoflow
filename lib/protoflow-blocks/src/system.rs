@@ -7,8 +7,8 @@ use crate::{
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
     DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks,
-    TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
+    SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -224,12 +224,20 @@ impl SysBlocks for System {
         self.0.block(ReadFile::with_system(self))
     }
 
+    fn read_socket(&mut self) -> ReadSocket {
+        self.0.block(ReadSocket::with_system(self, None))
+    }
+
     fn read_stdin(&mut self) -> ReadStdin {
         self.0.block(ReadStdin::with_system(self, None))
     }
 
     fn write_file(&mut self) -> WriteFile {
         self.0.block(WriteFile::with_system(self, None))
+    }
+
+    fn write_socket(&mut self) -> WriteSocket {
+        self.0.block(WriteSocket::with_system(self, None))
     }
 
     fn write_stderr(&mut self) -> WriteStderr {

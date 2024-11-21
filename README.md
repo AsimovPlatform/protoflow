@@ -131,9 +131,11 @@ The built-in blocks provided by Protoflow are listed below:
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
 | [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
 | [`ReadFile`]      | Reads bytes from the contents of a file.                                                                                       |
+| [`ReadSocket`]    | Reads bytes from a TCP socket.                                                                                                 |
 | [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                                   |
 | [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                                                |
 | [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                                             |
+| [`WriteSocket`]   | Writes bytes to a TCP socket                                                                                                   |
 | [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                                   |
 | [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                                  |
 
@@ -576,6 +578,26 @@ block-beta
 protoflow execute ReadFile path=/tmp/file.txt
 ```
 
+#### [`ReadSocket`]
+
+A block that reads bytes from a TCP socket.
+
+```mermaid
+block-beta
+    columns 4
+    ReadSocket space:2 Sink
+    ReadSocket-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadSocket block
+    class Sink hidden
+```
+
+```bash
+protoflow execute ReadSocket connection=tcp://127.0.0.1:7077 buffer_size=1024
+```
+
 #### [`ReadStdin`]
 
 A block that reads bytes from standard input (aka stdin).
@@ -641,6 +663,26 @@ block-beta
 
 ```bash
 protoflow execute WriteFile path=/tmp/file.txt
+```
+
+#### [`WriteSocket`]
+
+A block that writes bytes to TCP socket.
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 WriteSocket
+    Source-- "input" -->WriteSocket
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class WriteSocket block
+    class Source hidden
+```
+
+```bash
+protoflow execute WriteSocket connection=tcp://127.0.0.1:7077 buffer_size=1024
 ```
 
 #### [`WriteStderr`]
@@ -771,9 +813,11 @@ To add a new block type implementation, make sure to examine and amend:
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
 [`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadFile.html
+[`ReadSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadSocket.html
 [`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
 [`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
+[`WriteSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteSocket.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
 
