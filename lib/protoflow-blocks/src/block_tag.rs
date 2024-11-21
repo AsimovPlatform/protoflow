@@ -19,7 +19,12 @@ pub enum BlockTag {
     Random,
     // FlowBlocks
     // HashBlocks
-    #[cfg(feature = "hash")]
+    #[cfg(any(
+        feature = "hash-blake3",
+        feature = "hash-md5",
+        feature = "hash-sha1",
+        feature = "hash-sha2"
+    ))]
     Hash,
     // IoBlocks
     Decode,
@@ -73,7 +78,12 @@ impl BlockTag {
             Delay => "Delay",
             Drop => "Drop",
             Random => "Random",
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash => "Hash",
             Decode => "Decode",
             DecodeHex => "DecodeHex",
@@ -119,7 +129,12 @@ impl FromStr for BlockTag {
             "Delay" => Delay,
             "Drop" => Drop,
             "Random" => Random,
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             "Hash" => Hash,
             "Decode" => Decode,
             "DecodeHex" => DecodeHex,
@@ -176,7 +191,12 @@ impl BlockInstantiation for BlockTag {
             Delay => Box::new(super::Delay::<Any>::with_system(system, None)),
             Drop => Box::new(super::Drop::<Any>::with_system(system)),
             Random => Box::new(super::Random::<u64>::with_system(system, None)),
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash => Box::new(super::Hash::with_system(system, None)),
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
             DecodeHex => Box::new(super::DecodeHex::with_system(system)),
