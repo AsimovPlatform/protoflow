@@ -17,7 +17,7 @@ publish.workspace = true
 [features]
 default = ["all", "std"]
 all = ["hash", "rand", "serde", "sysml", "tracing"]
-hash = ["dep:blake3"]
+hash = ["dep:blake3", "dep:sha2", "dep:sha1", "dep:md-5"]
 rand = ["protoflow-core/rand"]
 std = [
     "blake3?/std",
@@ -43,6 +43,9 @@ cfg_aliases.workspace = true
 
 [dependencies]
 blake3 = { version = "1.5", default-features = false, optional = true }
+sha2 = { version = "0.10.8", default-features = false, optional = true }
+sha1 = { version = "0.10.6", default-features = false, optional = true }
+md-5 = { version = "0.10.6", default-features = false, optional = true }
 duration-str = { version = "0.11", default-features = false }
 enum-iterator = "2.1"
 protoflow-core.workspace = true

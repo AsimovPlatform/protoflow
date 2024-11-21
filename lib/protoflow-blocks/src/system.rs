@@ -168,6 +168,21 @@ impl HashBlocks for System {
         self.0
             .block(Hash::with_system(self, Some(HashAlgorithm::BLAKE3)))
     }
+
+    fn hash_sha256(&mut self) -> Hash {
+        self.0
+            .block(Hash::with_system(self, Some(HashAlgorithm::SHA256)))
+    }
+
+    fn hash_sha1(&mut self) -> Hash {
+        self.0
+            .block(Hash::with_system(self, Some(HashAlgorithm::SHA1)))
+    }
+
+    fn hash_md5(&mut self) -> Hash {
+        self.0
+            .block(Hash::with_system(self, Some(HashAlgorithm::MD5)))
+    }
 }
 
 impl IoBlocks for System {

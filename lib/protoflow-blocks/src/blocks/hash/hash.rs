@@ -1,11 +1,10 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    prelude::{vec, Bytes},
+    prelude::{vec, Bytes, BytesMut},
     types::HashAlgorithm,
     StdioConfig, StdioError, StdioSystem, System,
 };
-use blake3::Hasher;
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort, Port, PortError};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -58,13 +57,13 @@ pub struct Hash {
     #[output]
     pub hash: OutputPort<Bytes>,
 
-    /// A configuration parameter for which algorithm to use.
+    /// A configuration parameter for which algorithm to use.[blake3, sha256, sha1, md5]
     #[parameter]
     pub algorithm: HashAlgorithm,
 
     /// The internal state for computing the hash.
     #[state]
-    hasher: Hasher,
+    buffer: BytesMut, // Buffer,
 }
 
 impl Hash {
@@ -87,7 +86,7 @@ impl Hash {
             output,
             hash,
             algorithm: algorithm.unwrap_or_default(),
-            hasher: Hasher::new(),
+            buffer: BytesMut::new(),
         }
     }
 
@@ -100,7 +99,7 @@ impl Hash {
 impl Block for Hash {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
-            self.hasher.update(&message);
+            self.buffer.extend_from_slice(&message);
 
             if self.output.is_connected() {
                 self.output.send(&message)?;
@@ -112,7 +111,8 @@ impl Block for Hash {
 
         runtime.wait_for(&self.hash)?;
 
-        let hash = Bytes::from(self.hasher.finalize().as_bytes().to_vec());
+        let hash = Bytes::from(self.algorithm.compute_hash(&self.buffer));
+        self.buffer.clear();
         match self.hash.send(&hash) {
             Ok(()) => {}
             Err(PortError::Closed | PortError::Disconnected) => {
@@ -128,14 +128,14 @@ impl Block for Hash {
 #[cfg(feature = "std")]
 impl StdioSystem for Hash {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{HashBlocks, IoBlocks, SystemBuilding};
+        use crate::{IoBlocks, SystemBuilding};
 
-        // TODO: parse the algorithm parameter
         config.allow_only(vec!["algorithm"])?;
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
-            let hasher = s.hash_blake3();
+            let hash_algorithm = config.get::<HashAlgorithm>("algorithm").unwrap_or_default();
+            let hasher = Hash::with_system(&s, Some(hash_algorithm));
             let hex_encoder = s.encode_hex();
             let stdout = config.write_stdout(s);
             s.connect(&stdin.output, &hasher.input);

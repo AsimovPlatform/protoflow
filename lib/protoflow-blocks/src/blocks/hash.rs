@@ -17,6 +17,9 @@ pub mod hash {
 
     pub trait HashBlocks {
         fn hash_blake3(&mut self) -> Hash;
+        fn hash_sha256(&mut self) -> Hash;
+        fn hash_sha1(&mut self) -> Hash;
+        fn hash_md5(&mut self) -> Hash;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
