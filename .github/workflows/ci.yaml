@@ -45,7 +45,7 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Check formatting
         id: formatting
-        run: cargo +1.80.0-${{ matrix.target }} fmt --all -- --check 2>/dev/null
+        run: cargo +1.80.0-${{ matrix.target }} fmt --all -- --check
       - name: Check binaries
         id: bins
         run: cargo +1.80.0-${{ matrix.target }} check --workspace --bins
