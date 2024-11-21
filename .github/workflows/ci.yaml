@@ -52,13 +52,13 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Check binaries
         id: bins
-        run: cargo +1.80.0-${{ matrix.target }} check --workspace --bins
+        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --bins
       - name: Check tests
         id: tests
-        run: cargo +1.80.0-${{ matrix.target }} check --workspace --tests
+        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --tests
       - name: Check examples
         id: examples
-        run: cargo +1.80.0-${{ matrix.target }} check --workspace --examples
+        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
   review-pr:
     name: Review PR
     runs-on: ubuntu-latest
