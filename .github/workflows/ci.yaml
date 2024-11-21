@@ -1,6 +1,6 @@
 # See: https://docs.github.com/en/actions/writing-workflows
 ---
-name: Release
+name: CI
 
 on:
   pull_request:
