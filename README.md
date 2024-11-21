@@ -281,7 +281,6 @@ A block that decodes a hexadecimal byte stream into bytes
 ```mermaid
 block-beta
     columns 7
-    +++
     Source space:2 DecodeHex space:2 Sink
     Source-- "input" -->DecodeHex
     DecodeHex-- "output" -->Sink
