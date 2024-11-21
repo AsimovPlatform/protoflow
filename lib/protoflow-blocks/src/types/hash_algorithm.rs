@@ -136,10 +136,8 @@ impl Hasher for Md5 {
     }
 }
 
-#[cfg(feature = "hash")]
 pub struct HasherFactory;
 
-#[cfg(feature = "hash")]
 impl HasherFactory {
     pub fn new(algorithm: HashAlgorithm) -> Box<dyn Hasher> {
         use HashAlgorithm::*;

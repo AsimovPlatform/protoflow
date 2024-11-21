@@ -1,12 +1,22 @@
 // This is free and unencumbered software released into the public domain.
 
-#[cfg(not(feature = "hash"))]
+#[cfg(not(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+)))]
 pub mod hash {
     pub trait HashBlocks {}
     pub enum HashBlockConfig {}
 }
 
-#[cfg(feature = "hash")]
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
 pub mod hash {
     use super::{
         prelude::{vec, Box, Cow, Named, Vec},

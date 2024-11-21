@@ -61,7 +61,12 @@ pub fn build_stdio_system(
         "Random" => Random::<u64>::build_system(config)?,
         // FlowBlocks
         // HashBlocks
-        #[cfg(feature = "hash")]
+        #[cfg(any(
+            feature = "hash-blake3",
+            feature = "hash-md5",
+            feature = "hash-sha1",
+            feature = "hash-sha2"
+        ))]
         "Hash" => Hash::build_system(config)?,
         // IoBlocks
         "Decode" => Decode::build_system(config)?,
