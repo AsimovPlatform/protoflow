@@ -23,6 +23,7 @@ jobs:
   review-pr:
     name: Review PR
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     needs:
       - check-formatting
     permissions:
