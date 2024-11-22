@@ -67,7 +67,7 @@ jobs:
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
       - name: Run tests
         id: run-tests
-        if: ${{ steps.check-tests.outcome == 'success' }}
+        if: ${{ steps.check-tests.conclusion == 'success' }}
         run: cargo +1.80.0 test --target ${{ matrix.target }} --workspace --no-fail-fast
       - name: Obtain job id
         id: obtain-job-id
