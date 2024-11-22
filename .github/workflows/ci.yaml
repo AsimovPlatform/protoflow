@@ -114,7 +114,7 @@ jobs:
                 return `${job_url}#step:${step_id}:0`;
               }
               
-              response = await github.rest.actions.getWorkflowRunAttempt({
+              response = await github.rest.actions.listJobsForWorkflowRunAttempt({
                 ...context.repo,
                 run_id: context.runId,
                 attempt_number: context.runAttempt || 1
