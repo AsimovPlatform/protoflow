@@ -121,8 +121,8 @@ The built-in blocks provided by Protoflow are listed below:
 | [`DecodeCSV`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
 | [`DecodeHex`]     | Decodes hexadecimal stream to byte stream.                                                                                     |
 | [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
-| [`Div`]           | Divides a running total by each number in the input stream sequentially.                                                       |
 | [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
+| [`Div`]           | Divides a running total by each number in the input stream sequentially.                                                       |
 | [`Drop`]          | Discards all messages it receives.                                                                                             |
 | [`Encode`]        | Encodes messages to a byte stream.                                                                                             |
 | [`EncodeCSV`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
@@ -346,28 +346,6 @@ block-beta
 protoflow execute DecodeJSON
 ```
 
-#### [`Div`]
-
-A block that divides a running total by each number in the input stream sequentially
-
-```mermaid
-block-beta
-    columns 7
-    Source space:2 Div space:2 Sink
-    Source-- "input" -->Div
-    Div-- "output" -->Sink
-
-    classDef block height:48px,padding:8px;
-    classDef hidden visibility:none;
-    class Div block
-    class Source hidden
-    class Sink hidden
-```
-
-```bash
-protoflow execute Div
-```
-
 #### [`Delay`]
 
 A block that passes messages through while delaying them by a fixed or random duration.
@@ -388,6 +366,28 @@ block-beta
 
 ```bash
 protoflow execute Delay fixed=2
+```
+
+#### [`Div`]
+
+A block that divides a running total by each number in the input stream sequentially
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Div space:2 Sink
+    Source-- "input" -->Div
+    Div-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Div block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Div
 ```
 
 #### [`Drop`]
