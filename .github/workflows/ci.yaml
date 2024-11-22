@@ -31,7 +31,7 @@ jobs:
           - name: Linux
             target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-          - name: MacOS
+          - name: macOS
             target: x86_64-apple-darwin
             os: macos-latest
           - name: Windows
