@@ -76,7 +76,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id}}/attempts/${{ github.run_attempt }}/jobs)
+          jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs)
           job_id=$(echo $jobs | jq -r '.jobs[] | select(.name | contains("${{ matrix.name }}")) | .id')
           echo "result=$job_id" >> $GITHUB_OUTPUT
   review-pr:
@@ -127,7 +127,7 @@ jobs:
               let response = await github.rest.actions.getWorkflowRunAttempt({
                 ...context.repo,
                 run_id: context.runId,
-                attempt_number: context.runAttempt
+                attempt_number: context.runAttempt || 1
               });
 
               let formatting_job = response.data.jobs.find(job => job.name.includes(FORMATTING_JOB_NAME));
