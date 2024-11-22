@@ -53,15 +53,15 @@ jobs:
           toolchain: 1.80.0
           components: rustfmt
           targets: ${{ matrix.target }}
-      - name: Check binaries
+      - name: Build binaries
         id: check-bins
         continue-on-error: true
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --bins
-      - name: Check tests
+      - name: Build tests
         id: check-tests
         continue-on-error: true
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --tests
-      - name: Check examples
+      - name: Build examples
         id: check-examples
         continue-on-error: true
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
