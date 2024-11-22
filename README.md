@@ -112,6 +112,7 @@ The built-in blocks provided by Protoflow are listed below:
 
 | Block             | Description                                                                                                                    |
 |:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
+| [`Add`]           | Adds each number in the input stream to a running total.                                                                       |
 | [`Buffer`]        | Stores all messages it receives.                                                                                               |
 | [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
 | [`Const`]         | Sends a constant value.                                                                                                        |
@@ -120,6 +121,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`DecodeCSV`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
 | [`DecodeHex`]     | Decodes hexadecimal stream to byte stream.                                                                                     |
 | [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
+| [`Div`]           | Divides a running total by each number in the input stream sequentially.                                                       |
 | [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
 | [`Drop`]          | Discards all messages it receives.                                                                                             |
 | [`Encode`]        | Encodes messages to a byte stream.                                                                                             |
@@ -127,6 +129,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
 | [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
 | [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
+| [`Mul`]           | Multiplies each number in the input stream with a running product.                                                             |
 | [`Random`]        | Generates and sends a random value.                                                                                            |
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
 | [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
@@ -134,10 +137,33 @@ The built-in blocks provided by Protoflow are listed below:
 | [`ReadSocket`]    | Reads bytes from a TCP socket.                                                                                                 |
 | [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                                   |
 | [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                                                |
+| [`Sub`]           | Subtracts each number in the input stream from a running total.                                                                |
 | [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                                             |
 | [`WriteSocket`]   | Writes bytes to a TCP socket                                                                                                   |
 | [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                                   |
 | [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                                  |
+
+#### [`Add`]
+
+A block that adds each number in the input stream to a running total
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Add space:2 Sink
+    Source-- "input" -->Add
+    Add-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Add block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Add
+```
 
 #### [`Buffer`]
 
@@ -320,6 +346,28 @@ block-beta
 protoflow execute DecodeJSON
 ```
 
+#### [`Div`]
+
+A block that divides a running total by each number in the input stream sequentially
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Div space:2 Sink
+    Source-- "input" -->Div
+    Div-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Div block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Div
+```
+
 #### [`Delay`]
 
 A block that passes messages through while delaying them by a fixed or random duration.
@@ -483,6 +531,28 @@ block-beta
 protoflow execute Hash algorithm=blake3
 ```
 
+#### [`Mul`]
+
+A block that multiplies each number in the input stream with a running product
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Mul space:2 Sink
+    Source-- "input" -->Mul
+    Mul-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Mul block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Mul
+```
+
 #### [`Random`]
 
 A block for generating and sending a random value.
@@ -640,6 +710,28 @@ block-beta
 protoflow execute SplitString delimiter=","
 ```
 
+#### [`Sub`]
+
+A block subtracts each number in the input stream from a running total
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Sub space:2 Sink
+    Source-- "input" -->Sub
+    Sub-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Sub block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Sub
+```
+
 #### [`WriteFile`]
 
 A block that writes or appends bytes to the contents of a file.
@@ -794,6 +886,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`echo_lines`]: lib/protoflow/examples/echo_lines
 [`examples`]: lib/protoflow/examples
 
+[`Add`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Add.html
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
 [`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
@@ -802,6 +895,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`DecodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
 [`DecodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeHex.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
+[`Div`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Div.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
@@ -809,6 +903,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
+[`Mul`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Mul.html
 [`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
@@ -816,6 +911,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`ReadSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadSocket.html
 [`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
 [`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html
+[`Sub`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Sub.html
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
 [`WriteSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteSocket.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
