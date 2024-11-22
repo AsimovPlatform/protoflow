@@ -135,7 +135,7 @@ jobs:
                         (VERBOSE || step.conclusion != 'success')) {
                       let name = step.name;
                       let succeed = step.conclusion == 'success' ? '✅' : '❌';
-                      let url = get_step_url(job.id, step.id);
+                      let url = get_step_url(job.id, step.number);
                       body += `| ${platform} | ${name} | ${succeed} | [Details](${url}) |\n`;
                     }
                   }
