@@ -92,17 +92,77 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            if (${{ needs.check-formatting.result == 'success' }}) {
+            let response = undefined;
+
+            function get_step_id(job_id, name) {
+              if (response == undefined) {
+              }
+              
+              return response.data.jobs
+                .find(job => job.id == job_id).steps
+                .find(step => step.name == name).id;
+            }
+
+            function get_job_url(job_id) {
+              return `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}/jobs/${job_id}?check_suite_focus=true`;
+            }
+            
+            function get_step_url(job_id, step_id) {
+              let job_url = get_job_url(job_id);
+              return `${job_url}#step:${step_id}:0`;
+            }
+            
+            if (${{ needs.check-formatting.result != 'success' }} ||
+                ${{ needs.check-targets.result != 'success' }}) {
+              let FORMATTING_JOB_NAME = 'Check formatting';
+              let VERBOSE = true;
+
+              let body = `
+                ## ⚠️ CI failed
+
+                | Platform | Name | Status | Details |
+                | --- | --- | --- | --- |
+              `;
+              
+              let response = await github.rest.actions.getWorkflowRunAttempt({
+                ...context.repo,
+                run_id: context.runId,
+                attempt_number: context.runAttempt
+              });
+
+              let formatting_job = response.data.jobs.find(job => job.name.includes(FORMATTING_JOB_NAME));
+              if (formatting_job != undefined && formatting_job.status != 'success') {
+                let succeed = formatting_job.status == 'success' ? '✅' : '❌';
+                let url = get_job_url(formatting_job.id);
+                body += `| | Formatting | ${succeed} | [Details](${url}) |\n`;
+              }
+
+              for (let job of response.data.jobs) {
+                if (job.name.startsWith('Check') && job.name != formatting_job.name &&
+                    (VERBOSE || job.status != 'success')) {
+                  let platform = job.name.split(' ')[1];
+                  for (let step of job.steps) {
+                    if (step.name.startsWith('Build ') || step.name.startsWith('Run ') &&
+                        (VERBOSE || step.status != 'success')) {
+                      let name = step.name;
+                      let succeed = step.status == 'success' ? '✅' : '❌';
+                      let url = get_step_url(job.id, step.id);
+                      body += `| ${platform} | ${name} | ${status} | [Details](${url}) |\n`;
+                    }
+                  }
+                }
+              }
+            
               await github.rest.pulls.createReview({
                 ...context.repo,
                 pull_number: context.issue.number,
-                event: 'APPROVE',
+                event: 'REQUEST_CHANGES',
+                body: body,
               });
             } else {
               await github.rest.pulls.createReview({
                 ...context.repo,
                 pull_number: context.issue.number,
-                event: 'REQUEST_CHANGES',
-                body: 'TBD',
+                event: 'APPROVE',
               });
             }
