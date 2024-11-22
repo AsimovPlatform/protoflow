@@ -95,7 +95,7 @@ jobs:
             if (${{ needs.check-formatting.result != 'success' }} ||
                 ${{ needs.check-targets.result != 'success' }}) {
               let FORMATTING_JOB_NAME = 'Check formatting';
-              let VERBOSE = true;
+              let VERBOSE = false;
               let response = undefined;
 
               let body = `
