@@ -895,8 +895,8 @@ To add a new block type implementation, make sure to examine and amend:
 [`DecodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
 [`DecodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeHex.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
-[`Div`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Div.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
+[`Div`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Div.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
 [`EncodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeCsv.html
