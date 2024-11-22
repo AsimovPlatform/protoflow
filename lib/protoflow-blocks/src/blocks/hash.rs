@@ -1,12 +1,22 @@
 // This is free and unencumbered software released into the public domain.
 
-#[cfg(not(feature = "hash"))]
+#[cfg(not(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+)))]
 pub mod hash {
     pub trait HashBlocks {}
     pub enum HashBlockConfig {}
 }
 
-#[cfg(feature = "hash")]
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
 pub mod hash {
     use super::{
         prelude::{vec, Box, Cow, Named, Vec},
@@ -16,7 +26,19 @@ pub mod hash {
     use protoflow_core::Block;
 
     pub trait HashBlocks {
+        fn hash(&mut self, algorithm: HashAlgorithm) -> Hash;
+
+        #[cfg(feature = "hash-blake3")]
         fn hash_blake3(&mut self) -> Hash;
+
+        #[cfg(feature = "hash-md5")]
+        fn hash_md5(&mut self) -> Hash;
+
+        #[cfg(feature = "hash-sha1")]
+        fn hash_sha1(&mut self) -> Hash;
+
+        #[cfg(feature = "hash-sha2")]
+        fn hash_sha2(&mut self) -> Hash;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

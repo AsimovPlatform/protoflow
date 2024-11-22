@@ -5,17 +5,22 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeJson,
-    Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks, IoBlocks,
-    MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks, TextBlocks,
-    WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
+    DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
+    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
+    SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
     PortResult, Process, SystemBuilding, SystemExecution,
 };
 
-#[cfg(feature = "hash")]
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
 use crate::{types::HashAlgorithm, Hash};
 
 #[cfg(feature = "tokio")]
@@ -168,20 +173,53 @@ impl CoreBlocks for System {
 
 impl FlowBlocks for System {}
 
-#[cfg(not(feature = "hash"))]
+#[cfg(not(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+)))]
 impl HashBlocks for System {}
 
-#[cfg(feature = "hash")]
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
 impl HashBlocks for System {
+    fn hash(&mut self, algorithm: HashAlgorithm) -> Hash {
+        self.0.block(Hash::with_system(self, Some(algorithm)))
+    }
+
+    #[cfg(feature = "hash-blake3")]
     fn hash_blake3(&mut self) -> Hash {
-        self.0
-            .block(Hash::with_system(self, Some(HashAlgorithm::BLAKE3)))
+        self.hash(HashAlgorithm::BLAKE3)
+    }
+
+    #[cfg(feature = "hash-md5")]
+    fn hash_md5(&mut self) -> Hash {
+        self.hash(HashAlgorithm::MD5)
+    }
+
+    #[cfg(feature = "hash-sha1")]
+    fn hash_sha1(&mut self) -> Hash {
+        self.hash(HashAlgorithm::SHA1)
+    }
+
+    #[cfg(feature = "hash-sha2")]
+    fn hash_sha2(&mut self) -> Hash {
+        self.hash(HashAlgorithm::SHA256)
     }
 }
 
 impl IoBlocks for System {
     fn decode<T: Message + FromStr + 'static>(&mut self) -> Decode<T> {
         self.0.block(Decode::<T>::with_system(self, None))
+    }
+
+    fn decode_hex(&mut self) -> DecodeHex {
+        self.0.block(DecodeHex::with_system(self))
     }
 
     fn decode_json(&mut self) -> DecodeJson {
@@ -228,12 +266,20 @@ impl SysBlocks for System {
         self.0.block(ReadFile::with_system(self))
     }
 
+    fn read_socket(&mut self) -> ReadSocket {
+        self.0.block(ReadSocket::with_system(self, None))
+    }
+
     fn read_stdin(&mut self) -> ReadStdin {
         self.0.block(ReadStdin::with_system(self, None))
     }
 
     fn write_file(&mut self) -> WriteFile {
         self.0.block(WriteFile::with_system(self, None))
+    }
+
+    fn write_socket(&mut self) -> WriteSocket {
+        self.0.block(WriteSocket::with_system(self, None))
     }
 
     fn write_stderr(&mut self) -> WriteStderr {

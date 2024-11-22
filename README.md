@@ -118,6 +118,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
 | [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
 | [`DecodeCSV`]     | Decodes the received input bytes message into a structured CSV format, separating the header and rows as `prost_types::Value`. |
+| [`DecodeHex`]     | Decodes hexadecimal stream to byte stream.                                                                                     |
 | [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
 | [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
 | [`Drop`]          | Discards all messages it receives.                                                                                             |
@@ -130,9 +131,11 @@ The built-in blocks provided by Protoflow are listed below:
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
 | [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
 | [`ReadFile`]      | Reads bytes from the contents of a file.                                                                                       |
+| [`ReadSocket`]    | Reads bytes from a TCP socket.                                                                                                 |
 | [`ReadStdin`]     | Reads bytes from standard input (aka stdin).                                                                                   |
 | [`SplitString`]   | Splits the received input message, with an optional delimiter string parameter.                                                |
 | [`WriteFile`]     | Writes or appends bytes to the contents of a file.                                                                             |
+| [`WriteSocket`]   | Writes bytes to a TCP socket                                                                                                   |
 | [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                                   |
 | [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                                  |
 
@@ -271,6 +274,28 @@ block-beta
 
 ```bash
 protoflow execute DecodeCSV
+```
+
+#### [`DecodeHex`]
+
+A block that decodes a hexadecimal byte stream into bytes
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 DecodeHex space:2 Sink
+    Source-- "input" -->DecodeHex
+    DecodeHex-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class DecodeHex block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute DecodeHex
 ```
 
 #### [`DecodeJSON`]
@@ -553,6 +578,26 @@ block-beta
 protoflow execute ReadFile path=/tmp/file.txt
 ```
 
+#### [`ReadSocket`]
+
+A block that reads bytes from a TCP socket.
+
+```mermaid
+block-beta
+    columns 4
+    ReadSocket space:2 Sink
+    ReadSocket-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class ReadSocket block
+    class Sink hidden
+```
+
+```bash
+protoflow execute ReadSocket connection=tcp://127.0.0.1:7077 buffer_size=1024
+```
+
 #### [`ReadStdin`]
 
 A block that reads bytes from standard input (aka stdin).
@@ -618,6 +663,26 @@ block-beta
 
 ```bash
 protoflow execute WriteFile path=/tmp/file.txt
+```
+
+#### [`WriteSocket`]
+
+A block that writes bytes to TCP socket.
+
+```mermaid
+block-beta
+    columns 4
+    Source space:2 WriteSocket
+    Source-- "input" -->WriteSocket
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class WriteSocket block
+    class Source hidden
+```
+
+```bash
+protoflow execute WriteSocket connection=tcp://127.0.0.1:7077 buffer_size=1024
 ```
 
 #### [`WriteStderr`]
@@ -735,6 +800,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
 [`Decode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Decode.html
 [`DecodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeCsv.html
+[`DecodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeHex.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
@@ -747,9 +813,11 @@ To add a new block type implementation, make sure to examine and amend:
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
 [`ReadFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadFile.html
+[`ReadSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadSocket.html
 [`ReadStdin`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadStdin.html
 [`SplitString`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.SplitString.html
 [`WriteFile`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteFile.html
+[`WriteSocket`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteSocket.html
 [`WriteStderr`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStderr.html
 [`WriteStdout`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.WriteStdout.html
 
