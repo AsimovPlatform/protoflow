@@ -80,7 +80,6 @@ impl BlockTag {
             Drop => "Drop",
             Random => "Random",
             Split => "Split",
-            #[cfg(feature = "hash")]
             #[cfg(any(
                 feature = "hash-blake3",
                 feature = "hash-md5",
@@ -133,7 +132,6 @@ impl FromStr for BlockTag {
             "Drop" => Drop,
             "Random" => Random,
             "Split" => Split,
-            #[cfg(feature = "hash")]
             #[cfg(any(
                 feature = "hash-blake3",
                 feature = "hash-md5",
@@ -197,7 +195,6 @@ impl BlockInstantiation for BlockTag {
             Drop => Box::new(super::Drop::<Any>::with_system(system)),
             Random => Box::new(super::Random::<u64>::with_system(system, None)),
             Split => Box::new(super::Split::<Any>::with_system(system)),
-            #[cfg(feature = "hash")]
             #[cfg(any(
                 feature = "hash-blake3",
                 feature = "hash-md5",
