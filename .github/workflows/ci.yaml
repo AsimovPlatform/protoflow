@@ -55,15 +55,15 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Build binaries
         id: check-bins
-        continue-on-error: true
+        if: ${{ always() }}
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --bins
       - name: Build tests
         id: check-tests
-        continue-on-error: true
+        if: ${{ always() }}
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --tests
       - name: Build examples
         id: check-examples
-        continue-on-error: true
+        if: ${{ always() }}
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
       - name: Run tests
         id: run-tests
