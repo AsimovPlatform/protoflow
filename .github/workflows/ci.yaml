@@ -123,7 +123,7 @@ jobs:
               if (formatting_job != undefined && (VERBOSE || formatting_job.conclusion != 'success')) {
                 let succeed = formatting_job.conclusion == 'success' ? '✅' : '❌';
                 let url = get_job_url(formatting_job.id);
-                body += `| | Formatting | ${succeed} | [Details](${url}) |\n`;
+                body += `| All | Formatting | ${succeed} | [Details](${url}) |\n`;
               }
 
               for (let job of response.data.jobs) {
