@@ -99,11 +99,10 @@ jobs:
               let response = undefined;
 
               let body = `
-                ## ⚠️ CI failed
+            ## ⚠️ CI failed
 
-                | Platform | Name | Status | Details |
-                | --- | --- | --- | --- |
-              `;
+            | Platform | Name | Status | Details |
+            | --- | --- | --- | --- |`;
 
               function get_job_url(job_id) {
                 return `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}/jobs/${job_id}?check_suite_focus=true`;
