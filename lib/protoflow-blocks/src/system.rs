@@ -7,8 +7,8 @@ use crate::{
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
     DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
-    SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
+    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, Split,
+    SplitString, SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -158,7 +158,11 @@ impl CoreBlocks for System {
     }
 }
 
-impl FlowBlocks for System {}
+impl FlowBlocks for System {
+    fn split<T: Message + Into<T> + 'static>(&mut self) -> Split<T> {
+        self.0.block(Split::<T>::with_system(self))
+    }
+}
 
 #[cfg(not(feature = "hash"))]
 impl HashBlocks for System {}
