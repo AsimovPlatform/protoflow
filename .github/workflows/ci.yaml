@@ -54,14 +54,17 @@ jobs:
           components: rustfmt
           targets: ${{ matrix.target }}
       - name: Check binaries
-        id: bins
+        id: check-bins
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --bins
       - name: Check tests
-        id: tests
+        id: check-tests
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --tests
       - name: Check examples
-        id: examples
+        id: check-examples
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
+      - name: Run tests
+        id: run-tests
+        run: cargo +1.80.0 test --target ${{ matrix.target }} --workspace --no-fail-fast
   review-pr:
     name: Review PR
     runs-on: ubuntu-latest
