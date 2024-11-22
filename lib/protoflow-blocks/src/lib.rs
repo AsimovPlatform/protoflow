@@ -62,7 +62,12 @@ pub fn build_stdio_system(
         // FlowBlocks
         "Split" => Split::<String>::build_system(config)?,
         // HashBlocks
-        #[cfg(feature = "hash")]
+        #[cfg(any(
+            feature = "hash-blake3",
+            feature = "hash-md5",
+            feature = "hash-sha1",
+            feature = "hash-sha2"
+        ))]
         "Hash" => Hash::build_system(config)?,
         // IoBlocks
         "Decode" => Decode::build_system(config)?,

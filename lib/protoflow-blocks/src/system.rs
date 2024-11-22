@@ -15,7 +15,12 @@ use protoflow_core::{
     PortResult, Process, SystemBuilding, SystemExecution,
 };
 
-#[cfg(feature = "hash")]
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
 use crate::{types::HashAlgorithm, Hash};
 
 #[cfg(feature = "tokio")]
@@ -164,14 +169,43 @@ impl FlowBlocks for System {
     }
 }
 
-#[cfg(not(feature = "hash"))]
+#[cfg(not(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+)))]
 impl HashBlocks for System {}
 
-#[cfg(feature = "hash")]
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
 impl HashBlocks for System {
+    fn hash(&mut self, algorithm: HashAlgorithm) -> Hash {
+        self.0.block(Hash::with_system(self, Some(algorithm)))
+    }
+
+    #[cfg(feature = "hash-blake3")]
     fn hash_blake3(&mut self) -> Hash {
-        self.0
-            .block(Hash::with_system(self, Some(HashAlgorithm::BLAKE3)))
+        self.hash(HashAlgorithm::BLAKE3)
+    }
+
+    #[cfg(feature = "hash-md5")]
+    fn hash_md5(&mut self) -> Hash {
+        self.hash(HashAlgorithm::MD5)
+    }
+
+    #[cfg(feature = "hash-sha1")]
+    fn hash_sha1(&mut self) -> Hash {
+        self.hash(HashAlgorithm::SHA1)
+    }
+
+    #[cfg(feature = "hash-sha2")]
+    fn hash_sha2(&mut self) -> Hash {
+        self.hash(HashAlgorithm::SHA256)
     }
 }
 
