@@ -105,7 +105,7 @@ jobs:
             | --- | --- | --- | --- |\n`;
 
               function get_job_url(job_id) {
-                return `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}/jobs/${job_id}?check_suite_focus=true`;
+                return `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}/job/${job_id}?check_suite_focus=true`;
               }
               
               function get_step_url(job_id, step_id) {
