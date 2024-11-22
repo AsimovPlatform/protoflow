@@ -27,7 +27,19 @@ use simple_mermaid::mermaid;
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
-///     // TODO
+///     let config = StdioConfig {
+///         encoding: Default::default(),
+///         params: Default::default(),
+///     };
+///     let input = s.read_stdin();
+///     let decode = s.decode_with::<f64>(config.encoding);
+///     let mul = s.mul();
+///     let encode = s.encode_with::<f64>(config.encoding);
+///     let output = config.write_stdout(s);
+///     s.connect(&input.output, &decode.input);
+///     s.connect(&decode.output, &mul.input);
+///     s.connect(&mul.output, &encode.input);
+///     s.connect(&encode.output, &output.input);
 /// });
 /// # }
 /// ```
@@ -61,10 +73,15 @@ impl Mul {
 
 impl Block for Mul {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let mut product = 1.0;
+        let mut product = None;
         while let Some(input) = self.input.recv()? {
-            product *= input;
-            self.output.send(&product)?;
+            let res = match product {
+                None => input,
+                Some(current_product) => current_product * input,
+            };
+
+            product = Some(res);
+            self.output.send(&res)?;
         }
 
         Ok(())
@@ -74,10 +91,21 @@ impl Block for Mul {
 #[cfg(feature = "std")]
 impl StdioSystem for Mul {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{MathBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
         config.reject_any()?;
 
-        Ok(System::build(|_s| { todo!() }))
+        Ok(System::build(|s| {
+            let input = s.read_stdin();
+            let decode = s.decode_with::<f64>(config.encoding);
+            let mul = s.mul();
+            let encode = s.encode_with::<f64>(config.encoding);
+            let output = config.write_stdout(s);
+            s.connect(&input.output, &decode.input);
+            s.connect(&decode.output, &mul.input);
+            s.connect(&mul.output, &encode.input);
+            s.connect(&encode.output, &output.input);
+        }))
     }
 }
 

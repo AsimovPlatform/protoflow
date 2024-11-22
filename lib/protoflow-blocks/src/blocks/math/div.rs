@@ -23,11 +23,23 @@ use simple_mermaid::mermaid;
 ///
 /// ## Using the block in a system
 ///
-/// ```no_run
+/// ```rust
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
-///     // TODO
+///     let config = StdioConfig {
+///         encoding: Default::default(),
+///         params: Default::default(),
+///     };
+///     let input = s.read_stdin();
+///     let decode = s.decode_with::<f64>(config.encoding);
+///     let div = s.div();
+///     let encode = s.encode_with::<f64>(config.encoding);
+///     let output = config.write_stdout(s);
+///     s.connect(&input.output, &decode.input);
+///     s.connect(&decode.output, &div.input);
+///     s.connect(&div.output, &encode.input);
+///     s.connect(&encode.output, &output.input);
 /// });
 /// # }
 /// ```
@@ -61,13 +73,21 @@ impl Div {
 
 impl Block for Div {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let mut quotient = 1.0; // Initialize to 1.0 for division
+        let mut result = None;
         while let Some(input) = self.input.recv()? {
-            if input == 0.0 {
-                return Err(BlockError::Other("Divide by zero".into()));
-            }
-            quotient /= input; // Divide the running total by the input
-            self.output.send(&quotient)?;
+            let res = match result {
+                None => input,
+                Some(current_result) => {
+                    if input == 0.0 {
+                        return Err(BlockError::Other("Division by zero".into()));
+                    }
+
+                    current_result / input
+                },
+            };
+
+            result = Some(res);
+            self.output.send(&res)?;
         }
 
         Ok(())
@@ -77,10 +97,21 @@ impl Block for Div {
 #[cfg(feature = "std")]
 impl StdioSystem for Div {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{MathBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
         config.reject_any()?;
 
-        Ok(System::build(|_s| { todo!() }))
+        Ok(System::build(|s| {
+            let input = s.read_stdin();
+            let decode = s.decode_with::<f64>(config.encoding);
+            let div = s.div();
+            let encode = s.encode_with::<f64>(config.encoding);
+            let output = config.write_stdout(s);
+            s.connect(&input.output, &decode.input);
+            s.connect(&decode.output, &div.input);
+            s.connect(&div.output, &encode.input);
+            s.connect(&encode.output, &output.input);
+        }))
     }
 }
 

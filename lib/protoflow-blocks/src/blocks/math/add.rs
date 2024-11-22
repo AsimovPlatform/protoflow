@@ -23,11 +23,23 @@ use simple_mermaid::mermaid;
 ///
 /// ## Using the block in a system
 ///
-/// ```no_run
+/// ```rust
 /// # use protoflow_blocks::*;
 /// # fn main() {
 /// System::build(|s| {
-///     // TODO
+///     let config = StdioConfig {
+///         encoding: Default::default(),
+///         params: Default::default(),
+///     };
+///     let input = s.read_stdin();
+///     let decode = s.decode_with::<f64>(config.encoding);
+///     let add = s.add();
+///     let encode = s.encode_with::<f64>(config.encoding);
+///     let output = config.write_stdout(s);
+///     s.connect(&input.output, &decode.input);
+///     s.connect(&decode.output, &add.input);
+///     s.connect(&add.output, &encode.input);
+///     s.connect(&encode.output, &output.input);
 /// });
 /// # }
 /// ```
@@ -61,10 +73,15 @@ impl Add {
 
 impl Block for Add {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let mut sum = 0.0;
+        let mut result = None;
         while let Some(input) = self.input.recv()? {
-            sum += input;
-            self.output.send(&sum)?;
+            let res = match result {
+                None => input,
+                Some(current_result) => current_result + input,
+            };
+
+            result = Some(res);
+            self.output.send(&res)?;
         }
 
         Ok(())
@@ -74,10 +91,21 @@ impl Block for Add {
 #[cfg(feature = "std")]
 impl StdioSystem for Add {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
+        use crate::{MathBlocks, IoBlocks, SysBlocks, SystemBuilding};
 
         config.reject_any()?;
 
-        Ok(System::build(|_s| { todo!() }))
+        Ok(System::build(|s| {
+            let input = s.read_stdin();
+            let decode = s.decode_with::<f64>(config.encoding);
+            let add = s.add();
+            let encode = s.encode_with::<f64>(config.encoding);
+            let output = config.write_stdout(s);
+            s.connect(&input.output, &decode.input);
+            s.connect(&decode.output, &add.input);
+            s.connect(&add.output, &encode.input);
+            s.connect(&encode.output, &output.input);
+        }))
     }
 }
 
