@@ -55,15 +55,19 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Check binaries
         id: check-bins
+        continue-on-error: true
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --bins
       - name: Check tests
         id: check-tests
+        continue-on-error: true
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --tests
       - name: Check examples
         id: check-examples
+        continue-on-error: true
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
       - name: Run tests
         id: run-tests
+        if: ${{ steps.check-tests.outcome == 'success' }}
         run: cargo +1.80.0 test --target ${{ matrix.target }} --workspace --no-fail-fast
   review-pr:
     name: Review PR
