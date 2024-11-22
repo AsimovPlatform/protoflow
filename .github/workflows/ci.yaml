@@ -120,7 +120,7 @@ jobs:
               });
 
               let formatting_job = response.data.jobs.find(job => job.name.includes(FORMATTING_JOB_NAME));
-              if (formatting_job != undefined && (VERBOSE || formatting_job.conclusion != 'success')) {
+              if (formatting_job != undefined && (VERBOSE || formatting_job.conclusion == 'failure')) {
                 let succeed = formatting_job.conclusion == 'success' ? '✅' : '❌';
                 let url = get_job_url(formatting_job.id);
                 body += `| All | Formatting | ${succeed} | [Details](${url}) |\n`;
@@ -128,11 +128,11 @@ jobs:
 
               for (let job of response.data.jobs) {
                 if (job.name.startsWith('Check') && job.name != formatting_job.name &&
-                    (VERBOSE || job.conclusion != 'success')) {
+                    (VERBOSE || job.conclusion == 'failure')) {
                   let platform = job.name.split(' ')[1];
                   for (let step of job.steps) {
                     if (step.name.startsWith('Build ') || step.name.startsWith('Run ') &&
-                        (VERBOSE || step.conclusion != 'success')) {
+                        (VERBOSE || step.conclusion == 'failure')) {
                       let name = step.name;
                       let succeed = step.conclusion == 'success' ? '✅' : '❌';
                       let url = get_step_url(job.id, step.number);
