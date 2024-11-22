@@ -72,6 +72,8 @@ jobs:
       - name: Obtain job id
         id: obtain-job-id
         if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id}}/attempts/${{ github.run_attempt }}/jobs)
           job_id=$(echo $jobs | jq -r '.jobs[] | select(.name | contains("${{ matrix.name }}")) | .id')
