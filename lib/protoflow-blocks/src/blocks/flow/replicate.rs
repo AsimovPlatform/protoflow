@@ -102,7 +102,7 @@ impl<T: Message> StdioSystem for Replicate<T> {
 }
 
 #[cfg(test)]
-pub mod replicate_tests {
+mod replicate_tests {
     use crate::{CoreBlocks, FlowBlocks, SysBlocks, System};
     use protoflow_core::{prelude::String, SystemBuilding};
     use tracing::error;

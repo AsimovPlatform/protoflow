@@ -108,7 +108,7 @@ impl<T: Message> StdioSystem for Split<T> {
 }
 
 #[cfg(test)]
-pub mod split_tests {
+mod split_tests {
     use crate::{CoreBlocks, FlowBlocks, SysBlocks, System};
     use protoflow_core::prelude::String;
     use tracing::error;

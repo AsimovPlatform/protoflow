@@ -128,7 +128,7 @@ impl<T: Message> StdioSystem for Concat<T> {
 }
 
 #[cfg(test)]
-pub mod split_tests {
+mod split_tests {
     use crate::{Concat, CoreBlocks, FlowBlocks, StdioSystem, SysBlocks, System};
     use protoflow_core::prelude::String;
     use tracing::error;

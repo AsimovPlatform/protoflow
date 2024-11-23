@@ -124,7 +124,7 @@ mod tests {
 }
 
 #[cfg(test)]
-pub mod split_tests {
+mod split_tests {
     use bytes::Bytes;
     use tracing::error;
 
