@@ -18,6 +18,9 @@ pub enum BlockTag {
     Drop,
     Random,
     // FlowBlocks
+    Concat,
+    Replicate,
+    Sort,
     Split,
     // HashBlocks
     #[cfg(any(
@@ -74,13 +77,12 @@ impl BlockTag {
         use BlockTag::*;
         match self {
             Buffer => "Buffer",
+            Concat => "Concat",
             Const => "Const",
             Count => "Count",
             Delay => "Delay",
             Drop => "Drop",
             Random => "Random",
-            Split => "Split",
-            #[cfg(feature = "hash")]
             #[cfg(any(
                 feature = "hash-blake3",
                 feature = "hash-md5",
@@ -104,6 +106,9 @@ impl BlockTag {
             ReadSocket => "ReadSocket",
             #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
+            Replicate => "Replicate",
+            Sort => "Sort",
+            Split => "Split",
             #[cfg(feature = "std")]
             WriteFile => "WriteFile",
             #[cfg(feature = "std")]
@@ -127,13 +132,12 @@ impl FromStr for BlockTag {
         use BlockTag::*;
         Ok(match input {
             "Buffer" => Buffer,
+            "Concat" => Concat,
             "Const" => Const,
             "Count" => Count,
             "Delay" => Delay,
             "Drop" => Drop,
             "Random" => Random,
-            "Split" => Split,
-            #[cfg(feature = "hash")]
             #[cfg(any(
                 feature = "hash-blake3",
                 feature = "hash-md5",
@@ -157,6 +161,9 @@ impl FromStr for BlockTag {
             "ReadSocket" => ReadSocket,
             #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
+            "Replicate" => Replicate,
+            "Sort" => Sort,
+            "Split" => Split,
             #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
             #[cfg(feature = "std")]
@@ -191,13 +198,12 @@ impl BlockInstantiation for BlockTag {
         use BlockTag::*;
         match self {
             Buffer => Box::new(super::Buffer::<Any>::with_system(system)),
+            Concat => Box::new(super::Concat::<Any>::with_system(system)),
             Const => Box::new(super::Const::<String>::with_system(system, String::new())),
             Count => Box::new(super::Count::<Any>::with_system(system)),
             Delay => Box::new(super::Delay::<Any>::with_system(system, None)),
             Drop => Box::new(super::Drop::<Any>::with_system(system)),
             Random => Box::new(super::Random::<u64>::with_system(system, None)),
-            Split => Box::new(super::Split::<Any>::with_system(system)),
-            #[cfg(feature = "hash")]
             #[cfg(any(
                 feature = "hash-blake3",
                 feature = "hash-md5",
@@ -221,6 +227,9 @@ impl BlockInstantiation for BlockTag {
             ReadSocket => Box::new(super::ReadSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
+            Replicate => Box::new(super::Replicate::<Any>::with_system(system)),
+            Sort => Box::new(super::Sort::<Any>::with_system(system)),
+            Split => Box::new(super::Split::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
             #[cfg(feature = "std")]
