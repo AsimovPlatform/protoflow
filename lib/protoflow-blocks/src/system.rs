@@ -7,7 +7,7 @@ use crate::{
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
     DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
+    IoBlocks, MathBlocks, Random, RandomInt, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
     SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
@@ -160,6 +160,14 @@ impl CoreBlocks for System {
 
     fn random_seeded<T: Message + 'static>(&mut self, seed: Option<u64>) -> Random<T> {
         self.0.block(Random::<T>::with_system(self, seed))
+    }
+
+    fn random_int(&mut self) -> RandomInt {
+        self.0.block(RandomInt::with_system(self, None, None, None))
+    }
+
+    fn random_int_with_params(&mut self, seed: Option<u64>, min: Option<i64>, max: Option<i64>) -> RandomInt {
+        self.0.block(RandomInt::with_system(self, seed, min, max))
     }
 }
 
