@@ -9,18 +9,24 @@ pub use protoflow_core::prelude;
 extern crate std;
 
 use protoflow_core::{
-    prelude::{BTreeMap, Bytes, ToString},
+    prelude::{BTreeMap, Bytes, String, ToString},
     InputPortID, OutputPortID, PortError, PortResult, PortState, Transport,
 };
 
 use parking_lot::{Mutex, RwLock};
-use std::sync::mpsc::{Receiver, SyncSender};
+use std::{
+    fmt::{self, Write},
+    sync::mpsc::{Receiver, SyncSender},
+    write,
+};
 use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend};
 
 pub struct ZMQTransport {
+    tokio: tokio::runtime::Handle,
+
     psock: Mutex<zeromq::PubSocket>,
     ssock: Mutex<zeromq::SubSocket>,
-    tokio: tokio::runtime::Handle,
+
     outputs: BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>,
     inputs: BTreeMap<InputPortID, RwLock<ZmqInputPortState>>,
 }
@@ -41,11 +47,30 @@ enum ZmqInputPortState {
     Closed,
 }
 
+type SequenceID = u64;
+
 #[derive(Clone, Debug)]
 enum ZmqTransportEvent {
-    Connect,
-    Message(Bytes),
-    Disconnect,
+    Connect(OutputPortID, InputPortID),
+    AckConnection(OutputPortID, InputPortID),
+    Message(OutputPortID, InputPortID, SequenceID, Bytes),
+    AckMessage(OutputPortID, InputPortID, SequenceID),
+    CloseOutput(OutputPortID, InputPortID),
+    CloseInput(InputPortID),
+}
+
+impl ZmqTransportEvent {
+    fn write_topic<W: Write>(&self, f: &mut W) -> Result<(), fmt::Error> {
+        use ZmqTransportEvent::*;
+        match self {
+            Connect(o, i) => write!(f, "{}:conn:{}", i, o),
+            AckConnection(o, i) => write!(f, "{}:ackConn:{}", i, o),
+            Message(o, i, seq, _payload) => write!(f, "{}:msg:{}:{}", i, o, seq),
+            AckMessage(o, i, seq) => write!(f, "{}:ackMsg:{}:{}", i, o, seq),
+            CloseOutput(o, i) => write!(f, "{}:closeOut:{}", i, o),
+            CloseInput(i) => write!(f, "{}:closeIn", i),
+        }
+    }
 }
 
 impl ZMQTransport {
