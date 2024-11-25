@@ -77,12 +77,6 @@ impl ZMQTransport {
             Mutex::new(ssock)
         };
 
-        // let mut sock = zeromq::RouterSocket::with_options(sock_opts);
-        // tokio
-        //     .block_on(sock.connect(url))
-        //     .expect("failed to connect");
-        // let sock = Mutex::new(sock);
-
         let outputs = BTreeMap::default();
         let inputs = BTreeMap::default();
 
@@ -106,18 +100,11 @@ impl Transport for ZMQTransport {
     }
 
     fn open_input(&self) -> PortResult<InputPortID> {
-        let id = self.inputs.len() + 1;
-        InputPortID::try_from(id as isize).map_err(|e| PortError::Other(e.to_string()))
+        todo!();
     }
 
     fn open_output(&self) -> PortResult<OutputPortID> {
-        let id = self.inputs.len() + 1;
-        let id =
-            OutputPortID::try_from(id as isize).map_err(|e| PortError::Other(e.to_string()))?;
-        self.outputs
-            .insert(id, RwLock::new(ZmqOutputPortState::Open))
-            .unwrap();
-        Ok(id)
+        todo!();
     }
 
     fn close_input(&self, input: InputPortID) -> PortResult<bool> {
@@ -133,40 +120,11 @@ impl Transport for ZMQTransport {
     }
 
     fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()> {
-        let Some(output_state) = self.outputs.get(&output) else {
-            todo!();
-        };
-
-        use ZmqOutputPortState::*;
-        match *output_state.read() {
-            Open => todo!(),
-            Closed => todo!(),
-            Connected(ref sender) => {
-                let msg = ZmqTransportEvent::Message(message);
-                Ok(sender.send(msg).unwrap())
-            }
-        }
+        todo!();
     }
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
-        let Some(input_state) = self.inputs.get(&input) else {
-            todo!();
-        };
-
-        use ZmqInputPortState::*;
-        match *input_state.read() {
-            Open => todo!(),
-            Closed => todo!(),
-            Connected(ref receiver) => {
-                use ZmqTransportEvent::*;
-                let receiver = receiver.lock();
-                match receiver.recv().map_err(|_| PortError::Disconnected)? {
-                    Connect => todo!(),
-                    Disconnect => todo!(),
-                    Message(bytes) => Ok(Some(bytes)),
-                }
-            }
-        }
+        todo!();
     }
 
     fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
