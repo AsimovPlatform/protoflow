@@ -53,7 +53,7 @@ jobs:
           toolchain: 1.80.0
           components: rustfmt
           targets: ${{ matrix.target }}
-      - name: Buiild library
+      - name: Build library
         id: check-lib
         if: ${{ always() }}
         run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --lib
