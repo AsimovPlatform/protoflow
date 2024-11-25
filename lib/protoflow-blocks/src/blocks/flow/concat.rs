@@ -1,13 +1,15 @@
 // This is free and unencumbered software released into the public domain.
 extern crate std;
 
+use core::ops::DerefMut;
+
+use crate::prelude::{Arc, Vec};
 use crate::{FlowBlocks, StdioConfig, StdioError, StdioSystem, SysBlocks, System};
 use protoflow_core::{
     types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
-use std::sync::Arc;
 
 /// Divides a single input message stream into multiple output streams using a round-robin approach.
 ///
@@ -73,33 +75,37 @@ impl<T: Message + Send + 'static> Block for Concat<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
         runtime.wait_for(&self.output)?;
 
-        // Wrap inputs and outputs in Arc for shared ownership
+        let mut buffer1 = Vec::new();
+        let mut buffer2 = Vec::new();
+
         let input1 = Arc::new(self.input_1.clone());
         let input2 = Arc::new(self.input_2.clone());
-        let output = Arc::new(self.output.clone());
 
-        // Spawn thread for input1
         let input1_clone = Arc::clone(&input1);
-        let output_clone = Arc::clone(&output);
         let handle1 = std::thread::spawn(move || {
             while let Ok(Some(message)) = input1_clone.recv() {
-                output_clone.send(&message).unwrap();
+                buffer1.push(message);
             }
+            buffer1
         });
 
-        // Spawn thread for input2
         let input2_clone = Arc::clone(&input2);
-        let output_clone2 = Arc::clone(&output);
         let handle2 = std::thread::spawn(move || {
             while let Ok(Some(message)) = input2_clone.recv() {
-                output_clone2.send(&message).unwrap();
+                buffer2.push(message);
             }
+            buffer2
         });
 
-        // Wait for both threads to finish
-        handle1.join().unwrap();
-        handle2.join().unwrap();
+        let buffer1 = handle1.join().unwrap();
+        let buffer2 = handle2.join().unwrap();
 
+        let mut combined = buffer1;
+        combined.extend(buffer2);
+
+        for message in combined {
+            self.output.send(&message)?;
+        }
         Ok(())
     }
 }
