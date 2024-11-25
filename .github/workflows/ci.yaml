@@ -131,10 +131,7 @@ jobs:
                     (VERBOSE || job.conclusion == 'failure')) {
                   let platform = job.name.split(' ')[1];
                   for (let step of job.steps) {
-                    console.log('Step name: ', step.name);
-                    console.log('Step conclusion: ', step.conclusion);
-                    console.log('Step outcome: ', step.outcome);
-                    if (step.name.startsWith('Build ') || step.name.startsWith('Run ') &&
+                    if ((step.name.startsWith('Build ') || step.name.startsWith('Run ')) &&
                         (VERBOSE || step.conclusion == 'failure')) {
                       let name = step.name;
                       let icon = '';
