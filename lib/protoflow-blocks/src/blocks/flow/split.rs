@@ -45,10 +45,13 @@ pub struct Split<T: Message = Any> {
     /// The input message stream.
     #[input]
     pub input: InputPort<T>,
+    /// The output message stream
     #[output]
     pub output_1: OutputPort<T>,
+    /// The output message stream
     #[output]
     pub output_2: OutputPort<T>,
+    /// The internal state for keeping total number of messages
     #[state]
     pub message_count: u128,
 }
@@ -150,7 +153,6 @@ mod split_tests {
     #[test]
     #[ignore = "requires stdin"]
     fn run_split_to_stdout() {
-        //use super::*;
         use protoflow_core::SystemBuilding;
         if let Err(e) = System::run(|s| {
             let stdin = s.read_stdin();

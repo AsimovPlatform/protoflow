@@ -1,18 +1,19 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{StdioConfig, StdioError, StdioSystem, SysBlocks, System};
+use crate::{FlowBlocks, StdioConfig, StdioError, StdioSystem, SysBlocks, System};
 use protoflow_core::{
     types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
-/// Divides a single input message stream into multiple output streams using a round-robin approach.
+/// Duplicates a single input message stream into multiple identical output streams.
 ///
 /// # Block Diagram
-
+#[doc = mermaid!("../../../doc/flow/replicate.mmd")]
 ///
 /// # Sequence Diagram
-
+#[doc = mermaid!("../../../doc/flow/replicate.seq.mmd" framed)]
 ///
 /// # Examples
 ///
@@ -23,10 +24,13 @@ use protoflow_derive::Block;
 /// # fn main() {
 /// System::build(|s| {
 ///     let stdin = s.read_stdin();
+///
 ///     let replicate = s.replicate();
 ///     s.connect(&stdin.output, &replicate.input);
+///
 ///     let stdout_1 = s.write_stdout();
 ///     s.connect(&replicate.output_1, &stdout_1.input);
+///
 ///     let stdout_2 = s.write_stdout();
 ///     s.connect(&replicate.output_2, &stdout_2.input);
 /// });
@@ -89,7 +93,7 @@ impl<T: Message> StdioSystem for Replicate<T> {
         Ok(System::build(|s| {
             let stdin = s.read_stdin();
 
-            let replicate = s.block(Replicate::new(s.input(), s.output(), s.output()));
+            let replicate = s.replicate();
             s.connect(&stdin.output, &replicate.input);
 
             let stdout_1 = s.write_stdout();
@@ -103,64 +107,16 @@ impl<T: Message> StdioSystem for Replicate<T> {
 
 #[cfg(test)]
 mod replicate_tests {
-    use crate::{CoreBlocks, FlowBlocks, SysBlocks, System};
-    use protoflow_core::{prelude::String, SystemBuilding};
-    use tracing::error;
+    use crate::{FlowBlocks, System};
+    use protoflow_core::prelude::String;
 
-    use super::Replicate;
     extern crate std;
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(Replicate::new(s.input_any(), s.output(), s.output()));
+            let _ = s.replicate::<String>();
         });
-    }
-
-    #[test]
-    #[ignore = "requires stdin"]
-    fn run_replicate_stdout_and_file() {
-        use super::*;
-        use protoflow_core::SystemBuilding;
-        if let Err(e) = System::run(|s| {
-            let stdin = s.read_stdin();
-            let replicate = s.block(Replicate::new(s.input(), s.output_bytes(), s.output()));
-            s.connect(&stdin.output, &replicate.input);
-
-            let stdout_1 = s.write_stdout();
-            s.connect(&replicate.output_1, &stdout_1.input);
-
-            let file = s.const_string("text.txt");
-            let write_file = s.write_file().with_flags(crate::WriteFlags {
-                create: true,
-                append: true,
-            });
-            s.connect(&file.output, &write_file.path);
-            s.connect(&replicate.output_2, &write_file.input);
-        }) {
-            error!("{}", e)
-        }
-    }
-
-    #[test]
-    #[ignore = "requires stdin"]
-    fn run_replicate_to_stdout() {
-        //use super::*;
-        use protoflow_core::SystemBuilding;
-        if let Err(e) = System::run(|s| {
-            let stdin = s.read_stdin();
-
-            let replicate = s.block(Replicate::new(s.input(), s.output_bytes(), s.output()));
-            s.connect(&stdin.output, &replicate.input);
-
-            let stdout_1 = s.write_stdout();
-            s.connect(&replicate.output_1, &stdout_1.input);
-
-            let stdout_2 = s.write_stdout();
-            s.connect(&replicate.output_2, &stdout_2.input);
-        }) {
-            error!("{}", e)
-        }
     }
 }

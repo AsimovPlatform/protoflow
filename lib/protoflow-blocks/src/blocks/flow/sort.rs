@@ -5,14 +5,15 @@ use protoflow_core::{
     prelude::Vec, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
+use simple_mermaid::mermaid;
 
-/// A block that simply stores all messages it receives.
+/// Sorts a single input message stream in ascending order.
 ///
 /// # Block Diagram
-
+#[doc = mermaid!("../../../doc/flow/sort.mmd")]
 ///
 /// # Sequence Diagram
-
+#[doc = mermaid!("../../../doc/flow/concat.seq.mmd" framed)]
 ///
 /// # Examples
 ///

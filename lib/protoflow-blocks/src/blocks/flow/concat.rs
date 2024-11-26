@@ -1,23 +1,22 @@
 // This is free and unencumbered software released into the public domain.
 extern crate std;
 
-use core::ops::DerefMut;
-
 use crate::prelude::{Arc, Vec};
 use crate::{FlowBlocks, StdioConfig, StdioError, StdioSystem, SysBlocks, System};
 use protoflow_core::{
     types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
+use protoflow_core::{BlockError, PortError};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
-/// Divides a single input message stream into multiple output streams using a round-robin approach.
+/// Combines multiple input streams into a single output stream in sequence.
 ///
 /// # Block Diagram
-#[doc = mermaid!("../../../doc/flow/split.mmd")]
+#[doc = mermaid!("../../../doc/flow/concat.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../../doc/flow/split.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/flow/concat.seq.mmd" framed)]
 ///
 /// # Examples
 ///
@@ -28,12 +27,16 @@ use simple_mermaid::mermaid;
 /// # fn main() {
 /// System::build(|s| {
 ///     let stdin = s.read_stdin();
-///     let split = s.split();
-///     s.connect(&stdin.output, &split.input);
+///
+///     let replicate = s.replicate();
+///     s.connect(&stdin.output, &replicate.input);
+///
+///     let concat = s.block(Concat::new(s.input(), s.input(), s.output()));
+///     s.connect(&replicate.output_1, &concat.input_1);
+///     s.connect(&replicate.output_2, &concat.input_2);
+///
 ///     let stdout_1 = s.write_stdout();
-///     s.connect(&split.output_1, &stdout_1.input);
-///     let stdout_2 = s.write_stdout();
-///     s.connect(&split.output_2, &stdout_2.input);
+///     s.connect(&concat.output, &stdout_1.input);
 /// });
 /// # }
 /// ```
@@ -73,39 +76,74 @@ impl<T: Message + 'static> Concat<T> {
 
 impl<T: Message + Send + 'static> Block for Concat<T> {
     fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        // Ensure the output channel is ready
         runtime.wait_for(&self.output)?;
-
-        let mut buffer1 = Vec::new();
-        let mut buffer2 = Vec::new();
 
         let input1 = Arc::new(self.input_1.clone());
         let input2 = Arc::new(self.input_2.clone());
 
-        let input1_clone = Arc::clone(&input1);
-        let handle1 = std::thread::spawn(move || {
-            while let Ok(Some(message)) = input1_clone.recv() {
-                buffer1.push(message);
+        // Helper function to buffer messages from an input
+        fn buffer_input<T: Message>(
+            input: Arc<InputPort<T>>,
+            input_name: &str,
+        ) -> Result<Vec<T>, PortError> {
+            let mut buffer = Vec::new();
+            while let Ok(Some(message)) = input.recv() {
+                buffer.push(message);
             }
-            buffer1
-        });
-
-        let input2_clone = Arc::clone(&input2);
-        let handle2 = std::thread::spawn(move || {
-            while let Ok(Some(message)) = input2_clone.recv() {
-                buffer2.push(message);
-            }
-            buffer2
-        });
-
-        let buffer1 = handle1.join().unwrap();
-        let buffer2 = handle2.join().unwrap();
-
-        let mut combined = buffer1;
-        combined.extend(buffer2);
-
-        for message in combined {
-            self.output.send(&message)?;
+            tracing::info!("{} processed {} messages", input_name, buffer.len());
+            Ok(buffer)
         }
+
+        // Spawn threads to process and buffer messages from both inputs
+        let handle1 = std::thread::spawn({
+            let input1 = Arc::clone(&input1);
+            move || buffer_input(input1, "input1")
+        });
+
+        let handle2 = std::thread::spawn({
+            let input2 = Arc::clone(&input2);
+            move || buffer_input(input2, "input2")
+        });
+
+        // Collect and handle thread results
+        let buffer1 = match handle1.join() {
+            Ok(result) => result.map_err(|e| {
+                tracing::error!("Error processing input1: {:?}", e);
+                BlockError::Other("Failed to process input1".into())
+            })?,
+            Err(_) => {
+                tracing::error!("Thread for input1 panicked");
+                return Err(BlockError::Other("Thread for input1 panicked".into()));
+            }
+        };
+
+        let buffer2 = match handle2.join() {
+            Ok(result) => result.map_err(|e| {
+                tracing::error!("Error processing input2: {:?}", e);
+                BlockError::Other("Failed to process input2".into())
+            })?,
+            Err(_) => {
+                tracing::error!("Thread for input2 panicked");
+                return Err(BlockError::Other("Thread for input2 panicked".into()));
+            }
+        };
+
+        // Concatenate and send messages to the output sequentially
+        tracing::info!(
+            "Concatenating {} messages from input1 with {} messages from input2",
+            buffer1.len(),
+            buffer2.len()
+        );
+
+        for message in buffer1.iter().chain(buffer2.iter()) {
+            if let Err(err) = self.output.send(message) {
+                tracing::error!("Failed to send message: {:?}", err);
+                return Err(err.into());
+            }
+        }
+
+        tracing::info!("All messages successfully sent to the output.");
         Ok(())
     }
 }
@@ -119,13 +157,13 @@ impl<T: Message> StdioSystem for Concat<T> {
         Ok(System::build(|s| {
             let stdin = s.read_stdin();
 
-            let split = s.split();
-            s.connect(&stdin.output, &split.input);
+            let replicate = s.replicate();
+            s.connect(&stdin.output, &replicate.input);
 
             let concat = s.block(Concat::new(s.input(), s.input(), s.output()));
 
-            s.connect(&split.output_1, &concat.input_1);
-            s.connect(&split.output_2, &concat.input_2);
+            s.connect(&replicate.output_1, &concat.input_1);
+            s.connect(&replicate.output_2, &concat.input_2);
 
             let stdout_1 = s.write_stdout();
             s.connect(&concat.output, &stdout_1.input);
@@ -134,65 +172,17 @@ impl<T: Message> StdioSystem for Concat<T> {
 }
 
 #[cfg(test)]
-mod split_tests {
-    use crate::{Concat, CoreBlocks, FlowBlocks, StdioSystem, SysBlocks, System};
+mod concat_tests {
+    use crate::{FlowBlocks, System};
     use protoflow_core::prelude::String;
-    use tracing::error;
+
     extern crate std;
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.split::<String>();
+            let _ = s.concat::<String>();
         });
-    }
-
-    #[test]
-    #[ignore = "requires stdin"]
-    fn run_split_stdout_and_file() {
-        use super::*;
-        use protoflow_core::SystemBuilding;
-        if let Err(e) = System::run(|s| {
-            let stdin = s.read_stdin();
-            let split = s.split();
-            s.connect(&stdin.output, &split.input);
-
-            let stdout_1 = s.write_stdout();
-            s.connect(&split.output_1, &stdout_1.input);
-
-            let file = s.const_string("text.txt");
-            let write_file = s.write_file().with_flags(crate::WriteFlags {
-                create: true,
-                append: true,
-            });
-            s.connect(&file.output, &write_file.path);
-            s.connect(&split.output_2, &write_file.input);
-        }) {
-            error!("{}", e)
-        }
-    }
-
-    #[test]
-    #[ignore = "requires stdin"]
-    fn run_split_to_stdout() {
-        //use super::*;
-        use protoflow_core::SystemBuilding;
-        if let Err(e) = System::run(|s| {
-            let stdin = s.read_stdin();
-
-            let split = s.split();
-            s.connect(&stdin.output, &split.input);
-
-            let concat = s.block(Concat::new(s.input(), s.input(), s.output()));
-
-            s.connect(&split.output_1, &concat.input_1);
-            s.connect(&split.output_2, &concat.input_2);
-
-            let stdout_1 = s.write_stdout();
-            s.connect(&concat.output, &stdout_1.input);
-        }) {
-            error!("{}", e)
-        }
     }
 }
