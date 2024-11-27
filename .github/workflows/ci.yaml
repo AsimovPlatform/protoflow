@@ -58,19 +58,19 @@ jobs:
       - name: Build library
         id: check-lib
         if: ${{ always() }}
-        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --lib
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --keep-going --lib
       - name: Build binaries
         id: check-bins
         if: ${{ always() }}
-        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --bins
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --keep-going --bins
       - name: Build tests
         id: check-tests
         if: ${{ always() }}
-        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --tests
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --keep-going --tests
       - name: Build examples
         id: check-examples
         if: ${{ always() }}
-        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --examples
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --keep-going --examples
       - name: Run tests
         id: run-tests
         if: ${{ steps.check-tests.outcome == 'success' }}
