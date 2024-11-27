@@ -49,32 +49,33 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Install Rust
+        id: install-rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.80.0
+          toolchain: 1.70.0
           components: rustfmt
           targets: ${{ matrix.target }}
       - name: Build library
         id: check-lib
         if: ${{ always() }}
-        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --lib
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --lib
       - name: Build binaries
         id: check-bins
         if: ${{ always() }}
-        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --bins
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --bins
       - name: Build tests
         id: check-tests
         if: ${{ always() }}
-        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --tests
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --tests
       - name: Build examples
         id: check-examples
         if: ${{ always() }}
-        run: cargo +1.80.0 check --target ${{ matrix.target }} --workspace --examples
+        run: cargo +${{ steps.install-rust.outputs.name }} check --target ${{ matrix.target }} --workspace --examples
       - name: Run tests
         id: run-tests
         if: ${{ steps.check-tests.outcome == 'success' }}
         run: |
-          cargo +1.80.0 test --target ${{ matrix.target }} --workspace --test "*" --no-fail-fast
+          cargo +${{ steps.install-rust.outputs.name }} test --target ${{ matrix.target }} --workspace --test "*" --no-fail-fast
       - name: Obtain job id
         id: obtain-job-id
         if: ${{ always() }}
