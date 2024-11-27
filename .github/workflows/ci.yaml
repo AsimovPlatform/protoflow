@@ -76,16 +76,6 @@ jobs:
         if: ${{ steps.check-tests.outcome == 'success' }}
         run: |
           cargo +${{ steps.install-rust.outputs.name }} test --target ${{ matrix.target }} --workspace --test "*" --no-fail-fast
-      - name: Obtain job id
-        id: obtain-job-id
-        if: ${{ always() }}
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs)
-          job_id=$(echo $jobs | jq -r '.jobs[] | select(.name | contains("${{ matrix.name }}")) | .id')
-          echo "result=$job_id" >> $GITHUB_OUTPUT
   review-pr:
     name: Review PR
     runs-on: ubuntu-latest
