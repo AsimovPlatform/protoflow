@@ -18,13 +18,6 @@ fn main() -> BlockResult {
         s.connect(&name_param.output, &env_reader.name);
         s.connect(&env_reader.output, &split_var.input);
         s.connect(&split_var.output, &line_encoder.input);
-
         s.connect(&line_encoder.output, &stdout.input);
-
-        // // TODO use Split block
-        // let path_const = s.const_string("env_parts_log.txt");
-        // let write_file = s.write_file();
-        // s.connect(&path_const.output, &write_file.path);
-        // s.connect(&line_encoder.output, &write_file.input);
     })
 }
