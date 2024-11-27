@@ -52,7 +52,7 @@ jobs:
         id: install-rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.74.0
+          toolchain: 1.75.0
           components: rustfmt
           targets: ${{ matrix.target }}
       - name: Build library
