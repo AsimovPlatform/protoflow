@@ -25,8 +25,8 @@ const DEFAULT_SUB_SOCKET: &str = "tcp://127.0.0.1:10001";
 pub struct ZmqTransport {
     tokio: tokio::runtime::Handle,
 
-    pub_queue: Arc<Sender<ZmqTransportEvent>>,
-    sub_queue: Arc<Sender<ZmqSubscriptionRequest>>,
+    pub_queue: Sender<ZmqTransportEvent>,
+    sub_queue: Sender<ZmqSubscriptionRequest>,
 
     outputs: Arc<RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>>,
     inputs: Arc<RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>>,
@@ -35,14 +35,14 @@ pub struct ZmqTransport {
 #[derive(Debug, Clone)]
 enum ZmqOutputPortState {
     Open(
-        Arc<Sender<(InputPortID, Sender<Result<(), PortError>>)>>,
-        Arc<Sender<ZmqTransportEvent>>,
+        Sender<(InputPortID, Sender<Result<(), PortError>>)>,
+        Sender<ZmqTransportEvent>,
     ),
     Connected(
         // channel for public send, contained channel is for the ack back
-        Arc<Sender<(ZmqOutputPortRequest, Sender<Result<(), PortError>>)>>,
+        Sender<(ZmqOutputPortRequest, Sender<Result<(), PortError>>)>,
         // internal channel for events
-        Arc<Sender<ZmqTransportEvent>>,
+        Sender<ZmqTransportEvent>,
         // id of the connected input port
         InputPortID,
     ),
@@ -70,16 +70,16 @@ impl ZmqOutputPortState {
 enum ZmqInputPortState {
     Open(
         // TODO: hide these
-        Arc<Sender<ZmqTransportEvent>>,
+        Sender<ZmqTransportEvent>,
     ),
     Connected(
         // channel for requests from public close
-        Arc<Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>>,
+        Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
         // channel for the public recv
-        Arc<Sender<ZmqInputPortEvent>>,
+        Sender<ZmqInputPortEvent>,
         Arc<Mutex<Receiver<ZmqInputPortEvent>>>,
         // internal  channel for events
-        Arc<Sender<ZmqTransportEvent>>,
+        Sender<ZmqTransportEvent>,
         // vec of the connected port ids
         Vec<OutputPortID>,
     ),
@@ -223,22 +223,19 @@ impl ZmqTransport {
         let outputs = Arc::new(RwLock::new(BTreeMap::default()));
         let inputs = Arc::new(RwLock::new(BTreeMap::default()));
 
-        let (out_queue, pub_queue) = sync_channel(1);
-
-        let out_queue = Arc::new(out_queue);
+        let (pub_queue, pub_queue_recv) = sync_channel(1);
 
         let (sub_queue, sub_queue_recv) = tokio::sync::mpsc::channel(1);
-        let sub_queue = Arc::new(sub_queue);
 
         let transport = Self {
-            pub_queue: out_queue,
+            pub_queue,
             sub_queue,
             tokio,
             outputs,
             inputs,
         };
 
-        transport.start_pub_socket_worker(psock, pub_queue);
+        transport.start_pub_socket_worker(psock, pub_queue_recv);
         transport.start_sub_socket_worker(ssock, sub_queue_recv);
 
         transport
@@ -288,10 +285,8 @@ impl ZmqTransport {
 
     fn start_input_worker(&self, input_port_id: InputPortID) -> Result<(), PortError> {
         let (to_worker_send, mut to_worker_recv) = sync_channel(1);
-        let to_worker_send = Arc::new(to_worker_send);
 
         let (req_send, mut req_recv) = sync_channel(1);
-        let req_send = Arc::new(req_send);
 
         {
             let mut inputs = self.inputs.write();
@@ -310,8 +305,8 @@ impl ZmqTransport {
         async fn handle_socket_event(
             event: ZmqTransportEvent,
             inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
-            req_send: &Arc<Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>>,
-            to_worker_send: &Arc<Sender<ZmqTransportEvent>>,
+            req_send: &Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
+            to_worker_send: &Sender<ZmqTransportEvent>,
             pub_queue: &Sender<ZmqTransportEvent>,
             input_port_id: InputPortID,
         ) {
@@ -337,7 +332,6 @@ impl ZmqTransport {
 
                     let make_connected = |input_state: &mut ZmqInputPortState| {
                         let (msgs_send, msgs_recv) = sync_channel(1);
-                        let msgs_send = Arc::new(msgs_send);
                         let msgs_recv = Arc::new(Mutex::new(msgs_recv));
 
                         *input_state = Connected(
@@ -506,10 +500,8 @@ impl ZmqTransport {
 
     fn start_output_worker(&self, output_port_id: OutputPortID) -> Result<(), PortError> {
         let (conn_send, mut conn_recv) = sync_channel(1);
-        let conn_send = Arc::new(conn_send);
 
         let (to_worker_send, mut to_worker_recv) = sync_channel(1);
-        let to_worker_send = Arc::new(to_worker_send);
 
         {
             let mut outputs = self.outputs.write();
@@ -529,7 +521,6 @@ impl ZmqTransport {
             };
 
             let (msg_req_send, mut msg_req_recv) = sync_channel(1);
-            let msg_req_send = Arc::new(msg_req_send);
 
             // Output worker loop:
             //   1. Send connection attempt
