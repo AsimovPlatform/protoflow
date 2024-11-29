@@ -149,14 +149,14 @@ impl From<ZmqTransportEvent> for ZmqMessage {
         value.write_topic(&mut topic).unwrap();
 
         // first frame of the message is the topic
-        let mut msg = ZmqMessage::from(topic.clone());
+        let mut msg = ZmqMessage::from(topic);
 
         // second frame of the message is the payload
         use ZmqTransportEvent::*;
         match value {
             Connect(_, _) => todo!(),
             AckConnection(_, _) => todo!(),
-            Message(_, _, _, bytes) => msg.push_back(bytes),
+            Message(_, _, _, bytes) => todo!(),
             AckMessage(_, _, _) => todo!(),
             CloseOutput(_, _) => todo!(),
             CloseInput(_) => todo!(),
@@ -323,7 +323,6 @@ impl ZmqTransport {
             event: ZmqTransportEvent,
             inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
             req_send: &Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
-            to_worker_send: &Sender<ZmqTransportEvent>,
             pub_queue: &Sender<ZmqTransportEvent>,
             sub_queue: &Sender<ZmqSubscriptionRequest>,
             input_port_id: InputPortID,
@@ -349,7 +348,7 @@ impl ZmqTransport {
                     };
 
                     let add_connection = |input_state: &mut ZmqInputPortState| match input_state {
-                        Open(_) => {
+                        Open(to_worker_send) => {
                             let (msgs_send, msgs_recv) = sync_channel(1);
                             let msgs_recv = Arc::new(Mutex::new(msgs_recv));
                             *input_state = Connected(
@@ -493,7 +492,7 @@ impl ZmqTransport {
             loop {
                 tokio::select! {
                     Some(event) = to_worker_recv.recv() => {
-                        handle_socket_event(event, &inputs, &req_send, &to_worker_send, &pub_queue, &sub_queue, input_port_id).await;
+                        handle_socket_event(event, &inputs, &req_send, &pub_queue, &sub_queue, input_port_id).await;
                     }
                     Some((request, response_chan)) = req_recv.recv() => {
                         handle_input_request(request, response_chan, &inputs, &pub_queue, input_port_id).await;
