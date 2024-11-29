@@ -147,12 +147,12 @@ impl From<ZmqTransportEvent> for ZmqMessage {
         // second frame of the message is the payload
         use ZmqTransportEvent::*;
         match value {
-            Connect(output_port_id, input_port_id) => todo!(),
-            AckConnection(output_port_id, input_port_id) => todo!(),
+            Connect(_, _) => todo!(),
+            AckConnection(_, _) => todo!(),
             Message(_, _, _, bytes) => msg.push_back(bytes),
-            AckMessage(output_port_id, input_port_id, _) => todo!(),
-            CloseOutput(output_port_id, input_port_id) => todo!(),
-            CloseInput(input_port_id) => todo!(),
+            AckMessage(_, _, _) => todo!(),
+            CloseOutput(_, _) => todo!(),
+            CloseInput(_) => todo!(),
         };
 
         msg
@@ -162,7 +162,7 @@ impl From<ZmqTransportEvent> for ZmqMessage {
 impl TryFrom<ZmqMessage> for ZmqTransportEvent {
     type Error = protoflow_core::DecodeError;
 
-    fn try_from(value: ZmqMessage) -> Result<Self, Self::Error> {
+    fn try_from(_value: ZmqMessage) -> Result<Self, Self::Error> {
         todo!()
     }
 }
@@ -326,7 +326,7 @@ impl ZmqTransport {
             let from_worker_recv = from_worker_recv.clone();
 
             tokio::task::spawn(async move {
-                let (output, input) = (from_worker_send, to_worker_recv);
+                let (_output, input) = (from_worker_send, to_worker_recv);
 
                 loop {
                     use ZmqTransportEvent::*;
@@ -595,13 +595,13 @@ impl Transport for ZmqTransport {
                             todo!();
                         };
 
-                        let ZmqOutputPortState::Connected(ack_send, sender, _, output_id) =
+                        let ZmqOutputPortState::Connected(_, sender, _, output_id) =
                             &*output_state.read()
                         else {
                             todo!();
                         };
 
-                        let resp = req.1; // TODO: respond
+                        let _resp = req.1; // TODO: respond
 
                         match req.0 {
                             ZmqOutputPortRequest::Send(bytes) => {
@@ -626,13 +626,13 @@ impl Transport for ZmqTransport {
                             unreachable!("why are we getting non-Message?");
                         }
                         match event {
-                            AckMessage(output_port_id, input_port_id, seq_id) => {
+                            AckMessage(_, _, seq_id) => {
                                 output
                                     .send(ZmqOutputPortEvent::Ack(seq_id))
                                     .expect("worker loop ack send");
                             }
 
-                            CloseInput(input_port_id) => todo!(),
+                            CloseInput(_) => todo!(),
 
                             AckConnection(_, _) => {
                                 unreachable!("already connected")
