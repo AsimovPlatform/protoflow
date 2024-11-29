@@ -290,7 +290,6 @@ impl ZmqTransport {
     fn start_input_worker(&self, input_port_id: InputPortID) -> Result<(), PortError> {
         let (to_worker_send, to_worker_recv) = sync_channel(1);
         let to_worker_send = Arc::new(to_worker_send);
-        let to_worker_recv = Arc::new(Mutex::new(to_worker_recv));
 
         {
             let mut inputs = self.inputs.write();
@@ -303,7 +302,7 @@ impl ZmqTransport {
         let pub_queue = self.pub_queue.clone();
         let inputs = self.inputs.clone();
         tokio::task::spawn(async move {
-            let input = &to_worker_recv;
+            let input = to_worker_recv;
             let inputs = inputs;
 
             // Input worker loop:
@@ -311,7 +310,7 @@ impl ZmqTransport {
             //   2. Receive messages and forward to channel
             //   3. Receive and handle disconnects
             loop {
-                let event: ZmqTransportEvent = input.lock().recv().expect("input worker recv");
+                let event: ZmqTransportEvent = input.recv().expect("input worker recv");
                 use ZmqTransportEvent::*;
                 match event {
                     Connect(output_port_id, input_port_id) => {
