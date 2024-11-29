@@ -573,6 +573,9 @@ impl Transport for ZmqTransport {
                                 from_worker_recv,
                                 input_port_id,
                             );
+                            output
+                                .send(ZmqOutputPortEvent::Opened)
+                                .expect("output worker connected send");
                             break;
                         }
                         _ => continue, // TODO: when and why would we receive other events?
