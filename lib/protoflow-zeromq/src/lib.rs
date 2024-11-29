@@ -566,8 +566,6 @@ impl ZmqTransport {
                 }
             }
 
-            // TODO: loop for to_worker_recv.recv(), i.e. events from socket
-
             let mut seq_id = 1;
             'outer: loop {
                 let (request, response_chan) = msg_req_recv
@@ -625,6 +623,11 @@ impl ZmqTransport {
                                         ZmqOutputPortState::Connected(..)
                                     ));
                                     *output_state = ZmqOutputPortState::Closed;
+
+                                    response_chan
+                                        .send(Err(PortError::Disconnected))
+                                        .await
+                                        .expect("output worker respond msg");
 
                                     break 'outer;
                                 }
