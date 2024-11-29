@@ -478,10 +478,10 @@ impl Transport for ZmqTransport {
         //     2.2. Resend on timeout
         //   3. Send disconnect events
         {
-            //let output_state = output_state.clone();
             let to_worker_send = to_worker_send.clone();
             let from_worker_recv = from_worker_recv.clone();
 
+            let out_queue = self.out_queue.clone();
             let outputs = self.outputs.clone();
 
             tokio::task::spawn(async move {
@@ -489,6 +489,11 @@ impl Transport for ZmqTransport {
 
                 // connect loop
                 loop {
+                    // send request to connect
+                    out_queue
+                        .send(ZmqTransportEvent::Connect(source, target))
+                        .unwrap();
+
                     let request = input.recv().expect("output worker recv");
                     match request {
                         ZmqTransportEvent::AckConnection(_, input_port_id) => {
@@ -509,10 +514,13 @@ impl Transport for ZmqTransport {
                     }
                 }
 
-                // work loop
+                // work loop for handling events
                 loop {
                     use ZmqTransportEvent::*;
                     let event = input.recv().expect("output worker recv");
+                    if !matches!(event, Message(_, _, _, _)) {
+                        unreachable!("why are we getting non-Message?");
+                    }
                     match event {
                         AckMessage(output_port_id, input_port_id, seq_id) => {
                             output
@@ -533,11 +541,6 @@ impl Transport for ZmqTransport {
             });
         }
 
-        // send request to connect
-        self.out_queue
-            .send(ZmqTransportEvent::Connect(source, target))
-            .unwrap();
-
         // wait for the `Connected` event
         loop {
             let msg = from_worker_recv
@@ -553,11 +556,51 @@ impl Transport for ZmqTransport {
     }
 
     fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()> {
-        todo!();
+        let outputs = self.outputs.read();
+        let Some(output) = outputs.get(&output) else {
+            return Err(PortError::Invalid(output.into()));
+        };
+        let output = output.read();
+
+        let ZmqOutputPortState::Connected(sender, receiver, input_port_id) = &*output else {
+            return Err(PortError::Disconnected);
+        };
+
+        sender.send(message).unwrap();
+
+        loop {
+            let msg = receiver.lock().recv().unwrap();
+
+            use ZmqOutputPortEvent::*;
+            match msg {
+                Ack(_seq_id) => break Ok(()),
+                _ => continue, // TODO
+            }
+        }
     }
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
-        todo!();
+        let inputs = self.inputs.read();
+        let Some(input) = inputs.get(&input) else {
+            return Err(PortError::Invalid(input.into()));
+        };
+        let input = input.read();
+
+        let ZmqInputPortState::Connected(_, receiver, _) = &*input else {
+            return Err(PortError::Disconnected);
+        };
+
+        loop {
+            use ZmqInputPortEvent::*;
+            match receiver.lock().recv() {
+                // ignore
+                Ok(Opened) | Ok(Connected(_)) => continue,
+
+                Ok(Closed) => break Ok(None), // EOS
+                Ok(Message(bytes)) => break Ok(Some(bytes)),
+                Err(e) => break Err(PortError::Other(e.to_string())),
+            }
+        }
     }
 
     fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
