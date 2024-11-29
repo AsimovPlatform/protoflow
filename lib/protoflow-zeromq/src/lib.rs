@@ -319,17 +319,22 @@ impl ZmqTransport {
                         Closed => return,
                     };
 
-                    let make_connected = |input_state: &mut ZmqInputPortState| {
-                        let (msgs_send, msgs_recv) = sync_channel(1);
-                        let msgs_recv = Arc::new(Mutex::new(msgs_recv));
-
-                        *input_state = Connected(
-                            req_send.clone(),
-                            msgs_send,
-                            msgs_recv,
-                            to_worker_send.clone(),
-                            vec![output_port_id],
-                        );
+                    let add_connection = |input_state: &mut ZmqInputPortState| match input_state {
+                        Open(_) => {
+                            let (msgs_send, msgs_recv) = sync_channel(1);
+                            let msgs_recv = Arc::new(Mutex::new(msgs_recv));
+                            *input_state = Connected(
+                                req_send.clone(),
+                                msgs_send,
+                                msgs_recv,
+                                to_worker_send.clone(),
+                                vec![output_port_id],
+                            );
+                        }
+                        Connected(_, _, _, _, ids) => {
+                            ids.push(output_port_id);
+                        }
+                        Closed => unreachable!(),
                     };
 
                     pub_queue
@@ -340,7 +345,7 @@ impl ZmqTransport {
                         .await
                         .expect("input worker send ack-conn event");
 
-                    input_state.with_upgraded(make_connected);
+                    input_state.with_upgraded(add_connection);
                 }
                 Message(output_port_id, _, seq_id, bytes) => {
                     let inputs = inputs.read();
@@ -456,26 +461,14 @@ impl ZmqTransport {
             //   2. Receive messages and forward to channel
             //   3. Receive and handle disconnects
             loop {
-                let event = to_worker_recv
-                    .recv()
-                    .await
-                    .expect("input worker recv socket event");
-                handle_socket_event(
-                    event,
-                    &inputs,
-                    &req_send,
-                    &to_worker_send,
-                    &pub_queue,
-                    input_port_id,
-                )
-                .await;
-
-                let (request, response_chan) = req_recv
-                    .recv()
-                    .await
-                    .expect("input worker recv port request");
-                handle_input_request(request, response_chan, &inputs, &pub_queue, input_port_id)
-                    .await;
+                tokio::select! {
+                    Some(event) = to_worker_recv.recv() => {
+                        handle_socket_event(event, &inputs, &req_send, &to_worker_send, &pub_queue, input_port_id).await;
+                    }
+                    Some((request, response_chan)) = req_recv.recv() => {
+                        handle_input_request(request, response_chan, &inputs, &pub_queue, input_port_id).await;
+                    }
+                };
             }
         });
 
