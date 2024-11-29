@@ -122,7 +122,7 @@ impl ZmqTransportEvent {
         match self {
             Connect(o, i) => write!(f, "{}:conn:{}", i, o),
             AckConnection(o, i) => write!(f, "{}:ackConn:{}", i, o),
-            Message(o, i, seq, _payload) => write!(f, "{}:msg:{}:{}", i, o, seq),
+            Message(o, i, seq, _) => write!(f, "{}:msg:{}:{}", i, o, seq),
             AckMessage(o, i, seq) => write!(f, "{}:ackMsg:{}:{}", i, o, seq),
             CloseOutput(o, i) => write!(f, "{}:closeOut:{}", i, o),
             CloseInput(i) => write!(f, "{}:closeIn", i),
@@ -161,20 +161,9 @@ impl TryFrom<ZmqMessage> for ZmqTransportEvent {
     }
 }
 
-///// ZmqOutputPortEvent represents events that we receive from the background worker of the port.
-//#[derive(Clone, Debug)]
-//enum ZmqOutputPortEvent {
-//    Opened,
-//    Connected(InputPortID),
-//    Ack(SequenceID),
-//    Closed,
-//}
-
 /// ZmqInputPortEvent represents events that we receive from the background worker of the port.
 #[derive(Clone, Debug)]
 enum ZmqInputPortEvent {
-    Opened,
-    Connected(OutputPortID),
     Message(Bytes),
     Closed,
 }
@@ -320,7 +309,7 @@ impl ZmqTransport {
                     let mut input_state = input_state.upgradable_read();
 
                     use ZmqInputPortState::*;
-                    let port_events = match &*input_state {
+                    match &*input_state {
                         Open(_) => (),
                         Connected(_, _, _, _, connected_ids) => {
                             if !connected_ids.iter().any(|&id| id == output_port_id) {
@@ -412,7 +401,7 @@ impl ZmqTransport {
                         Connected(_, _, _, _, connected_ids) => {
                             connected_ids.retain(|&id| id != output_port_id)
                         }
-                    })
+                    });
                 }
 
                 // ignore, ideally we never receive these here:
@@ -446,7 +435,10 @@ impl ZmqTransport {
                         .await
                         .expect("input worker send close event");
 
-                    port_events.send(ZmqInputPortEvent::Closed).await.unwrap();
+                    port_events
+                        .send(ZmqInputPortEvent::Closed)
+                        .await
+                        .expect("input worker send port closed");
 
                     input_state.with_upgraded(|state| *state = ZmqInputPortState::Closed);
 
@@ -789,16 +781,11 @@ impl Transport for ZmqTransport {
         };
         let mut receiver = receiver.lock();
 
-        loop {
-            use ZmqInputPortEvent::*;
-            match self.tokio.block_on(receiver.recv()) {
-                Some(Closed) => break Ok(None), // EOS
-                Some(Message(bytes)) => break Ok(Some(bytes)),
-                None => break Err(PortError::Disconnected),
-
-                // ignore
-                Some(Opened) | Some(Connected(_)) => continue,
-            }
+        use ZmqInputPortEvent::*;
+        match self.tokio.block_on(receiver.recv()) {
+            Some(Closed) => Ok(None), // EOS
+            Some(Message(bytes)) => Ok(Some(bytes)),
+            None => Err(PortError::Disconnected),
         }
     }
 
