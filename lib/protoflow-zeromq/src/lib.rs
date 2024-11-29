@@ -6,16 +6,19 @@
 #[doc(hidden)]
 pub use protoflow_core::prelude;
 
+mod protoflow_zmq;
+
 extern crate std;
 
 use protoflow_core::{
     prelude::{vec, Arc, BTreeMap, Bytes, String, ToString, Vec},
     InputPortID, OutputPortID, PortError, PortResult, PortState, Transport,
 };
+use protoflow_zmq::AckMessage;
 
 use core::fmt::Error;
 use parking_lot::{Mutex, RwLock};
-use std::{format, write};
+use std::{format, io::Read, write};
 use tokio::sync::mpsc::{channel as sync_channel, Receiver, Sender};
 use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend, ZmqMessage};
 
@@ -151,16 +154,51 @@ impl From<ZmqTransportEvent> for ZmqMessage {
         // first frame of the message is the topic
         let mut msg = ZmqMessage::from(topic);
 
+        fn map_id<T>(id: T) -> i64
+        where
+            isize: From<T>,
+        {
+            isize::from(id) as i64
+        }
+
         // second frame of the message is the payload
+        use prost::Message;
+        use protoflow_zmq::{event::Payload, Event};
         use ZmqTransportEvent::*;
-        match value {
-            Connect(_, _) => todo!(),
-            AckConnection(_, _) => todo!(),
-            Message(_, _, _, bytes) => todo!(),
-            AckMessage(_, _, _) => todo!(),
-            CloseOutput(_, _) => todo!(),
-            CloseInput(_) => todo!(),
+        let payload = match value {
+            Connect(output, input) => Payload::Connect(protoflow_zmq::Connect {
+                output: map_id(output),
+                input: map_id(input),
+            }),
+            AckConnection(output, input) => Payload::AckConnection(protoflow_zmq::AckConnection {
+                output: map_id(output),
+                input: map_id(input),
+            }),
+            Message(output, input, sequence, message) => Payload::Message(protoflow_zmq::Message {
+                output: map_id(output),
+                input: map_id(input),
+                sequence,
+                message: message.to_vec(),
+            }),
+            AckMessage(output, input, sequence) => Payload::AckMessage(protoflow_zmq::AckMessage {
+                output: map_id(output),
+                input: map_id(input),
+                sequence,
+            }),
+            CloseOutput(output, input) => Payload::CloseOutput(protoflow_zmq::CloseOutput {
+                output: map_id(output),
+                input: map_id(input),
+            }),
+            CloseInput(input) => Payload::CloseInput(protoflow_zmq::CloseInput {
+                input: map_id(input),
+            }),
         };
+
+        let bytes = Event {
+            payload: Some(payload),
+        }
+        .encode_to_vec();
+        msg.push_back(bytes.into());
 
         msg
     }
@@ -169,8 +207,68 @@ impl From<ZmqTransportEvent> for ZmqMessage {
 impl TryFrom<ZmqMessage> for ZmqTransportEvent {
     type Error = protoflow_core::DecodeError;
 
-    fn try_from(_value: ZmqMessage) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(value: ZmqMessage) -> Result<Self, Self::Error> {
+        use prost::Message;
+        use protoflow_core::DecodeError;
+        use protoflow_zmq::{event::Payload, Event};
+
+        fn map_id<T>(id: i64) -> Result<T, DecodeError>
+        where
+            T: TryFrom<isize>,
+            std::borrow::Cow<'static, str>: From<<T as TryFrom<isize>>::Error>,
+        {
+            (id as isize).try_into().map_err(DecodeError::new)
+        }
+
+        value
+            .get(1)
+            .ok_or_else(|| {
+                protoflow_core::DecodeError::new(
+                    "message from socket contains less than two frames",
+                )
+            })
+            .and_then(|bytes| {
+                let event = Event::decode(bytes.as_ref())?;
+
+                use ZmqTransportEvent::*;
+                Ok(match event.payload {
+                    None => todo!(),
+                    Some(Payload::Connect(protoflow_zmq::Connect { output, input })) => {
+                        Connect(map_id(output)?, map_id(input)?)
+                    }
+
+                    Some(Payload::AckConnection(protoflow_zmq::AckConnection {
+                        output,
+                        input,
+                    })) => AckConnection(map_id(output)?, map_id(input)?),
+
+                    Some(Payload::Message(protoflow_zmq::Message {
+                        output,
+                        input,
+                        sequence,
+                        message,
+                    })) => Message(
+                        map_id(output)?,
+                        map_id(input)?,
+                        sequence,
+                        Bytes::from(message),
+                    ),
+
+                    Some(Payload::AckMessage(protoflow_zmq::AckMessage {
+                        output,
+                        input,
+                        sequence,
+                    })) => AckMessage(map_id(output)?, map_id(input)?, sequence),
+
+                    Some(Payload::CloseOutput(protoflow_zmq::CloseOutput { output, input })) => {
+                        CloseOutput(map_id(output)?, map_id(input)?)
+                    }
+
+                    Some(Payload::CloseInput(protoflow_zmq::CloseInput { input })) => {
+                        CloseInput(map_id(input)?)
+                    }
+                })
+            })
     }
 }
 

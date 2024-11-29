@@ -23,6 +23,7 @@ unstable = ["protoflow-core/unstable"]
 
 [build-dependencies]
 cfg_aliases.workspace = true
+prost-build = "0.13.2"
 
 [dependencies]
 protoflow-core.workspace = true
@@ -33,6 +34,8 @@ zeromq = { version = "0.4.1", default-features = false, features = [
 ] }
 tokio = { version = "1.40.0", default-features = false }
 parking_lot = "0.12"
+prost = "0.13.2"
+prost-types = "0.13.2"
 
 [dev-dependencies]
 futures-util = "0.3.31"
