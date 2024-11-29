@@ -30,7 +30,7 @@ const DEFAULT_SUB_SOCKET: &str = "tcp://127.0.0.1:10001";
 pub struct ZmqTransport {
     tokio: tokio::runtime::Handle,
 
-    out_queue: Arc<SyncSender<ZmqTransportEvent>>,
+    pub_queue: Arc<SyncSender<ZmqTransportEvent>>,
     sub_queue: Arc<tokio::sync::mpsc::Sender<ZmqSubscriptionRequest>>,
 
     outputs: Arc<RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>>,
@@ -42,7 +42,7 @@ enum ZmqOutputPortState {
     Open(Arc<SyncSender<(InputPortID, SyncSender<Result<(), PortError>>)>>),
     Connected(
         // channels for public send, contained channel is for the ack back
-        Arc<SyncSender<(Bytes, SyncSender<()>)>>,
+        Arc<SyncSender<(ZmqOutputPortRequest, SyncSender<Result<(), PortError>>)>>,
         // internal channels for events
         Arc<SyncSender<ZmqTransportEvent>>,
         Arc<Mutex<Receiver<ZmqOutputPortEvent>>>,
@@ -50,6 +50,12 @@ enum ZmqOutputPortState {
         InputPortID,
     ),
     Closed,
+}
+
+#[derive(Debug, Clone)]
+enum ZmqOutputPortRequest {
+    Close,
+    Send(Bytes),
 }
 
 impl ZmqOutputPortState {
@@ -66,10 +72,14 @@ impl ZmqOutputPortState {
 #[derive(Debug, Clone)]
 enum ZmqInputPortState {
     Open(
+        // TODO: hide these
         Arc<SyncSender<ZmqTransportEvent>>,
         Arc<Mutex<Receiver<ZmqInputPortEvent>>>,
     ),
     Connected(
+        // channels for requests from public close
+        Arc<SyncSender<(ZmqInputPortRequest, SyncSender<Result<(), PortError>>)>>,
+        Arc<Mutex<Receiver<(ZmqInputPortRequest, SyncSender<Result<(), PortError>>)>>>,
         // channels for the public recv
         Arc<SyncSender<ZmqInputPortEvent>>,
         Arc<Mutex<Receiver<ZmqInputPortEvent>>>,
@@ -82,12 +92,17 @@ enum ZmqInputPortState {
     Closed,
 }
 
+#[derive(Debug, Clone)]
+enum ZmqInputPortRequest {
+    Close,
+}
+
 impl ZmqInputPortState {
     fn state(&self) -> PortState {
         use ZmqInputPortState::*;
         match self {
             Open(_, _) => PortState::Open,
-            Connected(_, _, _, _, _) => PortState::Connected,
+            Connected(_, _, _, _, _, _, _) => PortState::Connected,
             Closed => PortState::Closed,
         }
     }
@@ -130,13 +145,14 @@ impl From<ZmqTransportEvent> for ZmqMessage {
         let mut msg = ZmqMessage::from(topic.clone());
 
         // second frame of the message is the payload
+        use ZmqTransportEvent::*;
         match value {
-            ZmqTransportEvent::Connect(output_port_id, input_port_id) => todo!(),
-            ZmqTransportEvent::AckConnection(output_port_id, input_port_id) => todo!(),
-            ZmqTransportEvent::Message(_, _, _, bytes) => msg.push_back(bytes),
-            ZmqTransportEvent::AckMessage(output_port_id, input_port_id, _) => todo!(),
-            ZmqTransportEvent::CloseOutput(output_port_id, input_port_id) => todo!(),
-            ZmqTransportEvent::CloseInput(input_port_id) => todo!(),
+            Connect(output_port_id, input_port_id) => todo!(),
+            AckConnection(output_port_id, input_port_id) => todo!(),
+            Message(_, _, _, bytes) => msg.push_back(bytes),
+            AckMessage(output_port_id, input_port_id, _) => todo!(),
+            CloseOutput(output_port_id, input_port_id) => todo!(),
+            CloseInput(input_port_id) => todo!(),
         };
 
         msg
@@ -221,7 +237,7 @@ impl ZmqTransport {
         let sub_queue = Arc::new(sub_queue);
 
         let transport = Self {
-            out_queue,
+            pub_queue: out_queue,
             sub_queue,
             tokio,
             outputs,
@@ -239,25 +255,21 @@ impl ZmqTransport {
         let mut psock = psock;
 
         tokio::task::spawn(async move {
-            loop {
-                let Ok(event) = queue.recv() else {
-                    continue;
-                };
-
-                let msg = ZmqMessage::from(event);
-
-                tokio.block_on(psock.send(msg)).expect("zmq send worker")
-            }
+            queue
+                .into_iter()
+                .map(ZmqMessage::from)
+                .try_for_each(|msg| tokio.block_on(psock.send(msg)))
+                .expect("zmq send worker")
         });
     }
 
     fn start_recv_worker(
         &self,
         ssock: zeromq::SubSocket,
-        queue: tokio::sync::mpsc::Receiver<ZmqSubscriptionRequest>,
+        sub_queue: tokio::sync::mpsc::Receiver<ZmqSubscriptionRequest>,
     ) {
         let mut ssock = ssock;
-        let mut queue = queue;
+        let mut sub_queue = sub_queue;
 
         let outputs = self.outputs.clone();
         let inputs = self.inputs.clone();
@@ -266,7 +278,7 @@ impl ZmqTransport {
             loop {
                 tokio::select! {
                     Ok(msg) = ssock.recv() => handle_zmq_msg(msg, &outputs, &inputs).unwrap(),
-                    Some(req) = queue.recv() => {
+                    Some(req) = sub_queue.recv() => {
                         use ZmqSubscriptionRequest::*;
                         match req {
                             Subscribe(topic) => ssock.subscribe(&topic).await.expect("zmq recv worker subscribe"),
@@ -321,11 +333,15 @@ impl ZmqTransport {
                     let event = input.recv().expect("input worker recv");
                     match event {
                         // Connection attempt
-                        Connect(output_port_id, input_port_id) => {
+                        Connect(_, input_port_id) => {
                             let inputs = inputs.read();
                             let Some(input) = inputs.get(&input_port_id) else {
                                 todo!();
                             };
+
+                            let (req_send, req_recv) = sync_channel(1);
+                            let req_send = Arc::new(req_send);
+                            let req_recv = Arc::new(Mutex::new(req_recv));
 
                             let (msgs_send, msgs_recv) = sync_channel(1);
 
@@ -334,6 +350,8 @@ impl ZmqTransport {
 
                             let mut input = input.write();
                             *input = ZmqInputPortState::Connected(
+                                req_send,
+                                req_recv,
                                 msgs_send,
                                 msgs_recv,
                                 to_worker_send.clone(),
@@ -343,7 +361,7 @@ impl ZmqTransport {
                         }
 
                         // Message from output port
-                        Message(output_port_id, input_port_id, _, bytes) => {
+                        Message(_, input_port_id, _, bytes) => {
                             let inputs = inputs.read();
                             let Some(input) = inputs.get(&input_port_id) else {
                                 todo!();
@@ -352,16 +370,31 @@ impl ZmqTransport {
                             let input = input.read();
                             use ZmqInputPortState::*;
                             match &*input {
-                                Open(arc, arc1) => todo!(),
+                                Open(_, _) => todo!(),
                                 Closed => todo!(),
-                                Connected(sender, _, _, _, _) => {
+                                Connected(_, _, sender, _, _, _, _) => {
                                     sender.send(ZmqInputPortEvent::Message(bytes)).unwrap()
                                 }
                             };
                         }
 
                         // Output port reports being closed
-                        CloseInput(input_port_id) => todo!(),
+                        CloseInput(input_port_id) => {
+                            let inputs = inputs.read();
+                            let Some(input) = inputs.get(&input_port_id) else {
+                                todo!();
+                            };
+
+                            let input = input.read();
+                            use ZmqInputPortState::*;
+                            match &*input {
+                                Open(_, _) => todo!(),
+                                Closed => todo!(),
+                                Connected(_, _, sender, _, _, _, _) => {
+                                    sender.send(ZmqInputPortEvent::Closed).unwrap()
+                                }
+                            };
+                        }
 
                         // ignore output port type events:
                         AckConnection(_, _) | AckMessage(_, _, _) | CloseOutput(_, _) => continue,
@@ -437,25 +470,20 @@ impl Transport for ZmqTransport {
 
         let state = state.read();
 
-        let ZmqInputPortState::Connected(_, _, sender, receiver, _) = &*state else {
+        let ZmqInputPortState::Connected(sender, _, _, _, _, _, _) = &*state else {
             return Err(PortError::Disconnected);
         };
 
+        let (close_send, close_recv) = sync_channel(1);
+
         sender
-            .send(ZmqTransportEvent::CloseInput(input))
+            .send((ZmqInputPortRequest::Close, close_send))
             .map_err(|e| PortError::Other(e.to_string()))?;
 
-        loop {
-            let msg = receiver
-                .lock()
-                .recv()
-                .map_err(|e| PortError::Other(e.to_string()))?;
-            use ZmqInputPortEvent::*;
-            match msg {
-                Closed => break Ok(true),
-                _ => continue, // TODO
-            };
-        }
+        close_recv
+            .recv()
+            .map_err(|_| PortError::Disconnected)?
+            .map(|_| true)
     }
 
     fn close_output(&self, output: OutputPortID) -> PortResult<bool> {
@@ -517,7 +545,7 @@ impl Transport for ZmqTransport {
             let to_worker_send = to_worker_send.clone();
             let from_worker_recv = from_worker_recv.clone();
 
-            let out_queue = self.out_queue.clone();
+            let pub_queue = self.pub_queue.clone();
             let outputs = self.outputs.clone();
 
             tokio::task::spawn(async move {
@@ -526,7 +554,7 @@ impl Transport for ZmqTransport {
                 // connect loop
                 loop {
                     // send request to connect
-                    out_queue
+                    pub_queue
                         .send(ZmqTransportEvent::Connect(source, target))
                         .unwrap();
 
@@ -551,6 +579,8 @@ impl Transport for ZmqTransport {
                     }
                 }
 
+                // TODO: combine these two spawns by using tokio's channels and `select!`
+
                 // work loop for sending events
                 tokio::task::spawn(async move {
                     let mut seq_id = 1;
@@ -562,17 +592,25 @@ impl Transport for ZmqTransport {
                             todo!();
                         };
 
-                        let ZmqOutputPortState::Connected(ack_send, sender, _, _) =
+                        let ZmqOutputPortState::Connected(ack_send, sender, _, output_id) =
                             &*output_state.read()
                         else {
                             todo!();
                         };
 
-                        sender
-                            .send(ZmqTransportEvent::Message(source, target, seq_id, req.0))
-                            .unwrap();
+                        let resp = req.1; // TODO: respond
 
-                        seq_id += 1;
+                        match req.0 {
+                            ZmqOutputPortRequest::Send(bytes) => {
+                                sender
+                                    .send(ZmqTransportEvent::Message(source, target, seq_id, bytes))
+                                    .unwrap();
+                                seq_id += 1;
+                            }
+                            ZmqOutputPortRequest::Close => sender
+                                .send(ZmqTransportEvent::CloseOutput(source, *output_id))
+                                .unwrap(),
+                        };
                     }
                 });
 
@@ -632,10 +670,11 @@ impl Transport for ZmqTransport {
 
         let (ack_send, ack_recv) = sync_channel(1);
 
-        sender.send((message, ack_send)).unwrap();
+        sender
+            .send((ZmqOutputPortRequest::Send(message), ack_send))
+            .unwrap();
 
-        ack_recv.recv().unwrap();
-        Ok(())
+        ack_recv.recv().map_err(|_| PortError::Disconnected)?
     }
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
@@ -645,7 +684,7 @@ impl Transport for ZmqTransport {
         };
         let input = input.read();
 
-        let ZmqInputPortState::Connected(_, receiver, _, _, _) = &*input else {
+        let ZmqInputPortState::Connected(_, _, _, receiver, _, _, _) = &*input else {
             return Err(PortError::Disconnected);
         };
 
@@ -689,7 +728,7 @@ fn handle_zmq_msg(
             use ZmqInputPortState::*;
             match &*input {
                 Closed => todo!(),
-                Open(sender, _) | Connected(_, _, sender, _, _) => {
+                Open(sender, _) | Connected(_, _, _, _, sender, _, _) => {
                     sender.send(event).unwrap();
                 }
             };
@@ -701,7 +740,7 @@ fn handle_zmq_msg(
             };
 
             let input = input.read();
-            let ZmqInputPortState::Connected(sender, _, _, _, ids) = &*input else {
+            let ZmqInputPortState::Connected(_, _, sender, _, _, _, ids) = &*input else {
                 todo!();
             };
 
@@ -722,7 +761,7 @@ fn handle_zmq_msg(
             use ZmqInputPortState::*;
             match &*input {
                 Closed => todo!(),
-                Open(sender, _) | Connected(_, _, sender, _, _) => {
+                Open(sender, _) | Connected(_, _, _, _, sender, _, _) => {
                     sender.send(event).unwrap();
                 }
             };
