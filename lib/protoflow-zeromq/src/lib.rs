@@ -68,10 +68,7 @@ impl ZmqOutputPortState {
 
 #[derive(Debug, Clone)]
 enum ZmqInputPortState {
-    Open(
-        // TODO: hide these
-        Sender<ZmqTransportEvent>,
-    ),
+    Open(Sender<ZmqTransportEvent>),
     Connected(
         // channel for requests from public close
         Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
@@ -128,6 +125,22 @@ impl ZmqTransportEvent {
             CloseInput(i) => write!(f, "{}:closeIn", i),
         }
     }
+}
+
+fn input_topics(id: InputPortID) -> Vec<String> {
+    vec![
+        format!("{}:conn", id),
+        format!("{}:msg", id),
+        format!("{}:closeOut", id),
+    ]
+}
+
+fn output_topics(source: OutputPortID, target: InputPortID) -> Vec<String> {
+    vec![
+        format!("{}:ackConn:{}", target, source),
+        format!("{}:ackMsg:{}:", target, source),
+        format!("{}:closeIn", target),
+    ]
 }
 
 impl From<ZmqTransportEvent> for ZmqMessage {
@@ -287,7 +300,22 @@ impl ZmqTransport {
             inputs.insert(input_port_id, state);
         }
 
-        //let sub_queue = self.sub_queue.clone();
+        {
+            let mut handles = Vec::new();
+            for topic in input_topics(input_port_id).into_iter() {
+                let handle = self
+                    .sub_queue
+                    .send(ZmqSubscriptionRequest::Subscribe(topic));
+                handles.push(handle);
+            }
+            for handle in handles.into_iter() {
+                self.tokio
+                    .block_on(handle)
+                    .expect("input worker send sub req");
+            }
+        }
+
+        let sub_queue = self.sub_queue.clone();
         let pub_queue = self.pub_queue.clone();
         let inputs = self.inputs.clone();
 
@@ -297,6 +325,7 @@ impl ZmqTransport {
             req_send: &Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
             to_worker_send: &Sender<ZmqTransportEvent>,
             pub_queue: &Sender<ZmqTransportEvent>,
+            sub_queue: &Sender<ZmqSubscriptionRequest>,
             input_port_id: InputPortID,
         ) {
             use ZmqTransportEvent::*;
@@ -395,11 +424,12 @@ impl ZmqTransport {
                         return;
                     }
 
-                    // TODO: send unsubscription for relevant topics
-                    //sub_queue
-                    //    .send(ZmqSubscriptionRequest::Unsubscribe("".to_string()))
-                    //    .await
-                    //    .expect("input worker closeoutput unsub");
+                    for topic in input_topics(input_port_id).into_iter() {
+                        sub_queue
+                            .send(ZmqSubscriptionRequest::Unsubscribe(topic))
+                            .await
+                            .expect("input worker send unsub req");
+                    }
 
                     input_state.with_upgraded(|state| match state {
                         Open(_) | Closed => (),
@@ -463,7 +493,7 @@ impl ZmqTransport {
             loop {
                 tokio::select! {
                     Some(event) = to_worker_recv.recv() => {
-                        handle_socket_event(event, &inputs, &req_send, &to_worker_send, &pub_queue, input_port_id).await;
+                        handle_socket_event(event, &inputs, &req_send, &to_worker_send, &pub_queue, &sub_queue, input_port_id).await;
                     }
                     Some((request, response_chan)) = req_recv.recv() => {
                         handle_input_request(request, response_chan, &inputs, &pub_queue, input_port_id).await;
@@ -498,12 +528,25 @@ impl ZmqTransport {
             outputs.insert(output_port_id, state);
         }
 
-        let outputs = self.outputs.clone();
+        let sub_queue = self.sub_queue.clone();
         let pub_queue = self.pub_queue.clone();
+        let outputs = self.outputs.clone();
+
         tokio::task::spawn_local(async move {
             let Some((input_port_id, conn_confirm)) = conn_recv.recv().await else {
                 todo!();
             };
+
+            {
+                let mut handles = Vec::new();
+                for topic in output_topics(output_port_id, input_port_id).into_iter() {
+                    let handle = sub_queue.send(ZmqSubscriptionRequest::Subscribe(topic));
+                    handles.push(handle);
+                }
+                for handle in handles.into_iter() {
+                    handle.await.expect("output worker send sub req");
+                }
+            }
 
             let (msg_req_send, mut msg_req_recv) = sync_channel(1);
 
@@ -568,6 +611,18 @@ impl ZmqTransport {
                             .await
                             .map_err(|e| PortError::Other(e.to_string()));
 
+                        {
+                            let mut handles = Vec::new();
+                            for topic in output_topics(output_port_id, input_port_id).into_iter() {
+                                let handle =
+                                    sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
+                                handles.push(handle);
+                            }
+                            for handle in handles.into_iter() {
+                                handle.await.expect("output worker send unsub req");
+                            }
+                        }
+
                         response_chan
                             .send(response)
                             .await
@@ -608,6 +663,20 @@ impl ZmqTransport {
                                         ZmqOutputPortState::Connected(..)
                                     ));
                                     *output_state = ZmqOutputPortState::Closed;
+
+                                    {
+                                        let mut handles = Vec::new();
+                                        for topic in
+                                            output_topics(output_port_id, input_port_id).into_iter()
+                                        {
+                                            let handle = sub_queue
+                                                .send(ZmqSubscriptionRequest::Unsubscribe(topic));
+                                            handles.push(handle);
+                                        }
+                                        for handle in handles.into_iter() {
+                                            handle.await.expect("output worker send unsub req");
+                                        }
+                                    }
 
                                     response_chan
                                         .send(Err(PortError::Disconnected))
