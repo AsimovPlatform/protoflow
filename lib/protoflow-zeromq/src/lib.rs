@@ -291,6 +291,10 @@ impl ZmqTransport {
         let (to_worker_send, to_worker_recv) = sync_channel(1);
         let to_worker_send = Arc::new(to_worker_send);
 
+        let (req_send, req_recv) = sync_channel(1);
+        let req_send = Arc::new(req_send);
+        let _req_recv = Arc::new(Mutex::new(req_recv));
+
         {
             let mut inputs = self.inputs.write();
             let state = ZmqInputPortState::Open(to_worker_send.clone());
@@ -304,6 +308,8 @@ impl ZmqTransport {
         tokio::task::spawn(async move {
             let input = to_worker_recv;
             let inputs = inputs;
+
+            // TODO: loop for req_recv.recv(), i.e. requests from public methods
 
             // Input worker loop:
             //   1. Receive connection attempts and respond
@@ -332,16 +338,12 @@ impl ZmqTransport {
                         }
 
                         let open = |input_state: &mut ZmqInputPortState| {
-                            let (req_send, req_recv) = sync_channel(1);
-                            let req_send = Arc::new(req_send);
-                            let req_recv = Arc::new(Mutex::new(req_recv));
-
                             let (msgs_send, msgs_recv) = sync_channel(1);
                             let msgs_send = Arc::new(msgs_send);
                             let msgs_recv = Arc::new(Mutex::new(msgs_recv));
 
                             *input_state = ZmqInputPortState::Connected(
-                                req_send,
+                                req_send.clone(),
                                 msgs_send,
                                 msgs_recv,
                                 to_worker_send.clone(),
@@ -754,23 +756,18 @@ fn handle_zmq_msg(
                 }
             };
         }
-        Message(output_port_id, input_port_id, _, bytes) => {
+        Message(_, input_port_id, _, _) => {
             let inputs = inputs.read();
             let Some(input) = inputs.get(&input_port_id) else {
                 todo!();
             };
 
             let input = input.read();
-            let ZmqInputPortState::Connected(_, sender, _, _, ids) = &*input else {
+            let ZmqInputPortState::Connected(_, _, _, sender, _) = &*input else {
                 todo!();
             };
 
-            // TODO: probably move to ports worker? no sense having here
-            if !ids.iter().any(|&id| id == output_port_id) {
-                todo!();
-            }
-
-            sender.send(ZmqInputPortEvent::Message(bytes)).unwrap();
+            sender.send(event).unwrap();
         }
         CloseOutput(_, input_port_id) => {
             let inputs = inputs.read();
@@ -807,27 +804,23 @@ fn handle_zmq_msg(
                 todo!();
             };
             let output = output.read();
-
             let ZmqOutputPortState::Connected(_, sender, _) = &*output else {
                 todo!();
             };
             sender.send(event).unwrap();
         }
         CloseInput(input_port_id) => {
-            let outputs = outputs.read();
-
-            for (_, state) in outputs.iter() {
+            for (_, state) in outputs.read().iter() {
                 let state = state.read();
-
-                let ZmqOutputPortState::Connected(_, sender, id) = &*state else {
-                    todo!();
+                let ZmqOutputPortState::Connected(_, ref sender, ref id) = *state else {
+                    continue;
                 };
-
                 if *id != input_port_id {
-                    todo!();
+                    continue;
                 }
-
-                sender.send(event.clone()).unwrap();
+                if let Err(_e) = sender.send(event.clone()) {
+                    continue; // TODO
+                }
             }
         }
     }
