@@ -838,38 +838,40 @@ impl Transport for ZmqTransport {
     }
 
     fn open_input(&self) -> PortResult<InputPortID> {
-        let inputs = self.tokio.block_on(self.inputs.read());
-        let new_id = InputPortID::try_from(-(inputs.len() as isize + 1))
-            .map_err(|e| PortError::Other(e.to_string()))?;
+        let new_id = {
+            let inputs = self.tokio.block_on(self.inputs.read());
+            InputPortID::try_from(-(inputs.len() as isize + 1))
+                .map_err(|e| PortError::Other(e.to_string()))?
+        };
 
-        drop(inputs);
         self.start_input_worker(new_id).map(|_| new_id)
     }
 
     fn open_output(&self) -> PortResult<OutputPortID> {
-        let outputs = self.tokio.block_on(self.outputs.read());
-        let new_id = OutputPortID::try_from(outputs.len() as isize + 1)
-            .map_err(|e| PortError::Other(e.to_string()))?;
+        let new_id = {
+            let outputs = self.tokio.block_on(self.outputs.read());
+            OutputPortID::try_from(outputs.len() as isize + 1)
+                .map_err(|e| PortError::Other(e.to_string()))?
+        };
 
-        drop(outputs);
         self.start_output_worker(new_id).map(|_| new_id)
     }
 
     fn close_input(&self, input: InputPortID) -> PortResult<bool> {
         self.tokio.block_on(async {
-            let inputs = self.inputs.read().await;
-            let Some(input_state) = inputs.get(&input) else {
-                return Err(PortError::Invalid(input.into()));
-            };
+            let sender = {
+                let inputs = self.inputs.read().await;
+                let Some(input_state) = inputs.get(&input) else {
+                    return Err(PortError::Invalid(input.into()));
+                };
 
-            let input_state = input_state.read().await;
-            let ZmqInputPortState::Connected(sender, _, _, _, _) = &*input_state else {
-                return Err(PortError::Disconnected);
-            };
+                let input_state = input_state.read().await;
+                let ZmqInputPortState::Connected(sender, _, _, _, _) = &*input_state else {
+                    return Err(PortError::Disconnected);
+                };
 
-            let sender = sender.clone();
-            drop(input_state);
-            drop(inputs);
+                sender.clone()
+            };
 
             let (close_send, mut close_recv) = sync_channel(1);
 
@@ -888,19 +890,19 @@ impl Transport for ZmqTransport {
 
     fn close_output(&self, output: OutputPortID) -> PortResult<bool> {
         self.tokio.block_on(async {
-            let outputs = self.outputs.read().await;
-            let Some(output_state) = outputs.get(&output) else {
-                return Err(PortError::Invalid(output.into()));
-            };
+            let sender = {
+                let outputs = self.outputs.read().await;
+                let Some(output_state) = outputs.get(&output) else {
+                    return Err(PortError::Invalid(output.into()));
+                };
 
-            let output_state = output_state.read().await;
-            let ZmqOutputPortState::Connected(sender, _, _) = &*output_state else {
-                return Err(PortError::Disconnected);
-            };
+                let output_state = output_state.read().await;
+                let ZmqOutputPortState::Connected(sender, _, _) = &*output_state else {
+                    return Err(PortError::Disconnected);
+                };
 
-            let sender = sender.clone();
-            drop(output_state);
-            drop(outputs);
+                sender.clone()
+            };
 
             let (close_send, mut close_recv) = sync_channel(1);
 
@@ -919,19 +921,19 @@ impl Transport for ZmqTransport {
 
     fn connect(&self, source: OutputPortID, target: InputPortID) -> PortResult<bool> {
         self.tokio.block_on(async {
-            let outputs = self.outputs.read().await;
-            let Some(output_state) = outputs.get(&source) else {
-                return Err(PortError::Invalid(source.into()));
-            };
+            let sender = {
+                let outputs = self.outputs.read().await;
+                let Some(output_state) = outputs.get(&source) else {
+                    return Err(PortError::Invalid(source.into()));
+                };
 
-            let output_state = output_state.read().await;
-            let ZmqOutputPortState::Open(ref sender, _) = *output_state else {
-                return Err(PortError::Invalid(source.into()));
-            };
+                let output_state = output_state.read().await;
+                let ZmqOutputPortState::Open(ref sender, _) = *output_state else {
+                    return Err(PortError::Invalid(source.into()));
+                };
 
-            let sender = sender.clone();
-            drop(output_state);
-            drop(outputs);
+                sender.clone()
+            };
 
             let (confirm_send, mut confirm_recv) = sync_channel(1);
 
@@ -950,14 +952,18 @@ impl Transport for ZmqTransport {
 
     fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()> {
         self.tokio.block_on(async {
-            let outputs = self.outputs.read().await;
-            let Some(output) = outputs.get(&output) else {
-                return Err(PortError::Invalid(output.into()));
-            };
-            let output = output.read().await;
+            let sender = {
+                let outputs = self.outputs.read().await;
+                let Some(output) = outputs.get(&output) else {
+                    return Err(PortError::Invalid(output.into()));
+                };
+                let output = output.read().await;
 
-            let ZmqOutputPortState::Connected(sender, _, _) = &*output else {
-                return Err(PortError::Disconnected);
+                let ZmqOutputPortState::Connected(sender, _, _) = &*output else {
+                    return Err(PortError::Disconnected);
+                };
+
+                sender.clone()
             };
 
             let (ack_send, mut ack_recv) = sync_channel(1);
@@ -973,19 +979,20 @@ impl Transport for ZmqTransport {
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
         self.tokio.block_on(async {
-            let inputs = self.inputs.read().await;
-            let Some(input_state) = inputs.get(&input) else {
-                return Err(PortError::Invalid(input.into()));
+            let receiver = {
+                let inputs = self.inputs.read().await;
+                let Some(input_state) = inputs.get(&input) else {
+                    return Err(PortError::Invalid(input.into()));
+                };
+
+                let input_state = input_state.read().await;
+                let ZmqInputPortState::Connected(_, _, receiver, _, _) = &*input_state else {
+                    return Err(PortError::Disconnected);
+                };
+
+                receiver.clone()
             };
 
-            let input_state = input_state.read().await;
-            let ZmqInputPortState::Connected(_, _, receiver, _, _) = &*input_state else {
-                return Err(PortError::Disconnected);
-            };
-
-            let receiver = receiver.clone();
-            drop(input_state);
-            drop(inputs);
             let mut receiver = receiver.lock().await;
 
             use ZmqInputPortEvent::*;
@@ -999,19 +1006,20 @@ impl Transport for ZmqTransport {
 
     fn try_recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
         self.tokio.block_on(async {
-            let inputs = self.inputs.read().await;
-            let Some(input_state) = inputs.get(&input) else {
-                return Err(PortError::Invalid(input.into()));
+            let receiver = {
+                let inputs = self.inputs.read().await;
+                let Some(input_state) = inputs.get(&input) else {
+                    return Err(PortError::Invalid(input.into()));
+                };
+
+                let input_state = input_state.read().await;
+                let ZmqInputPortState::Connected(_, _, receiver, _, _) = &*input_state else {
+                    return Err(PortError::Disconnected);
+                };
+
+                receiver.clone()
             };
 
-            let input_state = input_state.read().await;
-            let ZmqInputPortState::Connected(_, _, receiver, _, _) = &*input_state else {
-                return Err(PortError::Disconnected);
-            };
-
-            let receiver = receiver.clone();
-            drop(input_state);
-            drop(inputs);
             let mut receiver = receiver.lock().await;
 
             use ZmqInputPortEvent::*;
@@ -1039,88 +1047,105 @@ async fn handle_zmq_msg(
     match event {
         // input ports
         Connect(_, input_port_id) => {
-            let inputs = inputs.read().await;
-            let Some(input) = inputs.get(&input_port_id) else {
-                todo!();
-            };
-            let input = input.read().await;
+            let sender = {
+                let inputs = inputs.read().await;
+                let Some(input) = inputs.get(&input_port_id) else {
+                    todo!();
+                };
+                let input = input.read().await;
 
-            use ZmqInputPortState::*;
-            match &*input {
-                Closed => todo!(),
-                Open(sender) | Connected(_, _, _, sender, _) => sender.send(event).await.unwrap(),
+                use ZmqInputPortState::*;
+                match &*input {
+                    Closed => todo!(),
+                    Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
+                }
             };
+
+            sender.send(event).await.unwrap();
         }
         Message(_, input_port_id, _, _) => {
-            let inputs = inputs.read().await;
-            let Some(input) = inputs.get(&input_port_id) else {
-                todo!();
-            };
+            let sender = {
+                let inputs = inputs.read().await;
+                let Some(input) = inputs.get(&input_port_id) else {
+                    todo!();
+                };
 
-            let input = input.read().await;
-            let ZmqInputPortState::Connected(_, _, _, sender, _) = &*input else {
-                todo!();
+                let input = input.read().await;
+                let ZmqInputPortState::Connected(_, _, _, sender, _) = &*input else {
+                    todo!();
+                };
+
+                sender.clone()
             };
 
             sender.send(event).await.unwrap();
         }
         CloseOutput(_, input_port_id) => {
-            let inputs = inputs.read().await;
-            let Some(input) = inputs.get(&input_port_id) else {
-                todo!();
-            };
-            let input = input.read().await;
+            let sender = {
+                let inputs = inputs.read().await;
+                let Some(input) = inputs.get(&input_port_id) else {
+                    todo!();
+                };
+                let input = input.read().await;
 
-            use ZmqInputPortState::*;
-            match &*input {
-                Closed => todo!(),
-                Open(sender) | Connected(_, _, _, sender, _) => {
-                    let sender = sender.clone();
-                    drop(input);
-                    drop(inputs);
-                    sender.send(event).await.unwrap();
+                use ZmqInputPortState::*;
+                match &*input {
+                    Closed => todo!(),
+                    Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
                 }
             };
+
+            sender.send(event).await.unwrap();
         }
 
         // output ports
         AckConnection(output_port_id, _) => {
-            let outputs = outputs.read().await;
-            let Some(output) = outputs.get(&output_port_id) else {
-                todo!();
-            };
-            let output = output.read().await;
+            let sender = {
+                let outputs = outputs.read().await;
+                let Some(output) = outputs.get(&output_port_id) else {
+                    todo!();
+                };
+                let output = output.read().await;
 
-            let ZmqOutputPortState::Open(_, sender) = &*output else {
-                todo!();
+                let ZmqOutputPortState::Open(_, sender) = &*output else {
+                    todo!();
+                };
+
+                sender.clone()
             };
-            let sender = sender.clone();
-            drop(output);
-            drop(outputs);
+
             sender.send(event).await.unwrap();
         }
         AckMessage(output_port_id, _, _) => {
-            let outputs = outputs.read().await;
-            let Some(output) = outputs.get(&output_port_id) else {
-                todo!();
+            let sender = {
+                let outputs = outputs.read().await;
+                let Some(output) = outputs.get(&output_port_id) else {
+                    todo!();
+                };
+                let output = output.read().await;
+                let ZmqOutputPortState::Connected(_, sender, _) = &*output else {
+                    todo!();
+                };
+
+                sender.clone()
             };
-            let output = output.read().await;
-            let ZmqOutputPortState::Connected(_, sender, _) = &*output else {
-                todo!();
-            };
+
             sender.send(event).await.unwrap();
         }
         CloseInput(input_port_id) => {
             for (_, state) in outputs.read().await.iter() {
-                let state = state.read().await;
-                let ZmqOutputPortState::Connected(_, ref sender, ref id) = *state else {
-                    continue;
+                let sender = {
+                    let state = state.read().await;
+                    let ZmqOutputPortState::Connected(_, ref sender, ref id) = *state else {
+                        continue;
+                    };
+                    if *id != input_port_id {
+                        continue;
+                    }
+
+                    sender.clone()
                 };
-                if *id != input_port_id {
-                    continue;
-                }
-                let sender = sender.clone();
-                drop(state);
+
                 if let Err(_e) = sender.send(event.clone()).await {
                     continue; // TODO
                 }
