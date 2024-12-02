@@ -90,7 +90,7 @@ impl ZmqTransport {
 
         let (pub_queue, pub_queue_recv) = channel(1);
 
-        let (sub_queue, sub_queue_recv) = tokio::sync::mpsc::channel(1);
+        let (sub_queue, sub_queue_recv) = channel(1);
 
         let transport = Self {
             pub_queue,

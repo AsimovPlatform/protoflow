@@ -1,6 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{ZmqSubscriptionRequest, ZmqTransport, ZmqTransportEvent};
+use crate::{subscribe_topics, unsubscribe_topics, ZmqTransport, ZmqTransportEvent};
 use protoflow_core::{
     prelude::{format, vec, Bytes, String, ToString, Vec},
     InputPortID, OutputPortID, PortError, PortState,
@@ -13,6 +13,11 @@ use tokio::sync::{
 #[cfg(feature = "tracing")]
 use tracing::{trace, trace_span};
 
+#[derive(Debug, Clone)]
+pub enum ZmqOutputPortRequest {
+    Close,
+    Send(Bytes),
+}
 #[derive(Debug, Clone)]
 pub enum ZmqOutputPortState {
     Open(
@@ -28,12 +33,6 @@ pub enum ZmqOutputPortState {
         InputPortID,
     ),
     Closed,
-}
-
-#[derive(Debug, Clone)]
-pub enum ZmqOutputPortRequest {
-    Close,
-    Send(Bytes),
 }
 
 impl ZmqOutputPortState {
@@ -90,7 +89,8 @@ pub fn start_output_worker(
 
     tokio::task::spawn(async move {
         let Some((input_port_id, conn_confirm)) = conn_recv.recv().await else {
-            todo!();
+            // all senders have dropped, i.e. there's no connection request coming
+            return;
         };
 
         #[cfg(feature = "tracing")]
@@ -100,19 +100,8 @@ pub fn start_output_worker(
             ?input_port_id
         );
 
-        {
-            let mut handles = Vec::new();
-            for topic in output_topics(output_port_id, input_port_id).into_iter() {
-                #[cfg(feature = "tracing")]
-                span.in_scope(|| trace!(?topic, "sending subscription request"));
-
-                let handle = sub_queue.send(ZmqSubscriptionRequest::Subscribe(topic));
-                handles.push(handle);
-            }
-            for handle in handles.into_iter() {
-                handle.await.expect("output worker send sub req");
-            }
-        }
+        let topics = output_topics(output_port_id, input_port_id);
+        subscribe_topics(&topics, &sub_queue).await.unwrap();
 
         let (msg_req_send, mut msg_req_recv) = channel(1);
 
@@ -193,18 +182,7 @@ pub fn start_output_worker(
                         .await
                         .map_err(|e| PortError::Other(e.to_string()));
 
-                    {
-                        let mut handles = Vec::new();
-                        for topic in output_topics(output_port_id, input_port_id).into_iter() {
-                            #[cfg(feature = "tracing")]
-                            span.in_scope(|| trace!(?topic, "sending unsubscription request"));
-                            let handle = sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
-                            handles.push(handle);
-                        }
-                        for handle in handles.into_iter() {
-                            handle.await.expect("output worker send unsub req");
-                        }
-                    }
+                    unsubscribe_topics(&topics, &sub_queue).await.unwrap();
 
                     response_chan
                         .send(response)
@@ -256,23 +234,7 @@ pub fn start_output_worker(
                                 ));
                                 *output_state = ZmqOutputPortState::Closed;
 
-                                {
-                                    let mut handles = Vec::new();
-                                    for topic in
-                                        output_topics(output_port_id, input_port_id).into_iter()
-                                    {
-                                        #[cfg(feature = "tracing")]
-                                        span.in_scope(|| {
-                                            trace!(?topic, "sending unsubscription request")
-                                        });
-                                        let handle = sub_queue
-                                            .send(ZmqSubscriptionRequest::Unsubscribe(topic));
-                                        handles.push(handle);
-                                    }
-                                    for handle in handles.into_iter() {
-                                        handle.await.expect("output worker send unsub req");
-                                    }
-                                }
+                                unsubscribe_topics(&topics, &sub_queue).await.unwrap();
 
                                 response_chan
                                     .send(Err(PortError::Disconnected))

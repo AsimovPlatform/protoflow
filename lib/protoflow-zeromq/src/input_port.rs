@@ -1,6 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{ZmqSubscriptionRequest, ZmqTransport, ZmqTransportEvent};
+use crate::{
+    subscribe_topics, unsubscribe_topics, ZmqSubscriptionRequest, ZmqTransport, ZmqTransportEvent,
+};
 use protoflow_core::{
     prelude::{format, vec, Arc, BTreeMap, Bytes, String, Vec},
     InputPortID, OutputPortID, PortError, PortState,
@@ -86,28 +88,15 @@ pub fn start_input_worker(
         inputs.insert(input_port_id, state);
     }
 
-    {
-        let mut handles = Vec::new();
-        for topic in input_topics(input_port_id).into_iter() {
-            #[cfg(feature = "tracing")]
-            span.in_scope(|| trace!(?topic, "sending subscription request"));
-
-            let handle = transport
-                .sub_queue
-                .send(ZmqSubscriptionRequest::Subscribe(topic));
-            handles.push(handle);
-        }
-        for handle in handles.into_iter() {
-            transport
-                .tokio
-                .block_on(handle)
-                .expect("input worker send sub req");
-        }
-    }
-
     let sub_queue = transport.sub_queue.clone();
     let pub_queue = transport.pub_queue.clone();
     let inputs = transport.inputs.clone();
+
+    let topics = input_topics(input_port_id);
+    transport
+        .tokio
+        .block_on(subscribe_topics(&topics, &sub_queue))
+        .unwrap();
 
     async fn handle_socket_event(
         event: ZmqTransportEvent,
@@ -311,19 +300,8 @@ pub fn start_input_worker(
 
                 *input_state = ZmqInputPortState::Closed;
 
-                {
-                    let mut handles = Vec::new();
-                    for topic in input_topics(input_port_id).into_iter() {
-                        #[cfg(feature = "tracing")]
-                        span.in_scope(|| trace!(?topic, "sending unsubscription request"));
-
-                        let handle = sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
-                        handles.push(handle);
-                    }
-                    for handle in handles.into_iter() {
-                        handle.await.expect("input worker send unsub req");
-                    }
-                }
+                let topics = input_topics(input_port_id);
+                unsubscribe_topics(&topics, sub_queue).await.unwrap();
 
                 response_chan
                     .send(Ok(()))

@@ -3,10 +3,13 @@
 use crate::{ZmqInputPortState, ZmqOutputPortState, ZmqTransport, ZmqTransportEvent};
 use core::fmt::Error;
 use protoflow_core::{
-    prelude::{BTreeMap, String},
+    prelude::{BTreeMap, String, Vec},
     InputPortID, OutputPortID,
 };
-use tokio::sync::{mpsc::Receiver, RwLock};
+use tokio::sync::{
+    mpsc::{error::SendError, Receiver, Sender},
+    RwLock,
+};
 use zeromq::{SocketRecv, SocketSend, ZmqMessage};
 
 #[derive(Clone, Debug)]
@@ -36,6 +39,34 @@ pub fn start_pub_socket_worker(psock: zeromq::PubSocket, pub_queue: Receiver<Zmq
                 .expect("zmq pub-socket worker")
         }
     });
+}
+
+pub async fn subscribe_topics(
+    topics: &[String],
+    sub_queue: &Sender<ZmqSubscriptionRequest>,
+) -> Result<(), SendError<ZmqSubscriptionRequest>> {
+    let mut handles = Vec::with_capacity(topics.len());
+    for topic in topics {
+        handles.push(sub_queue.send(ZmqSubscriptionRequest::Subscribe(topic.clone())));
+    }
+    for handle in handles {
+        handle.await?;
+    }
+    Ok(())
+}
+
+pub async fn unsubscribe_topics(
+    topics: &[String],
+    sub_queue: &Sender<ZmqSubscriptionRequest>,
+) -> Result<(), SendError<ZmqSubscriptionRequest>> {
+    let mut handles = Vec::with_capacity(topics.len());
+    for topic in topics {
+        handles.push(sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic.clone())));
+    }
+    for handle in handles {
+        handle.await?;
+    }
+    Ok(())
 }
 
 pub fn start_sub_socket_worker(
