@@ -6,6 +6,7 @@
 #[doc(hidden)]
 pub use protoflow_core::prelude;
 
+#[path = "protoflow.zmq.rs"]
 mod protoflow_zmq;
 
 extern crate std;

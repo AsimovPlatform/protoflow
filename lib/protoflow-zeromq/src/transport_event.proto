@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package protoflow_zmq;
+package protoflow.zmq;
 
 message Connect {
 	int64 output = 1;
