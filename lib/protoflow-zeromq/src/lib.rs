@@ -18,7 +18,7 @@ use protoflow_core::{
 use core::fmt::Error;
 use std::{format, write};
 use tokio::sync::{
-    mpsc::{channel as sync_channel, Receiver, Sender},
+    mpsc::{channel as sync_channel, error::TryRecvError, Receiver, Sender},
     Mutex, RwLock,
 };
 use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend, ZmqMessage};
@@ -105,8 +105,7 @@ impl ZmqInputPortState {
 
 type SequenceID = u64;
 
-/// ZmqTransportEvent represents the data that goes over the wire, sent from an output port over
-/// the network to an input port.
+/// ZmqTransportEvent represents the data that goes over the wire from one port to another.
 #[derive(Clone, Debug)]
 enum ZmqTransportEvent {
     Connect(OutputPortID, InputPortID),
@@ -286,7 +285,7 @@ impl Default for ZmqTransport {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum ZmqSubscriptionRequest {
     Subscribe(String),
     Unsubscribe(String),
@@ -998,8 +997,32 @@ impl Transport for ZmqTransport {
         })
     }
 
-    fn try_recv(&self, _input: InputPortID) -> PortResult<Option<Bytes>> {
-        todo!();
+    fn try_recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
+        self.tokio.block_on(async {
+            let inputs = self.inputs.read().await;
+            let Some(input_state) = inputs.get(&input) else {
+                return Err(PortError::Invalid(input.into()));
+            };
+
+            let input_state = input_state.read().await;
+            let ZmqInputPortState::Connected(_, _, receiver, _, _) = &*input_state else {
+                return Err(PortError::Disconnected);
+            };
+
+            let receiver = receiver.clone();
+            drop(input_state);
+            drop(inputs);
+            let mut receiver = receiver.lock().await;
+
+            use ZmqInputPortEvent::*;
+            match receiver.try_recv() {
+                Ok(Closed) => Ok(None), // EOS
+                Ok(Message(bytes)) => Ok(Some(bytes)),
+                Err(TryRecvError::Disconnected) => Err(PortError::Disconnected),
+                // TODO: what should we answer with here?:
+                Err(TryRecvError::Empty) => Err(PortError::RecvFailed),
+            }
+        })
     }
 }
 
@@ -1117,17 +1140,17 @@ mod tests {
     use futures_util::future::TryFutureExt;
     use zeromq::{PubSocket, SocketRecv, SocketSend, SubSocket};
 
-    fn start_zmqtransport_server(rt: &tokio::runtime::Runtime) {
+    async fn start_zmqtransport_server() {
         // bind a *SUB* socket to the *PUB* address so that the transport can *PUB* to it
         let mut pub_srv = SubSocket::new();
-        rt.block_on(pub_srv.bind(DEFAULT_PUB_SOCKET)).unwrap();
+        pub_srv.bind(DEFAULT_PUB_SOCKET).await.unwrap();
 
         // bind a *PUB* socket to the *SUB* address so that the transport can *SUB* to it
         let mut sub_srv = PubSocket::new();
-        rt.block_on(sub_srv.bind(DEFAULT_SUB_SOCKET)).unwrap();
+        sub_srv.bind(DEFAULT_SUB_SOCKET).await.unwrap();
 
         // subscribe to all messages
-        rt.block_on(pub_srv.subscribe("")).unwrap();
+        pub_srv.subscribe("").await.unwrap();
 
         // resend anything received on the *SUB* socket to the *PUB* socket
         tokio::task::spawn(async move {
@@ -1148,7 +1171,7 @@ mod tests {
         let _guard = rt.enter();
 
         //zeromq::proxy(frontend, backend, capture)
-        start_zmqtransport_server(&rt);
+        rt.block_on(start_zmqtransport_server());
 
         let _ = System::<ZmqTransport>::build(|_s| { /* do nothing */ });
     }
@@ -1158,7 +1181,7 @@ mod tests {
         let rt = tokio::runtime::Runtime::new().unwrap();
         let _guard = rt.enter();
 
-        start_zmqtransport_server(&rt);
+        rt.block_on(start_zmqtransport_server());
 
         let transport = ZmqTransport::default();
         let runtime = StdRuntime::new(transport).unwrap();
