@@ -687,6 +687,7 @@ impl ZmqTransport {
                             .send(Ok(()))
                             .await
                             .expect("output worker respond conn");
+                        drop(conn_confirm);
 
                         break;
                     }
