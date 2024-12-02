@@ -33,7 +33,6 @@ zeromq = { version = "0.4.1", default-features = false, features = [
 	"all-transport",
 ] }
 tokio = { version = "1.40.0", default-features = false }
-parking_lot = "0.12"
 prost = "0.13.2"
 prost-types = "0.13.2"
 

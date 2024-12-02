@@ -439,7 +439,7 @@ impl ZmqTransport {
                     match &*input_state {
                         Open(_) => (),
                         Connected(_, _, _, _, connected_ids) => {
-                            if !connected_ids.iter().any(|&id| id == output_port_id) {
+                            if connected_ids.iter().any(|&id| id == output_port_id) {
                                 return;
                             }
                         }
@@ -600,15 +600,7 @@ impl ZmqTransport {
             }
         });
 
-        let topic = format!("{}:", input_port_id);
-
-        // send sub request
-        self.tokio
-            .block_on(
-                self.sub_queue
-                    .send(ZmqSubscriptionRequest::Subscribe(topic)),
-            )
-            .map_err(|e| PortError::Other(e.to_string()))
+        Ok(())
     }
 
     fn start_output_worker(&self, output_port_id: OutputPortID) -> Result<(), PortError> {
@@ -693,7 +685,7 @@ impl ZmqTransport {
             }
 
             let mut seq_id = 1;
-            'outer: loop {
+            'send: loop {
                 let (request, response_chan) = msg_req_recv
                     .recv()
                     .await
@@ -737,7 +729,7 @@ impl ZmqTransport {
                             .await
                             .expect("output worker send message event");
 
-                        loop {
+                        'recv: loop {
                             let event = to_worker_recv
                                 .recv()
                                 .await
@@ -747,7 +739,11 @@ impl ZmqTransport {
                             match event {
                                 AckMessage(_, _, ack_id) => {
                                     if ack_id == seq_id {
-                                        break;
+                                        response_chan
+                                            .send(Ok(()))
+                                            .await
+                                            .expect("output worker respond send");
+                                        break 'recv;
                                     }
                                 }
                                 CloseInput(_) => {
@@ -781,7 +777,7 @@ impl ZmqTransport {
                                         .await
                                         .expect("output worker respond msg");
 
-                                    break 'outer;
+                                    break 'send;
                                 }
 
                                 // ignore others, we shouldn't receive any new conn-acks
@@ -836,6 +832,8 @@ impl Transport for ZmqTransport {
         let inputs = self.tokio.block_on(self.inputs.read());
         let new_id = InputPortID::try_from(-(inputs.len() as isize + 1))
             .map_err(|e| PortError::Other(e.to_string()))?;
+
+        drop(inputs);
         self.start_input_worker(new_id).map(|_| new_id)
     }
 
@@ -843,6 +841,8 @@ impl Transport for ZmqTransport {
         let outputs = self.tokio.block_on(self.outputs.read());
         let new_id = OutputPortID::try_from(outputs.len() as isize + 1)
             .map_err(|e| PortError::Other(e.to_string()))?;
+
+        drop(outputs);
         self.start_output_worker(new_id).map(|_| new_id)
     }
 
@@ -915,6 +915,10 @@ impl Transport for ZmqTransport {
             let ZmqOutputPortState::Open(ref sender, _) = *output_state else {
                 return Err(PortError::Invalid(source.into()));
             };
+
+            let sender = sender.clone();
+            drop(output_state);
+            drop(outputs);
 
             let (confirm_send, mut confirm_recv) = sync_channel(1);
 
@@ -1046,6 +1050,9 @@ async fn handle_zmq_msg(
             let ZmqOutputPortState::Open(_, sender) = &*output else {
                 todo!();
             };
+            let sender = sender.clone();
+            drop(output);
+            drop(outputs);
             sender.send(event).await.unwrap();
         }
         AckMessage(output_port_id, _, _) => {
@@ -1139,13 +1146,14 @@ mod tests {
 
         system.connect(&output, &input);
 
-        let output = rt.spawn(async move { output.send(&"Hello world!".to_string()).unwrap() });
-        let input = rt.spawn(async move { input.recv().unwrap() });
+        let output = std::thread::spawn(move || output.send(&"Hello world!".to_string()));
+        let input = std::thread::spawn(move || input.recv());
 
-        let (output, input) = rt.block_on(async { tokio::join!(output, input) });
+        output.join().expect("thread failed").expect("send failed");
 
-        output.unwrap();
-
-        assert_eq!("Hello world!".to_string(), input.unwrap().unwrap());
+        assert_eq!(
+            Some("Hello world!".to_string()),
+            input.join().expect("thread failed").expect("recv failed")
+        );
     }
 }
