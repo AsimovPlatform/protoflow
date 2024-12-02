@@ -1082,7 +1082,7 @@ async fn handle_zmq_msg(
 mod tests {
     use super::*;
 
-    use protoflow_core::System;
+    use protoflow_core::{runtimes::StdRuntime, System};
 
     use futures_util::future::TryFutureExt;
     use zeromq::{PubSocket, SocketRecv, SocketSend, SubSocket};
@@ -1121,5 +1121,31 @@ mod tests {
         start_zmqtransport_server(&rt);
 
         let _ = System::<ZmqTransport>::build(|_s| { /* do nothing */ });
+    }
+
+    #[test]
+    fn run_transport() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let _guard = rt.enter();
+
+        start_zmqtransport_server(&rt);
+
+        let transport = ZmqTransport::default();
+        let runtime = StdRuntime::new(transport).unwrap();
+        let system = System::new(&runtime);
+
+        let output = system.output();
+        let input = system.input();
+
+        system.connect(&output, &input);
+
+        let output = rt.spawn(async move { output.send(&"Hello world!".to_string()).unwrap() });
+        let input = rt.spawn(async move { input.recv().unwrap() });
+
+        let (output, input) = rt.block_on(async { tokio::join!(output, input) });
+
+        output.unwrap();
+
+        assert_eq!("Hello world!".to_string(), input.unwrap().unwrap());
     }
 }
