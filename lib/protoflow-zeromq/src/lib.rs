@@ -12,6 +12,9 @@ mod protoflow_zmq;
 mod input_port;
 use input_port::*;
 
+mod output_port;
+use output_port::*;
+
 extern crate std;
 
 use protoflow_core::{
@@ -22,8 +25,8 @@ use protoflow_core::{
 use core::fmt::Error;
 use std::{format, write};
 use tokio::sync::{
-    mpsc::{channel as sync_channel, error::TryRecvError, Receiver, Sender},
-    Mutex, RwLock,
+    mpsc::{channel, error::TryRecvError, Receiver, Sender},
+    RwLock,
 };
 use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend, ZmqMessage};
 
@@ -41,40 +44,6 @@ pub struct ZmqTransport {
 
     outputs: Arc<RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>>,
     inputs: Arc<RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>>,
-}
-
-#[derive(Debug, Clone)]
-enum ZmqOutputPortState {
-    Open(
-        Sender<(InputPortID, Sender<Result<(), PortError>>)>,
-        Sender<ZmqTransportEvent>,
-    ),
-    Connected(
-        // channel for public send, contained channel is for the ack back
-        Sender<(ZmqOutputPortRequest, Sender<Result<(), PortError>>)>,
-        // internal channel for events
-        Sender<ZmqTransportEvent>,
-        // id of the connected input port
-        InputPortID,
-    ),
-    Closed,
-}
-
-#[derive(Debug, Clone)]
-enum ZmqOutputPortRequest {
-    Close,
-    Send(Bytes),
-}
-
-impl ZmqOutputPortState {
-    fn state(&self) -> PortState {
-        use ZmqOutputPortState::*;
-        match self {
-            Open(_, _) => PortState::Open,
-            Connected(_, _, _) => PortState::Connected,
-            Closed => PortState::Closed,
-        }
-    }
 }
 
 type SequenceID = u64;
@@ -102,14 +71,6 @@ impl ZmqTransportEvent {
             CloseInput(i) => write!(f, "{}:closeIn", i),
         }
     }
-}
-
-fn output_topics(source: OutputPortID, target: InputPortID) -> Vec<String> {
-    vec![
-        format!("{}:ackConn:{}", target, source),
-        format!("{}:ackMsg:{}:", target, source),
-        format!("{}:closeIn", target),
-    ]
 }
 
 impl From<ZmqTransportEvent> for ZmqMessage {
@@ -282,7 +243,7 @@ impl ZmqTransport {
         let outputs = Arc::new(RwLock::new(BTreeMap::default()));
         let inputs = Arc::new(RwLock::new(BTreeMap::default()));
 
-        let (pub_queue, pub_queue_recv) = sync_channel(1);
+        let (pub_queue, pub_queue_recv) = channel(1);
 
         let (sub_queue, sub_queue_recv) = tokio::sync::mpsc::channel(1);
 
@@ -364,252 +325,6 @@ impl ZmqTransport {
             }
         });
     }
-
-    fn start_output_worker(&self, output_port_id: OutputPortID) -> Result<(), PortError> {
-        #[cfg(feature = "tracing")]
-        let span = trace_span!("ZmqTransport::start_output_worker", ?output_port_id);
-
-        let (conn_send, mut conn_recv) = sync_channel(1);
-
-        let (to_worker_send, mut to_worker_recv) = sync_channel(1);
-
-        {
-            let mut outputs = self.tokio.block_on(self.outputs.write());
-
-            if outputs.contains_key(&output_port_id) {
-                return Ok(()); // TODO
-            }
-            let state = ZmqOutputPortState::Open(conn_send, to_worker_send.clone());
-            let state = RwLock::new(state);
-
-            #[cfg(feature = "tracing")]
-            span.in_scope(|| trace!(?state, "saving new opened state"));
-
-            outputs.insert(output_port_id, state);
-        }
-
-        let sub_queue = self.sub_queue.clone();
-        let pub_queue = self.pub_queue.clone();
-        let outputs = self.outputs.clone();
-
-        #[cfg(feature = "tracing")]
-        span.in_scope(|| trace!("spawning"));
-
-        tokio::task::spawn(async move {
-            let Some((input_port_id, conn_confirm)) = conn_recv.recv().await else {
-                todo!();
-            };
-
-            #[cfg(feature = "tracing")]
-            let span = trace_span!(
-                "ZmqTransport::start_output_worker::spawn",
-                ?output_port_id,
-                ?input_port_id
-            );
-
-            {
-                let mut handles = Vec::new();
-                for topic in output_topics(output_port_id, input_port_id).into_iter() {
-                    #[cfg(feature = "tracing")]
-                    span.in_scope(|| trace!(?topic, "sending subscription request"));
-
-                    let handle = sub_queue.send(ZmqSubscriptionRequest::Subscribe(topic));
-                    handles.push(handle);
-                }
-                for handle in handles.into_iter() {
-                    handle.await.expect("output worker send sub req");
-                }
-            }
-
-            let (msg_req_send, mut msg_req_recv) = sync_channel(1);
-
-            // Output worker loop:
-            //   1. Send connection attempt
-            //   2. Send messages
-            //     2.1 Wait for ACK
-            //     2.2. Resend on timeout
-            //   3. Send disconnect events
-
-            loop {
-                #[cfg(feature = "tracing")]
-                let span = trace_span!(parent: &span, "connect_loop");
-
-                #[cfg(feature = "tracing")]
-                span.in_scope(|| trace!("sending connection attempt..."));
-
-                pub_queue
-                    .send(ZmqTransportEvent::Connect(output_port_id, input_port_id))
-                    .await
-                    .expect("output worker send connect event");
-
-                let response = to_worker_recv
-                    .recv()
-                    .await
-                    .expect("output worker recv ack-conn event");
-
-                #[cfg(feature = "tracing")]
-                span.in_scope(|| trace!(?response, "got response"));
-
-                use ZmqTransportEvent::*;
-                match response {
-                    AckConnection(_, input_port_id) => {
-                        let outputs = outputs.read().await;
-                        let Some(output_state) = outputs.get(&output_port_id) else {
-                            todo!();
-                        };
-                        let mut output_state = output_state.write().await;
-                        debug_assert!(matches!(*output_state, ZmqOutputPortState::Open(..)));
-                        *output_state = ZmqOutputPortState::Connected(
-                            msg_req_send,
-                            to_worker_send,
-                            input_port_id,
-                        );
-
-                        #[cfg(feature = "tracing")]
-                        span.in_scope(|| trace!(?output_state, "Connected!"));
-
-                        conn_confirm
-                            .send(Ok(()))
-                            .await
-                            .expect("output worker respond conn");
-                        drop(conn_confirm);
-
-                        break;
-                    }
-                    _ => continue,
-                }
-            }
-
-            let mut seq_id = 1;
-            'send: loop {
-                #[cfg(feature = "tracing")]
-                let span = trace_span!(parent: &span, "send_loop", ?seq_id);
-
-                let (request, response_chan) = msg_req_recv
-                    .recv()
-                    .await
-                    .expect("output worker recv msg req");
-
-                #[cfg(feature = "tracing")]
-                span.in_scope(|| trace!(?request, "sending request"));
-
-                match request {
-                    ZmqOutputPortRequest::Close => {
-                        let response = pub_queue
-                            .send(ZmqTransportEvent::CloseOutput(
-                                output_port_id,
-                                input_port_id,
-                            ))
-                            .await
-                            .map_err(|e| PortError::Other(e.to_string()));
-
-                        {
-                            let mut handles = Vec::new();
-                            for topic in output_topics(output_port_id, input_port_id).into_iter() {
-                                #[cfg(feature = "tracing")]
-                                span.in_scope(|| trace!(?topic, "sending unsubscription request"));
-                                let handle =
-                                    sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
-                                handles.push(handle);
-                            }
-                            for handle in handles.into_iter() {
-                                handle.await.expect("output worker send unsub req");
-                            }
-                        }
-
-                        response_chan
-                            .send(response)
-                            .await
-                            .expect("output worker respond close");
-                    }
-                    ZmqOutputPortRequest::Send(bytes) => {
-                        pub_queue
-                            .send(ZmqTransportEvent::Message(
-                                output_port_id,
-                                input_port_id,
-                                seq_id,
-                                bytes,
-                            ))
-                            .await
-                            .expect("output worker send message event");
-
-                        'recv: loop {
-                            let event = to_worker_recv
-                                .recv()
-                                .await
-                                .expect("output worker event recv");
-
-                            #[cfg(feature = "tracing")]
-                            span.in_scope(|| trace!(?event, "received event"));
-
-                            use ZmqTransportEvent::*;
-                            match event {
-                                AckMessage(_, _, ack_id) => {
-                                    if ack_id == seq_id {
-                                        #[cfg(feature = "tracing")]
-                                        span.in_scope(|| trace!(?ack_id, "msg-ack matches"));
-                                        response_chan
-                                            .send(Ok(()))
-                                            .await
-                                            .expect("output worker respond send");
-                                        break 'recv;
-                                    }
-                                }
-                                CloseInput(_) => {
-                                    let outputs = outputs.read().await;
-                                    let Some(output_state) = outputs.get(&output_port_id) else {
-                                        todo!();
-                                    };
-                                    let mut output_state = output_state.write().await;
-                                    debug_assert!(matches!(
-                                        *output_state,
-                                        ZmqOutputPortState::Connected(..)
-                                    ));
-                                    *output_state = ZmqOutputPortState::Closed;
-
-                                    {
-                                        let mut handles = Vec::new();
-                                        for topic in
-                                            output_topics(output_port_id, input_port_id).into_iter()
-                                        {
-                                            #[cfg(feature = "tracing")]
-                                            span.in_scope(|| {
-                                                trace!(?topic, "sending unsubscription request")
-                                            });
-                                            let handle = sub_queue
-                                                .send(ZmqSubscriptionRequest::Unsubscribe(topic));
-                                            handles.push(handle);
-                                        }
-                                        for handle in handles.into_iter() {
-                                            handle.await.expect("output worker send unsub req");
-                                        }
-                                    }
-
-                                    response_chan
-                                        .send(Err(PortError::Disconnected))
-                                        .await
-                                        .expect("output worker respond msg");
-
-                                    break 'send;
-                                }
-
-                                // ignore others, we shouldn't receive any new conn-acks
-                                // nor should we be receiving input port events
-                                AckConnection(_, _)
-                                | Connect(_, _)
-                                | Message(_, _, _, _)
-                                | CloseOutput(_, _) => continue,
-                            }
-                        }
-                    }
-                }
-
-                seq_id += 1;
-            }
-        });
-
-        Ok(())
-    }
 }
 
 impl Transport for ZmqTransport {
@@ -670,7 +385,7 @@ impl Transport for ZmqTransport {
         #[cfg(feature = "tracing")]
         trace!(target: "ZmqTransport::open_output", ?new_id, "created new output port");
 
-        self.start_output_worker(new_id).map(|_| new_id)
+        start_output_worker(self, new_id).map(|_| new_id)
     }
 
     fn close_input(&self, input: InputPortID) -> PortResult<bool> {
@@ -689,7 +404,7 @@ impl Transport for ZmqTransport {
                 sender.clone()
             };
 
-            let (close_send, mut close_recv) = sync_channel(1);
+            let (close_send, mut close_recv) = channel(1);
 
             sender
                 .send((ZmqInputPortRequest::Close, close_send))
@@ -720,7 +435,7 @@ impl Transport for ZmqTransport {
                 sender.clone()
             };
 
-            let (close_send, mut close_recv) = sync_channel(1);
+            let (close_send, mut close_recv) = channel(1);
 
             sender
                 .send((ZmqOutputPortRequest::Close, close_send))
@@ -754,7 +469,7 @@ impl Transport for ZmqTransport {
                 sender.clone()
             };
 
-            let (confirm_send, mut confirm_recv) = sync_channel(1);
+            let (confirm_send, mut confirm_recv) = channel(1);
 
             sender
                 .send((target, confirm_send))
@@ -788,7 +503,7 @@ impl Transport for ZmqTransport {
                 sender.clone()
             };
 
-            let (ack_send, mut ack_recv) = sync_channel(1);
+            let (ack_send, mut ack_recv) = channel(1);
 
             sender
                 .send((ZmqOutputPortRequest::Send(message), ack_send))
