@@ -24,6 +24,9 @@ use tokio::sync::{
 };
 use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend, ZmqMessage};
 
+#[cfg(feature = "tracing")]
+use tracing::{trace, trace_span};
+
 const DEFAULT_PUB_SOCKET: &str = "tcp://127.0.0.1:10000";
 const DEFAULT_SUB_SOCKET: &str = "tcp://127.0.0.1:10001";
 
@@ -351,6 +354,13 @@ impl ZmqTransport {
         let mut pub_queue = pub_queue;
         tokio::task::spawn(async move {
             while let Some(event) = pub_queue.recv().await {
+                #[cfg(feature = "tracing")]
+                trace!(
+                    target: "ZmqTransport::pub_socket",
+                    ?event,
+                    "sending event to socket"
+                );
+
                 psock
                     .send(event.into())
                     .await
@@ -371,8 +381,24 @@ impl ZmqTransport {
         tokio::task::spawn(async move {
             loop {
                 tokio::select! {
-                    Ok(msg) = ssock.recv() => handle_zmq_msg(msg, &outputs, &inputs).await.unwrap(),
+                    Ok(msg) = ssock.recv() => {
+                        #[cfg(feature = "tracing")]
+                        trace!(
+                            target: "ZmqTransport::sub_socket",
+                            ?msg,
+                            "got message from socket"
+                        );
+
+                        handle_zmq_msg(msg, &outputs, &inputs).await.unwrap()
+                    },
                     Some(req) = sub_queue.recv() => {
+                        #[cfg(feature = "tracing")]
+                        trace!(
+                            target: "ZmqTransport::sub_socket",
+                            ?req,
+                            "got sub update request"
+                        );
+
                         use ZmqSubscriptionRequest::*;
                         match req {
                             Subscribe(topic) => ssock.subscribe(&topic).await.expect("zmq recv worker subscribe"),
@@ -385,6 +411,9 @@ impl ZmqTransport {
     }
 
     fn start_input_worker(&self, input_port_id: InputPortID) -> Result<(), PortError> {
+        #[cfg(feature = "tracing")]
+        let span = trace_span!("ZmqTransport::start_input_worker", ?input_port_id);
+
         let (to_worker_send, mut to_worker_recv) = sync_channel(1);
 
         let (req_send, mut req_recv) = sync_channel(1);
@@ -396,12 +425,19 @@ impl ZmqTransport {
             }
             let state = ZmqInputPortState::Open(to_worker_send.clone());
             let state = RwLock::new(state);
+
+            #[cfg(feature = "tracing")]
+            span.in_scope(|| trace!(?state, "saving new opened state"));
+
             inputs.insert(input_port_id, state);
         }
 
         {
             let mut handles = Vec::new();
             for topic in input_topics(input_port_id).into_iter() {
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| trace!(?topic, "sending subscription request"));
+
                 let handle = self
                     .sub_queue
                     .send(ZmqSubscriptionRequest::Subscribe(topic));
@@ -425,6 +461,15 @@ impl ZmqTransport {
             pub_queue: &Sender<ZmqTransportEvent>,
             input_port_id: InputPortID,
         ) {
+            #[cfg(feature = "tracing")]
+            let span = trace_span!(
+                "ZmqTransport::start_input_worker::handle_socket_event",
+                ?input_port_id
+            );
+
+            #[cfg(feature = "tracing")]
+            span.in_scope(|| trace!(?event, "got socket event"));
+
             use ZmqTransportEvent::*;
             match event {
                 Connect(output_port_id, input_port_id) => {
@@ -439,6 +484,10 @@ impl ZmqTransport {
                         Open(_) => (),
                         Connected(_, _, _, _, connected_ids) => {
                             if connected_ids.iter().any(|&id| id == output_port_id) {
+                                #[cfg(feature = "tracing")]
+                                span.in_scope(|| {
+                                    trace!(?output_port_id, "output port is already connected")
+                                });
                                 return;
                             }
                         }
@@ -471,9 +520,18 @@ impl ZmqTransport {
                         .await
                         .expect("input worker send ack-conn event");
 
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| trace!(?output_port_id, "sent conn-ack"));
+
                     add_connection(&mut input_state);
+
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| trace!(?input_state, "connected new port"));
                 }
                 Message(output_port_id, _, seq_id, bytes) => {
+                    #[cfg(feature = "tracing")]
+                    let span = trace_span!(parent: &span, "Message", ?output_port_id, ?seq_id);
+
                     let inputs = inputs.read().await;
                     let Some(input_state) = inputs.get(&input_port_id) else {
                         todo!();
@@ -484,6 +542,10 @@ impl ZmqTransport {
                     match &*input_state {
                         Connected(_, sender, _, _, connected_ids) => {
                             if !connected_ids.iter().any(|id| *id == output_port_id) {
+                                #[cfg(feature = "tracing")]
+                                span.in_scope(|| {
+                                    trace!("got message from non-connected output port")
+                                });
                                 return;
                             }
 
@@ -500,6 +562,9 @@ impl ZmqTransport {
                                 ))
                                 .await
                                 .expect("input worker send message ack");
+
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| trace!("sent msg-ack"));
                         }
 
                         Open(_) | Closed => todo!(),
@@ -510,6 +575,7 @@ impl ZmqTransport {
                     let Some(input_state) = inputs.get(&input_port_id) else {
                         todo!();
                     };
+
                     let mut input_state = input_state.write().await;
 
                     use ZmqInputPortState::*;
@@ -518,6 +584,13 @@ impl ZmqTransport {
                     };
 
                     if !connected_ids.iter().any(|id| *id == output_port_id) {
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| {
+                            trace!(
+                                ?output_port_id,
+                                "output port doesn't match any connected port"
+                            )
+                        });
                         return;
                     }
 
@@ -526,6 +599,8 @@ impl ZmqTransport {
                         Connected(_, ref sender, _, _, ref mut connected_ids) => {
                             connected_ids.retain(|&id| id != output_port_id);
                             if connected_ids.is_empty() {
+                                #[cfg(feature = "tracing")]
+                                span.in_scope(|| trace!("last connected port disconnected"));
                                 sender
                                     .send(ZmqInputPortEvent::Closed)
                                     .await
@@ -548,6 +623,15 @@ impl ZmqTransport {
             sub_queue: &Sender<ZmqSubscriptionRequest>,
             input_port_id: InputPortID,
         ) {
+            #[cfg(feature = "tracing")]
+            let span = trace_span!(
+                "ZmqTransport::start_input_worker::handle_input_event",
+                ?input_port_id
+            );
+
+            #[cfg(feature = "tracing")]
+            span.in_scope(|| trace!(?request, "got input request"));
+
             use ZmqInputPortRequest::*;
             match request {
                 Close => {
@@ -577,6 +661,9 @@ impl ZmqTransport {
                     {
                         let mut handles = Vec::new();
                         for topic in input_topics(input_port_id).into_iter() {
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| trace!(?topic, "sending unsubscription request"));
+
                             let handle = sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
                             handles.push(handle);
                         }
@@ -592,6 +679,9 @@ impl ZmqTransport {
                 }
             }
         }
+
+        #[cfg(feature = "tracing")]
+        span.in_scope(|| trace!("spawning"));
 
         tokio::task::spawn(async move {
             // Input worker loop:
@@ -614,17 +704,25 @@ impl ZmqTransport {
     }
 
     fn start_output_worker(&self, output_port_id: OutputPortID) -> Result<(), PortError> {
+        #[cfg(feature = "tracing")]
+        let span = trace_span!("ZmqTransport::start_output_worker", ?output_port_id);
+
         let (conn_send, mut conn_recv) = sync_channel(1);
 
         let (to_worker_send, mut to_worker_recv) = sync_channel(1);
 
         {
             let mut outputs = self.tokio.block_on(self.outputs.write());
+
             if outputs.contains_key(&output_port_id) {
                 return Ok(()); // TODO
             }
             let state = ZmqOutputPortState::Open(conn_send, to_worker_send.clone());
             let state = RwLock::new(state);
+
+            #[cfg(feature = "tracing")]
+            span.in_scope(|| trace!(?state, "saving new opened state"));
+
             outputs.insert(output_port_id, state);
         }
 
@@ -632,14 +730,27 @@ impl ZmqTransport {
         let pub_queue = self.pub_queue.clone();
         let outputs = self.outputs.clone();
 
+        #[cfg(feature = "tracing")]
+        span.in_scope(|| trace!("spawning"));
+
         tokio::task::spawn(async move {
             let Some((input_port_id, conn_confirm)) = conn_recv.recv().await else {
                 todo!();
             };
 
+            #[cfg(feature = "tracing")]
+            let span = trace_span!(
+                "ZmqTransport::start_output_worker::spawn",
+                ?output_port_id,
+                ?input_port_id
+            );
+
             {
                 let mut handles = Vec::new();
                 for topic in output_topics(output_port_id, input_port_id).into_iter() {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| trace!(?topic, "sending subscription request"));
+
                     let handle = sub_queue.send(ZmqSubscriptionRequest::Subscribe(topic));
                     handles.push(handle);
                 }
@@ -658,6 +769,9 @@ impl ZmqTransport {
             //   3. Send disconnect events
 
             loop {
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| trace!("sending connection attempt..."));
+
                 pub_queue
                     .send(ZmqTransportEvent::Connect(output_port_id, input_port_id))
                     .await
@@ -667,6 +781,9 @@ impl ZmqTransport {
                     .recv()
                     .await
                     .expect("output worker recv ack-conn event");
+
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| trace!(?response, "got response"));
 
                 use ZmqTransportEvent::*;
                 match response {
@@ -683,6 +800,9 @@ impl ZmqTransport {
                             input_port_id,
                         );
 
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| trace!(?output_state, "Connected!"));
+
                         conn_confirm
                             .send(Ok(()))
                             .await
@@ -697,10 +817,16 @@ impl ZmqTransport {
 
             let mut seq_id = 1;
             'send: loop {
+                #[cfg(feature = "tracing")]
+                let span = trace_span!(parent: &span, "send_loop", ?seq_id);
+
                 let (request, response_chan) = msg_req_recv
                     .recv()
                     .await
                     .expect("output worker recv msg req");
+
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| trace!(?request, "sending request"));
 
                 match request {
                     ZmqOutputPortRequest::Close => {
@@ -715,6 +841,8 @@ impl ZmqTransport {
                         {
                             let mut handles = Vec::new();
                             for topic in output_topics(output_port_id, input_port_id).into_iter() {
+                                #[cfg(feature = "tracing")]
+                                span.in_scope(|| trace!(?topic, "sending unsubscription request"));
                                 let handle =
                                     sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
                                 handles.push(handle);
@@ -746,10 +874,15 @@ impl ZmqTransport {
                                 .await
                                 .expect("output worker event recv");
 
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| trace!(?event, "received event"));
+
                             use ZmqTransportEvent::*;
                             match event {
                                 AckMessage(_, _, ack_id) => {
                                     if ack_id == seq_id {
+                                        #[cfg(feature = "tracing")]
+                                        span.in_scope(|| trace!(?ack_id, "msg-ack matches"));
                                         response_chan
                                             .send(Ok(()))
                                             .await
@@ -774,6 +907,10 @@ impl ZmqTransport {
                                         for topic in
                                             output_topics(output_port_id, input_port_id).into_iter()
                                         {
+                                            #[cfg(feature = "tracing")]
+                                            span.in_scope(|| {
+                                                trace!(?topic, "sending unsubscription request")
+                                            });
                                             let handle = sub_queue
                                                 .send(ZmqSubscriptionRequest::Unsubscribe(topic));
                                             handles.push(handle);
@@ -840,21 +977,33 @@ impl Transport for ZmqTransport {
     }
 
     fn open_input(&self) -> PortResult<InputPortID> {
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::open_input", "creating new input port");
+
         let new_id = {
             let inputs = self.tokio.block_on(self.inputs.read());
             InputPortID::try_from(-(inputs.len() as isize + 1))
                 .map_err(|e| PortError::Other(e.to_string()))?
         };
 
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::open_input", ?new_id, "created new input port");
+
         self.start_input_worker(new_id).map(|_| new_id)
     }
 
     fn open_output(&self) -> PortResult<OutputPortID> {
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::open_output", "creating new output port");
+
         let new_id = {
             let outputs = self.tokio.block_on(self.outputs.read());
             OutputPortID::try_from(outputs.len() as isize + 1)
                 .map_err(|e| PortError::Other(e.to_string()))?
         };
+
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::open_output", ?new_id, "created new output port");
 
         self.start_output_worker(new_id).map(|_| new_id)
     }
@@ -922,6 +1071,9 @@ impl Transport for ZmqTransport {
     }
 
     fn connect(&self, source: OutputPortID, target: InputPortID) -> PortResult<bool> {
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::connect", ?source, ?target, "connecting ports");
+
         self.tokio.block_on(async {
             let sender = {
                 let outputs = self.outputs.read().await;
@@ -953,6 +1105,9 @@ impl Transport for ZmqTransport {
     }
 
     fn send(&self, output: OutputPortID, message: Bytes) -> PortResult<()> {
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::send", ?output, "sending from output port");
+
         self.tokio.block_on(async {
             let sender = {
                 let outputs = self.outputs.read().await;
@@ -980,6 +1135,9 @@ impl Transport for ZmqTransport {
     }
 
     fn recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::recv", ?input, "receiving from input port");
+
         self.tokio.block_on(async {
             let receiver = {
                 let inputs = self.inputs.read().await;
@@ -1007,6 +1165,9 @@ impl Transport for ZmqTransport {
     }
 
     fn try_recv(&self, input: InputPortID) -> PortResult<Option<Bytes>> {
+        #[cfg(feature = "tracing")]
+        trace!(target: "ZmqTransport::try_recv", ?input, "receiving from input port");
+
         self.tokio.block_on(async {
             let receiver = {
                 let inputs = self.inputs.read().await;
@@ -1044,6 +1205,9 @@ async fn handle_zmq_msg(
     let Ok(event) = ZmqTransportEvent::try_from(msg) else {
         todo!();
     };
+
+    #[cfg(feature = "tracing")]
+    trace!(target: "handle_zmq_msg", ?event, "got event");
 
     use ZmqTransportEvent::*;
     match event {
@@ -1205,6 +1369,8 @@ mod tests {
 
     #[test]
     fn run_transport() {
+        tracing_subscriber::fmt::init();
+
         let rt = tokio::runtime::Runtime::new().unwrap();
         let _guard = rt.enter();
 

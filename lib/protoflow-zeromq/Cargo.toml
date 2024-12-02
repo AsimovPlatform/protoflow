@@ -38,3 +38,4 @@ prost-types = "0.13.2"
 
 [dev-dependencies]
 futures-util = "0.3.31"
+tracing-subscriber = "0.3.19"
