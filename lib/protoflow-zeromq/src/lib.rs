@@ -423,7 +423,6 @@ impl ZmqTransport {
             inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
             req_send: &Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
             pub_queue: &Sender<ZmqTransportEvent>,
-            sub_queue: &Sender<ZmqSubscriptionRequest>,
             input_port_id: InputPortID,
         ) {
             use ZmqTransportEvent::*;
@@ -522,13 +521,6 @@ impl ZmqTransport {
                         return;
                     }
 
-                    for topic in input_topics(input_port_id).into_iter() {
-                        sub_queue
-                            .send(ZmqSubscriptionRequest::Unsubscribe(topic))
-                            .await
-                            .expect("input worker send unsub req");
-                    }
-
                     match *input_state {
                         Open(_) | Closed => (),
                         Connected(_, _, _, _, ref mut connected_ids) => {
@@ -547,6 +539,7 @@ impl ZmqTransport {
             response_chan: Sender<Result<(), PortError>>,
             inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
             pub_queue: &Sender<ZmqTransportEvent>,
+            sub_queue: &Sender<ZmqSubscriptionRequest>,
             input_port_id: InputPortID,
         ) {
             use ZmqInputPortRequest::*;
@@ -575,6 +568,17 @@ impl ZmqTransport {
 
                     *input_state = ZmqInputPortState::Closed;
 
+                    {
+                        let mut handles = Vec::new();
+                        for topic in input_topics(input_port_id).into_iter() {
+                            let handle = sub_queue.send(ZmqSubscriptionRequest::Unsubscribe(topic));
+                            handles.push(handle);
+                        }
+                        for handle in handles.into_iter() {
+                            handle.await.expect("input worker send unsub req");
+                        }
+                    }
+
                     response_chan
                         .send(Ok(()))
                         .await
@@ -591,10 +595,10 @@ impl ZmqTransport {
             loop {
                 tokio::select! {
                     Some(event) = to_worker_recv.recv() => {
-                        handle_socket_event(event, &inputs, &req_send, &pub_queue, &sub_queue, input_port_id).await;
+                        handle_socket_event(event, &inputs, &req_send, &pub_queue, input_port_id).await;
                     }
                     Some((request, response_chan)) = req_recv.recv() => {
-                        handle_input_request(request, response_chan, &inputs, &pub_queue, input_port_id).await;
+                        handle_input_request(request, response_chan, &inputs, &pub_queue, &sub_queue, input_port_id).await;
                     }
                 };
             }
