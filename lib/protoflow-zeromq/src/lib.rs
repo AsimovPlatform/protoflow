@@ -347,13 +347,13 @@ impl ZmqTransport {
         psock: zeromq::PubSocket,
         pub_queue: Receiver<ZmqTransportEvent>,
     ) {
-        let tokio = self.tokio.clone();
         let mut psock = psock;
         let mut pub_queue = pub_queue;
         tokio::task::spawn(async move {
             while let Some(event) = pub_queue.recv().await {
-                tokio
-                    .block_on(psock.send(event.into()))
+                psock
+                    .send(event.into())
+                    .await
                     .expect("zmq pub-socket worker")
             }
         });
