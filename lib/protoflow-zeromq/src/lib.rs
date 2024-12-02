@@ -15,23 +15,27 @@ use input_port::*;
 mod output_port;
 use output_port::*;
 
+mod socket;
+use socket::*;
+
+mod event;
+use event::*;
+
 extern crate std;
 
 use protoflow_core::{
-    prelude::{vec, Arc, BTreeMap, Bytes, String, ToString, Vec},
+    prelude::{Arc, BTreeMap, Bytes, ToString},
     InputPortID, OutputPortID, PortError, PortResult, PortState, Transport,
 };
 
-use core::fmt::Error;
-use std::{format, write};
 use tokio::sync::{
-    mpsc::{channel, error::TryRecvError, Receiver, Sender},
+    mpsc::{channel, error::TryRecvError, Sender},
     RwLock,
 };
-use zeromq::{util::PeerIdentity, Socket, SocketOptions, SocketRecv, SocketSend, ZmqMessage};
+use zeromq::{util::PeerIdentity, Socket, SocketOptions};
 
 #[cfg(feature = "tracing")]
-use tracing::{trace, trace_span};
+use tracing::trace;
 
 const DEFAULT_PUB_SOCKET: &str = "tcp://127.0.0.1:10000";
 const DEFAULT_SUB_SOCKET: &str = "tcp://127.0.0.1:10001";
@@ -46,169 +50,10 @@ pub struct ZmqTransport {
     inputs: Arc<RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>>,
 }
 
-type SequenceID = u64;
-
-/// ZmqTransportEvent represents the data that goes over the wire from one port to another.
-#[derive(Clone, Debug)]
-enum ZmqTransportEvent {
-    Connect(OutputPortID, InputPortID),
-    AckConnection(OutputPortID, InputPortID),
-    Message(OutputPortID, InputPortID, SequenceID, Bytes),
-    AckMessage(OutputPortID, InputPortID, SequenceID),
-    CloseOutput(OutputPortID, InputPortID),
-    CloseInput(InputPortID),
-}
-
-impl ZmqTransportEvent {
-    fn write_topic<W: std::io::Write + ?Sized>(&self, f: &mut W) -> Result<(), std::io::Error> {
-        use ZmqTransportEvent::*;
-        match self {
-            Connect(o, i) => write!(f, "{}:conn:{}", i, o),
-            AckConnection(o, i) => write!(f, "{}:ackConn:{}", i, o),
-            Message(o, i, seq, _) => write!(f, "{}:msg:{}:{}", i, o, seq),
-            AckMessage(o, i, seq) => write!(f, "{}:ackMsg:{}:{}", i, o, seq),
-            CloseOutput(o, i) => write!(f, "{}:closeOut:{}", i, o),
-            CloseInput(i) => write!(f, "{}:closeIn", i),
-        }
-    }
-}
-
-impl From<ZmqTransportEvent> for ZmqMessage {
-    fn from(value: ZmqTransportEvent) -> Self {
-        let mut topic = Vec::new();
-        value.write_topic(&mut topic).unwrap();
-
-        // first frame of the message is the topic
-        let mut msg = ZmqMessage::from(topic);
-
-        fn map_id<T>(id: T) -> i64
-        where
-            isize: From<T>,
-        {
-            isize::from(id) as i64
-        }
-
-        // second frame of the message is the payload
-        use prost::Message;
-        use protoflow_zmq::{event::Payload, Event};
-        use ZmqTransportEvent::*;
-        let payload = match value {
-            Connect(output, input) => Payload::Connect(protoflow_zmq::Connect {
-                output: map_id(output),
-                input: map_id(input),
-            }),
-            AckConnection(output, input) => Payload::AckConnection(protoflow_zmq::AckConnection {
-                output: map_id(output),
-                input: map_id(input),
-            }),
-            Message(output, input, sequence, message) => Payload::Message(protoflow_zmq::Message {
-                output: map_id(output),
-                input: map_id(input),
-                sequence,
-                message: message.to_vec(),
-            }),
-            AckMessage(output, input, sequence) => Payload::AckMessage(protoflow_zmq::AckMessage {
-                output: map_id(output),
-                input: map_id(input),
-                sequence,
-            }),
-            CloseOutput(output, input) => Payload::CloseOutput(protoflow_zmq::CloseOutput {
-                output: map_id(output),
-                input: map_id(input),
-            }),
-            CloseInput(input) => Payload::CloseInput(protoflow_zmq::CloseInput {
-                input: map_id(input),
-            }),
-        };
-
-        let bytes = Event {
-            payload: Some(payload),
-        }
-        .encode_to_vec();
-        msg.push_back(bytes.into());
-
-        msg
-    }
-}
-
-impl TryFrom<ZmqMessage> for ZmqTransportEvent {
-    type Error = protoflow_core::DecodeError;
-
-    fn try_from(value: ZmqMessage) -> Result<Self, Self::Error> {
-        use prost::Message;
-        use protoflow_core::DecodeError;
-        use protoflow_zmq::{event::Payload, Event};
-
-        fn map_id<T>(id: i64) -> Result<T, DecodeError>
-        where
-            T: TryFrom<isize>,
-            std::borrow::Cow<'static, str>: From<<T as TryFrom<isize>>::Error>,
-        {
-            (id as isize).try_into().map_err(DecodeError::new)
-        }
-
-        value
-            .get(1)
-            .ok_or_else(|| {
-                protoflow_core::DecodeError::new(
-                    "message from socket contains less than two frames",
-                )
-            })
-            .and_then(|bytes| {
-                let event = Event::decode(bytes.as_ref())?;
-
-                use ZmqTransportEvent::*;
-                Ok(match event.payload {
-                    None => todo!(),
-                    Some(Payload::Connect(protoflow_zmq::Connect { output, input })) => {
-                        Connect(map_id(output)?, map_id(input)?)
-                    }
-
-                    Some(Payload::AckConnection(protoflow_zmq::AckConnection {
-                        output,
-                        input,
-                    })) => AckConnection(map_id(output)?, map_id(input)?),
-
-                    Some(Payload::Message(protoflow_zmq::Message {
-                        output,
-                        input,
-                        sequence,
-                        message,
-                    })) => Message(
-                        map_id(output)?,
-                        map_id(input)?,
-                        sequence,
-                        Bytes::from(message),
-                    ),
-
-                    Some(Payload::AckMessage(protoflow_zmq::AckMessage {
-                        output,
-                        input,
-                        sequence,
-                    })) => AckMessage(map_id(output)?, map_id(input)?, sequence),
-
-                    Some(Payload::CloseOutput(protoflow_zmq::CloseOutput { output, input })) => {
-                        CloseOutput(map_id(output)?, map_id(input)?)
-                    }
-
-                    Some(Payload::CloseInput(protoflow_zmq::CloseInput { input })) => {
-                        CloseInput(map_id(input)?)
-                    }
-                })
-            })
-    }
-}
-
 impl Default for ZmqTransport {
     fn default() -> Self {
         Self::new(DEFAULT_PUB_SOCKET, DEFAULT_SUB_SOCKET)
     }
-}
-
-#[derive(Clone, Debug)]
-enum ZmqSubscriptionRequest {
-    Subscribe(String),
-    Unsubscribe(String),
 }
 
 impl ZmqTransport {
@@ -255,75 +100,10 @@ impl ZmqTransport {
             inputs,
         };
 
-        transport.start_pub_socket_worker(psock, pub_queue_recv);
-        transport.start_sub_socket_worker(ssock, sub_queue_recv);
+        start_pub_socket_worker(psock, pub_queue_recv);
+        start_sub_socket_worker(&transport, ssock, sub_queue_recv);
 
         transport
-    }
-
-    fn start_pub_socket_worker(
-        &self,
-        psock: zeromq::PubSocket,
-        pub_queue: Receiver<ZmqTransportEvent>,
-    ) {
-        let mut psock = psock;
-        let mut pub_queue = pub_queue;
-        tokio::task::spawn(async move {
-            while let Some(event) = pub_queue.recv().await {
-                #[cfg(feature = "tracing")]
-                trace!(
-                    target: "ZmqTransport::pub_socket",
-                    ?event,
-                    "sending event to socket"
-                );
-
-                psock
-                    .send(event.into())
-                    .await
-                    .expect("zmq pub-socket worker")
-            }
-        });
-    }
-
-    fn start_sub_socket_worker(
-        &self,
-        ssock: zeromq::SubSocket,
-        sub_queue: Receiver<ZmqSubscriptionRequest>,
-    ) {
-        let outputs = self.outputs.clone();
-        let inputs = self.inputs.clone();
-        let mut ssock = ssock;
-        let mut sub_queue = sub_queue;
-        tokio::task::spawn(async move {
-            loop {
-                tokio::select! {
-                    Ok(msg) = ssock.recv() => {
-                        #[cfg(feature = "tracing")]
-                        trace!(
-                            target: "ZmqTransport::sub_socket",
-                            ?msg,
-                            "got message from socket"
-                        );
-
-                        handle_zmq_msg(msg, &outputs, &inputs).await.unwrap()
-                    },
-                    Some(req) = sub_queue.recv() => {
-                        #[cfg(feature = "tracing")]
-                        trace!(
-                            target: "ZmqTransport::sub_socket",
-                            ?req,
-                            "got sub update request"
-                        );
-
-                        use ZmqSubscriptionRequest::*;
-                        match req {
-                            Subscribe(topic) => ssock.subscribe(&topic).await.expect("zmq recv worker subscribe"),
-                            Unsubscribe(topic) => ssock.unsubscribe(&topic).await.expect("zmq recv worker unsubscribe"),
-                        };
-                    }
-                };
-            }
-        });
     }
 }
 
@@ -575,131 +355,6 @@ impl Transport for ZmqTransport {
             }
         })
     }
-}
-
-async fn handle_zmq_msg(
-    msg: ZmqMessage,
-    outputs: &RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>,
-    inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
-) -> Result<(), Error> {
-    let Ok(event) = ZmqTransportEvent::try_from(msg) else {
-        todo!();
-    };
-
-    #[cfg(feature = "tracing")]
-    trace!(target: "handle_zmq_msg", ?event, "got event");
-
-    use ZmqTransportEvent::*;
-    match event {
-        // input ports
-        Connect(_, input_port_id) => {
-            let sender = {
-                let inputs = inputs.read().await;
-                let Some(input) = inputs.get(&input_port_id) else {
-                    todo!();
-                };
-                let input = input.read().await;
-
-                use ZmqInputPortState::*;
-                match &*input {
-                    Closed => todo!(),
-                    Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
-                }
-            };
-
-            sender.send(event).await.unwrap();
-        }
-        Message(_, input_port_id, _, _) => {
-            let sender = {
-                let inputs = inputs.read().await;
-                let Some(input) = inputs.get(&input_port_id) else {
-                    todo!();
-                };
-
-                let input = input.read().await;
-                let ZmqInputPortState::Connected(_, _, _, sender, _) = &*input else {
-                    todo!();
-                };
-
-                sender.clone()
-            };
-
-            sender.send(event).await.unwrap();
-        }
-        CloseOutput(_, input_port_id) => {
-            let sender = {
-                let inputs = inputs.read().await;
-                let Some(input) = inputs.get(&input_port_id) else {
-                    todo!();
-                };
-                let input = input.read().await;
-
-                use ZmqInputPortState::*;
-                match &*input {
-                    Closed => todo!(),
-                    Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
-                }
-            };
-
-            sender.send(event).await.unwrap();
-        }
-
-        // output ports
-        AckConnection(output_port_id, _) => {
-            let sender = {
-                let outputs = outputs.read().await;
-                let Some(output) = outputs.get(&output_port_id) else {
-                    todo!();
-                };
-                let output = output.read().await;
-
-                let ZmqOutputPortState::Open(_, sender) = &*output else {
-                    todo!();
-                };
-
-                sender.clone()
-            };
-
-            sender.send(event).await.unwrap();
-        }
-        AckMessage(output_port_id, _, _) => {
-            let sender = {
-                let outputs = outputs.read().await;
-                let Some(output) = outputs.get(&output_port_id) else {
-                    todo!();
-                };
-                let output = output.read().await;
-                let ZmqOutputPortState::Connected(_, sender, _) = &*output else {
-                    todo!();
-                };
-
-                sender.clone()
-            };
-
-            sender.send(event).await.unwrap();
-        }
-        CloseInput(input_port_id) => {
-            for (_, state) in outputs.read().await.iter() {
-                let sender = {
-                    let state = state.read().await;
-                    let ZmqOutputPortState::Connected(_, ref sender, ref id) = *state else {
-                        continue;
-                    };
-                    if *id != input_port_id {
-                        continue;
-                    }
-
-                    sender.clone()
-                };
-
-                if let Err(_e) = sender.send(event.clone()).await {
-                    continue; // TODO
-                }
-            }
-        }
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
