@@ -38,7 +38,12 @@ pub mod core {
 
         fn random_int(&mut self) -> RandomInt;
 
-        fn random_int_with_params(&mut self, seed: Option<u64>, min: Option<i64>, max: Option<i64>) -> RandomInt;
+        fn random_int_with_params(
+            &mut self,
+            seed: Option<u64>,
+            min: Option<i64>,
+            max: Option<i64>,
+        ) -> RandomInt;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -103,7 +108,7 @@ pub mod core {
                 Delay { .. } => "Delay",
                 Drop { .. } => "Drop",
                 Random { .. } => "Random",
-                RandomInt { .. } => "RandomInt"
+                RandomInt { .. } => "RandomInt",
             })
         }
     }

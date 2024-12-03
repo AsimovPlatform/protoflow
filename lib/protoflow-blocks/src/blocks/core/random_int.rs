@@ -1,11 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{prelude::{format, vec}, StdioConfig, StdioError, StdioSystem, System};
+use crate::{
+    prelude::{format, vec},
+    StdioConfig, StdioError, StdioSystem, System,
+};
 use protoflow_core::{Block, BlockError, BlockResult, BlockRuntime, OutputPort};
 use protoflow_derive::Block;
-use simple_mermaid::mermaid;
-use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
+use simple_mermaid::mermaid;
 /// A block for generating and sending a random number.
 ///
 /// # Block Diagram
@@ -50,7 +53,6 @@ pub struct RandomInt {
     /// The port to send the value on.
     #[output]
     pub output: OutputPort<i64>,
-
     /// A parameter for the random seed to use.
     #[parameter]
     pub seed: Option<u64>,
@@ -67,11 +69,26 @@ impl RandomInt {
         Self::with_params(output, None, None, None)
     }
 
-    pub fn with_params(output: OutputPort<i64>, seed: Option<u64>, min: Option<i64>, max: Option<i64>) -> Self {
-        Self { output, seed, min, max }
+    pub fn with_params(
+        output: OutputPort<i64>,
+        seed: Option<u64>,
+        min: Option<i64>,
+        max: Option<i64>,
+    ) -> Self {
+        Self {
+            output,
+            seed,
+            min,
+            max,
+        }
     }
 
-    pub fn with_system(system: &System, seed: Option<u64>, min: Option<i64>, max: Option<i64>) -> Self {
+    pub fn with_system(
+        system: &System,
+        seed: Option<u64>,
+        min: Option<i64>,
+        max: Option<i64>,
+    ) -> Self {
         use crate::SystemBuilding;
         Self::with_params(system.output(), seed, min, max)
     }
