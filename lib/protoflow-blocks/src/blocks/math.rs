@@ -2,8 +2,8 @@
 
 pub mod math {
     use super::{
-        prelude::{Cow, Named, Vec, vec, Box},
-        BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System
+        prelude::{vec, Box, Cow, Named, Vec},
+        BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
     use protoflow_core::Block;
 
@@ -63,8 +63,7 @@ pub mod math {
                 Add { output, .. }
                 | Div { output, .. }
                 | Mul { output, .. }
-                | Sub { output, .. }
-                => {
+                | Sub { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
             }

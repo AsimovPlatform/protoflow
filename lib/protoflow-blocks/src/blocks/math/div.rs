@@ -2,12 +2,8 @@
 
 extern crate std;
 
-use crate::{
-    StdioConfig, StdioError, StdioSystem, System,
-};
-use protoflow_core::{
-    Block, BlockResult, BlockRuntime, InputPort, OutputPort, BlockError,
-};
+use crate::{StdioConfig, StdioError, StdioSystem, System};
+use protoflow_core::{Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -83,7 +79,7 @@ impl Block for Div {
                     }
 
                     current_result / input
-                },
+                }
             };
 
             result = Some(res);
@@ -97,7 +93,7 @@ impl Block for Div {
 #[cfg(feature = "std")]
 impl StdioSystem for Div {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
-        use crate::{MathBlocks, IoBlocks, SysBlocks, SystemBuilding};
+        use crate::{IoBlocks, MathBlocks, SysBlocks, SystemBuilding};
 
         config.reject_any()?;
 
