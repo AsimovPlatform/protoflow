@@ -110,16 +110,16 @@ impl TryFrom<ZmqMessage> for ZmqTransportEvent {
         value
             .get(1)
             .ok_or_else(|| {
-                protoflow_core::DecodeError::new(
-                    "message from socket contains less than two frames",
-                )
+                protoflow_core::DecodeError::new("message contains less than two frames")
             })
             .and_then(|bytes| {
                 let event = Event::decode(bytes.as_ref())?;
 
                 use ZmqTransportEvent::*;
                 Ok(match event.payload {
-                    None => todo!(),
+                    None => {
+                        return Err(protoflow_core::DecodeError::new("message payload is empty"))
+                    }
                     Some(Payload::Connect(protoflow_zmq::Connect { output, input })) => {
                         Connect(map_id(output)?, map_id(input)?)
                     }
