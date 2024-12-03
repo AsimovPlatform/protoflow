@@ -1,10 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{ZmqInputPortState, ZmqOutputPortState, ZmqTransport, ZmqTransportEvent};
-use core::fmt::Error;
 use protoflow_core::{
     prelude::{BTreeMap, String, Vec},
-    InputPortID, OutputPortID,
+    InputPortID, OutputPortID, PortError,
 };
 use tokio::sync::{
     mpsc::{error::SendError, Receiver, Sender},
@@ -19,24 +18,22 @@ pub enum ZmqSubscriptionRequest {
 }
 
 #[cfg(feature = "tracing")]
-use tracing::trace;
+use tracing::{error, trace, trace_span};
 
 pub fn start_pub_socket_worker(psock: zeromq::PubSocket, pub_queue: Receiver<ZmqTransportEvent>) {
+    #[cfg(feature = "tracing")]
+    let span = trace_span!("ZmqTransport::pub_socket");
     let mut psock = psock;
     let mut pub_queue = pub_queue;
     tokio::task::spawn(async move {
         while let Some(event) = pub_queue.recv().await {
             #[cfg(feature = "tracing")]
-            trace!(
-                target: "ZmqTransport::pub_socket",
-                ?event,
-                "sending event to socket"
-            );
+            span.in_scope(|| trace!(?event, "sending event to socket"));
 
-            psock
-                .send(event.into())
-                .await
-                .expect("zmq pub-socket worker")
+            if let Err(err) = psock.send(event.into()).await {
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| error!(?err, "failed to send message"));
+            }
         }
     });
 }
@@ -74,6 +71,8 @@ pub fn start_sub_socket_worker(
     ssock: zeromq::SubSocket,
     sub_queue: Receiver<ZmqSubscriptionRequest>,
 ) {
+    #[cfg(feature = "tracing")]
+    let span = trace_span!("ZmqTransport::sub_socket");
     let outputs = transport.outputs.clone();
     let inputs = transport.inputs.clone();
     let mut ssock = ssock;
@@ -83,26 +82,27 @@ pub fn start_sub_socket_worker(
             tokio::select! {
                 Ok(msg) = ssock.recv() => {
                     #[cfg(feature = "tracing")]
-                    trace!(
-                        target: "ZmqTransport::sub_socket",
-                        ?msg,
-                        "got message from socket"
-                    );
+                    span.in_scope(|| trace!(?msg, "got message from socket"));
 
-                    handle_zmq_msg(msg, &outputs, &inputs).await.unwrap()
+                    if let Err(err) = handle_zmq_msg(msg, &outputs, &inputs).await {
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| error!(?err, "failed to process message"));
+                    }
                 },
                 Some(req) = sub_queue.recv() => {
                     #[cfg(feature = "tracing")]
-                    trace!(
-                        target: "ZmqTransport::sub_socket",
-                        ?req,
-                        "got sub update request"
-                    );
+                    span.in_scope(|| trace!(?req,  "got sub update request"));
 
                     use ZmqSubscriptionRequest::*;
                     match req {
-                        Subscribe(topic) => ssock.subscribe(&topic).await.expect("zmq recv worker subscribe"),
-                        Unsubscribe(topic) => ssock.unsubscribe(&topic).await.expect("zmq recv worker unsubscribe"),
+                        Subscribe(topic) => if let Err(err) = ssock.subscribe(&topic).await {
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| error!(?err, ?topic, "subscribe failed"));
+                        },
+                        Unsubscribe(topic) => if let Err(err) = ssock.unsubscribe(&topic).await {
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| error!(?err, ?topic, "unsubscribe failed"));
+                        }
                     };
                 }
             };
@@ -114,13 +114,14 @@ async fn handle_zmq_msg(
     msg: ZmqMessage,
     outputs: &RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>,
     inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
-) -> Result<(), Error> {
-    let Ok(event) = ZmqTransportEvent::try_from(msg) else {
-        todo!();
-    };
+) -> Result<(), PortError> {
+    #[cfg(feature = "tracing")]
+    let span = trace_span!("ZmqTransport::handle_zmq_msg");
+
+    let event = ZmqTransportEvent::try_from(msg)?;
 
     #[cfg(feature = "tracing")]
-    trace!(target: "handle_zmq_msg", ?event, "got event");
+    span.in_scope(|| trace!(?event, "got event"));
 
     use ZmqTransportEvent::*;
     match event {
@@ -129,52 +130,52 @@ async fn handle_zmq_msg(
             let sender = {
                 let inputs = inputs.read().await;
                 let Some(input) = inputs.get(&input_port_id) else {
-                    todo!();
+                    return Err(PortError::Invalid(input_port_id.into()));
                 };
                 let input = input.read().await;
 
                 use ZmqInputPortState::*;
                 match &*input {
-                    Closed => todo!(),
-                    Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
+                    Closed => return Err(PortError::Invalid(input_port_id.into())),
+                    Open(sender) | Connected(.., sender, _) => sender.clone(),
                 }
             };
 
-            sender.send(event).await.unwrap();
+            sender.send(event).await.map_err(|_| PortError::Closed)
         }
         Message(_, input_port_id, _, _) => {
             let sender = {
                 let inputs = inputs.read().await;
                 let Some(input) = inputs.get(&input_port_id) else {
-                    todo!();
+                    return Err(PortError::Invalid(input_port_id.into()));
                 };
 
                 let input = input.read().await;
                 let ZmqInputPortState::Connected(_, _, _, sender, _) = &*input else {
-                    todo!();
+                    return Err(PortError::Invalid(input_port_id.into()));
                 };
 
                 sender.clone()
             };
 
-            sender.send(event).await.unwrap();
+            sender.send(event).await.map_err(|_| PortError::Closed)
         }
         CloseOutput(_, input_port_id) => {
             let sender = {
                 let inputs = inputs.read().await;
                 let Some(input) = inputs.get(&input_port_id) else {
-                    todo!();
+                    return Err(PortError::Invalid(input_port_id.into()));
                 };
                 let input = input.read().await;
 
                 use ZmqInputPortState::*;
                 match &*input {
-                    Closed => todo!(),
+                    Closed => return Err(PortError::Invalid(input_port_id.into())),
                     Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
                 }
             };
 
-            sender.send(event).await.unwrap();
+            sender.send(event).await.map_err(|_| PortError::Closed)
         }
 
         // output ports
@@ -182,34 +183,34 @@ async fn handle_zmq_msg(
             let sender = {
                 let outputs = outputs.read().await;
                 let Some(output) = outputs.get(&output_port_id) else {
-                    todo!();
+                    return Err(PortError::Invalid(output_port_id.into()));
                 };
                 let output = output.read().await;
 
                 let ZmqOutputPortState::Open(_, sender) = &*output else {
-                    todo!();
+                    return Err(PortError::Invalid(output_port_id.into()));
                 };
 
                 sender.clone()
             };
 
-            sender.send(event).await.unwrap();
+            sender.send(event).await.map_err(|_| PortError::Closed)
         }
         AckMessage(output_port_id, _, _) => {
             let sender = {
                 let outputs = outputs.read().await;
                 let Some(output) = outputs.get(&output_port_id) else {
-                    todo!();
+                    return Err(PortError::Invalid(output_port_id.into()));
                 };
                 let output = output.read().await;
                 let ZmqOutputPortState::Connected(_, sender, _) = &*output else {
-                    todo!();
+                    return Err(PortError::Invalid(output_port_id.into()));
                 };
 
                 sender.clone()
             };
 
-            sender.send(event).await.unwrap();
+            sender.send(event).await.map_err(|_| PortError::Closed)
         }
         CloseInput(input_port_id) => {
             for (_, state) in outputs.read().await.iter() {
@@ -229,8 +230,7 @@ async fn handle_zmq_msg(
                     continue; // TODO
                 }
             }
+            Ok(())
         }
     }
-
-    Ok(())
 }
