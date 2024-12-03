@@ -10,11 +10,13 @@ use protoflow::{blocks::*, BlockResult};
 
 fn main() -> BlockResult {
     System::run(|s| {
-        let json_content = s.const_string(r#"{
+        let json_content = s.const_string(
+            r#"{
             "Name": "Alice",
             "Age": 25,
             "Score": 90
-        }"#);
+        }"#,
+        );
         let line_encoder = s.encode_lines();
         let decoder = s.decode_json();
         let encoder = s.encode_json();
