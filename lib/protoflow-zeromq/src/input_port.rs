@@ -4,7 +4,7 @@ use crate::{
     subscribe_topics, unsubscribe_topics, ZmqSubscriptionRequest, ZmqTransport, ZmqTransportEvent,
 };
 use protoflow_core::{
-    prelude::{format, vec, Arc, BTreeMap, Bytes, String, Vec},
+    prelude::{fmt, format, vec, Arc, BTreeMap, Bytes, String, ToString, Vec},
     InputPortID, OutputPortID, PortError, PortState,
 };
 use tokio::sync::{
@@ -13,7 +13,7 @@ use tokio::sync::{
 };
 
 #[cfg(feature = "tracing")]
-use tracing::{trace, trace_span};
+use tracing::{error, info, trace, trace_span, warn};
 
 #[derive(Debug, Clone)]
 pub enum ZmqInputPortRequest {
@@ -44,12 +44,29 @@ pub enum ZmqInputPortState {
     Closed,
 }
 
+impl fmt::Display for ZmqInputPortState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use ZmqInputPortState::*;
+        match *self {
+            Open(..) => write!(f, "Open"),
+            Connected(.., ref ids) => {
+                write!(
+                    f,
+                    "Connected({:?})",
+                    ids.iter().map(|id| isize::from(*id)).collect::<Vec<_>>()
+                )
+            }
+            Closed => write!(f, "Closed"),
+        }
+    }
+}
+
 impl ZmqInputPortState {
     pub fn state(&self) -> PortState {
         use ZmqInputPortState::*;
         match self {
             Open(_) => PortState::Open,
-            Connected(_, _, _, _, _) => PortState::Connected,
+            Connected(..) => PortState::Connected,
             Closed => PortState::Closed,
         }
     }
@@ -68,24 +85,20 @@ pub fn start_input_worker(
     input_port_id: InputPortID,
 ) -> Result<(), PortError> {
     #[cfg(feature = "tracing")]
-    let span = trace_span!("ZmqTransport::start_input_worker", ?input_port_id);
+    let span = trace_span!("ZmqTransport::input_port_worker", ?input_port_id);
 
     let (to_worker_send, mut to_worker_recv) = channel(1);
-
     let (req_send, mut req_recv) = channel(1);
 
     {
         let mut inputs = transport.tokio.block_on(transport.inputs.write());
         if inputs.contains_key(&input_port_id) {
-            return Ok(()); // TODO
+            return Err(PortError::Invalid(input_port_id.into()));
         }
         let state = ZmqInputPortState::Open(to_worker_send.clone());
-        let state = RwLock::new(state);
-
         #[cfg(feature = "tracing")]
-        span.in_scope(|| trace!(?state, "saving new opened state"));
-
-        inputs.insert(input_port_id, state);
+        span.in_scope(|| trace!("saving new state: {}", state));
+        inputs.insert(input_port_id, RwLock::new(state));
     }
 
     let sub_queue = transport.sub_queue.clone();
@@ -93,10 +106,15 @@ pub fn start_input_worker(
     let inputs = transport.inputs.clone();
 
     let topics = input_topics(input_port_id);
-    transport
+    if transport
         .tokio
         .block_on(subscribe_topics(&topics, &sub_queue))
-        .unwrap();
+        .is_err()
+    {
+        #[cfg(feature = "tracing")]
+        span.in_scope(|| error!("topic subscription failed"));
+        return Err(PortError::Other("topic subscription failed".to_string()));
+    }
 
     async fn handle_socket_event(
         event: ZmqTransportEvent,
@@ -107,7 +125,7 @@ pub fn start_input_worker(
     ) {
         #[cfg(feature = "tracing")]
         let span = trace_span!(
-            "ZmqTransport::start_input_worker::handle_socket_event",
+            "ZmqTransport::input_port_worker::handle_socket_event",
             ?input_port_id
         );
 
@@ -117,9 +135,14 @@ pub fn start_input_worker(
         use ZmqTransportEvent::*;
         match event {
             Connect(output_port_id, input_port_id) => {
+                #[cfg(feature = "tracing")]
+                let span = trace_span!(parent: &span, "Connect", ?output_port_id);
+
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
-                    todo!();
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| error!("port state not found"));
+                    return;
                 };
                 let mut input_state = input_state.write().await;
 
@@ -129,9 +152,7 @@ pub fn start_input_worker(
                     Connected(_, _, _, _, connected_ids) => {
                         if connected_ids.iter().any(|&id| id == output_port_id) {
                             #[cfg(feature = "tracing")]
-                            span.in_scope(|| {
-                                trace!(?output_port_id, "output port is already connected")
-                            });
+                            span.in_scope(|| trace!("output port is already connected"));
                             return;
                         }
                     }
@@ -150,27 +171,32 @@ pub fn start_input_worker(
                             vec![output_port_id],
                         );
                     }
-                    Connected(_, _, _, _, ids) => {
+                    Connected(.., ids) => {
                         ids.push(output_port_id);
                     }
                     Closed => unreachable!(),
                 };
 
-                pub_queue
+                if pub_queue
                     .send(ZmqTransportEvent::AckConnection(
                         output_port_id,
                         input_port_id,
                     ))
                     .await
-                    .expect("input worker send ack-conn event");
+                    .is_err()
+                {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| warn!("publish channel is closed"));
+                    return;
+                }
 
                 #[cfg(feature = "tracing")]
-                span.in_scope(|| trace!(?output_port_id, "sent conn-ack"));
+                span.in_scope(|| trace!("sent conn-ack"));
 
                 add_connection(&mut input_state);
 
                 #[cfg(feature = "tracing")]
-                span.in_scope(|| trace!(?input_state, "connected new port"));
+                span.in_scope(|| info!("Connected new port: {}", input_state));
             }
             Message(output_port_id, _, seq_id, bytes) => {
                 #[cfg(feature = "tracing")]
@@ -178,7 +204,9 @@ pub fn start_input_worker(
 
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
-                    todo!();
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| error!("port state not found"));
+                    return;
                 };
                 let input_state = input_state.read().await;
 
@@ -191,69 +219,87 @@ pub fn start_input_worker(
                             return;
                         }
 
-                        sender
+                        if sender
                             .send(ZmqInputPortEvent::Message(bytes))
                             .await
-                            .expect("input worker send message");
+                            .is_err()
+                        {
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| warn!("receiver for input events has closed"));
+                            return;
+                        }
 
-                        pub_queue
+                        if pub_queue
                             .send(ZmqTransportEvent::AckMessage(
                                 output_port_id,
                                 input_port_id,
                                 seq_id,
                             ))
                             .await
-                            .expect("input worker send message ack");
+                            .is_err()
+                        {
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| warn!("publish channel is closed"));
+                            return;
+                        }
 
                         #[cfg(feature = "tracing")]
                         span.in_scope(|| trace!("sent msg-ack"));
                     }
 
-                    Open(_) | Closed => todo!(),
+                    Open(_) | Closed => {
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| warn!("port is not connected: {}", input_state));
+                    }
                 }
             }
             CloseOutput(output_port_id, input_port_id) => {
+                #[cfg(feature = "tracing")]
+                let span = trace_span!(parent: &span, "CloseOutput", ?output_port_id);
+
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
-                    todo!();
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| error!("port state not found"));
+                    return;
                 };
 
                 let mut input_state = input_state.write().await;
 
                 use ZmqInputPortState::*;
-                let Connected(_, _, _, _, ref connected_ids) = *input_state else {
+                let Connected(_, ref sender, _, _, ref mut connected_ids) = *input_state else {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| trace!("input port wasn't connected"));
                     return;
                 };
 
-                if !connected_ids.iter().any(|id| *id == output_port_id) {
+                let Some(idx) = connected_ids.iter().position(|&id| id == output_port_id) else {
                     #[cfg(feature = "tracing")]
-                    span.in_scope(|| {
-                        trace!(
-                            ?output_port_id,
-                            "output port doesn't match any connected port"
-                        )
-                    });
+                    span.in_scope(|| trace!("output port doesn't match any connected port"));
+                    return;
+                };
+
+                connected_ids.swap_remove(idx);
+
+                if !connected_ids.is_empty() {
                     return;
                 }
 
-                match *input_state {
-                    Open(_) | Closed => (),
-                    Connected(_, ref sender, _, _, ref mut connected_ids) => {
-                        connected_ids.retain(|&id| id != output_port_id);
-                        if connected_ids.is_empty() {
-                            #[cfg(feature = "tracing")]
-                            span.in_scope(|| trace!("last connected port disconnected"));
-                            sender
-                                .send(ZmqInputPortEvent::Closed)
-                                .await
-                                .expect("input worker publish Closed event");
-                        }
-                    }
-                };
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| trace!("last connected port disconnected"));
+
+                if let Err(err) = sender.try_send(ZmqInputPortEvent::Closed) {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| warn!("did not send InputPortEvent::Closed: {}", err));
+                }
+
+                // TODO: Should last connection closing close the input port too?
+                // It does in the MPSC transport.
+                //*input_state = ZmqInputPortState::Closed;
             }
 
             // ignore, ideally we never receive these here:
-            AckConnection(_, _) | AckMessage(_, _, _) | CloseInput(_) => (),
+            AckConnection(..) | AckMessage(..) | CloseInput(_) => (),
         }
     }
 
@@ -267,7 +313,7 @@ pub fn start_input_worker(
     ) {
         #[cfg(feature = "tracing")]
         let span = trace_span!(
-            "ZmqTransport::start_input_worker::handle_input_event",
+            "ZmqTransport::input_port_worker::handle_input_event",
             ?input_port_id
         );
 
@@ -279,7 +325,9 @@ pub fn start_input_worker(
             Close => {
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
-                    todo!();
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| error!("port state not found"));
+                    return;
                 };
                 let mut input_state = input_state.write().await;
 
@@ -288,25 +336,33 @@ pub fn start_input_worker(
                     return;
                 };
 
-                pub_queue
+                if pub_queue
                     .send(ZmqTransportEvent::CloseInput(input_port_id))
                     .await
-                    .expect("input worker send close event");
+                    .is_err()
+                {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| error!("can't publish CloseInput event"));
+                    // don't exit, continue to close the port
+                }
 
-                port_events
-                    .send(ZmqInputPortEvent::Closed)
-                    .await
-                    .expect("input worker send port closed");
+                if let Err(err) = port_events.try_send(ZmqInputPortEvent::Closed) {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| warn!("did not send InputPortEvent::Closed: {}", err));
+                }
 
                 *input_state = ZmqInputPortState::Closed;
 
                 let topics = input_topics(input_port_id);
-                unsubscribe_topics(&topics, sub_queue).await.unwrap();
+                if unsubscribe_topics(&topics, sub_queue).await.is_err() {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| error!("topic unsubscription failed"));
+                }
 
-                response_chan
-                    .send(Ok(()))
-                    .await
-                    .expect("input worker respond close")
+                if response_chan.send(Ok(())).await.is_err() {
+                    #[cfg(feature = "tracing")]
+                    span.in_scope(|| warn!("response channel is closed"));
+                }
             }
         }
     }
