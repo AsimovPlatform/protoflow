@@ -1,7 +1,8 @@
 // This is free and unencumbered software released into the public domain.
 
 use crate::{
-    subscribe_topics, unsubscribe_topics, ZmqSubscriptionRequest, ZmqTransport, ZmqTransportEvent,
+    subscribe_topics, unsubscribe_topics, SequenceID, ZmqSubscriptionRequest, ZmqTransport,
+    ZmqTransportEvent,
 };
 use protoflow_core::{
     prelude::{fmt, format, vec, Arc, BTreeMap, Bytes, String, ToString, Vec},
@@ -44,7 +45,7 @@ pub enum ZmqInputPortState {
         // channel used internally for events from socket
         Sender<ZmqTransportEvent>,
         // vec of the connected port ids
-        Vec<OutputPortID>,
+        BTreeMap<OutputPortID, SequenceID>,
     ),
     Closed,
 }
@@ -58,7 +59,7 @@ impl fmt::Display for ZmqInputPortState {
                 write!(
                     f,
                     "Connected({:?})",
-                    ids.iter().map(|id| isize::from(*id)).collect::<Vec<_>>()
+                    ids.keys().map(|id| isize::from(*id)).collect::<Vec<_>>()
                 )
             }
             Closed => write!(f, "Closed"),
@@ -156,7 +157,7 @@ pub fn start_input_worker(
                 match &*input_state {
                     Open(..) => (),
                     Connected(.., connected_ids) => {
-                        if connected_ids.iter().any(|&id| id == output_port_id) {
+                        if connected_ids.contains_key(&output_port_id) {
                             #[cfg(feature = "tracing")]
                             span.in_scope(|| trace!("output port is already connected"));
                             return;
@@ -169,16 +170,18 @@ pub fn start_input_worker(
                     Open(req_send, to_worker_send) => {
                         let (msgs_send, msgs_recv) = channel(1);
                         let msgs_recv = Arc::new(Mutex::new(msgs_recv));
+                        let mut connected_ids = BTreeMap::new();
+                        connected_ids.insert(output_port_id, 0);
                         *input_state = Connected(
                             req_send.clone(),
                             msgs_send,
                             msgs_recv,
                             to_worker_send.clone(),
-                            vec![output_port_id],
+                            connected_ids,
                         );
                     }
                     Connected(.., ids) => {
-                        ids.push(output_port_id);
+                        ids.insert(output_port_id, 0);
                     }
                     Closed => unreachable!(),
                 };
@@ -204,9 +207,9 @@ pub fn start_input_worker(
                 #[cfg(feature = "tracing")]
                 span.in_scope(|| info!("Connected new port: {}", input_state));
             }
-            Message(output_port_id, target_id, seq_id, bytes) => {
+            Message(output_port_id, target_id, msg_seq_id, bytes) => {
                 #[cfg(feature = "tracing")]
-                let span = trace_span!(parent: &span, "Message", ?output_port_id, ?seq_id);
+                let span = trace_span!(parent: &span, "Message", ?output_port_id, ?msg_seq_id);
 
                 debug_assert_eq!(input_port_id, target_id);
 
@@ -216,43 +219,64 @@ pub fn start_input_worker(
                     span.in_scope(|| error!("port state not found"));
                     return;
                 };
-                let input_state = input_state.read().await;
+                let mut input_state = input_state.write().await;
 
                 use ZmqInputPortState::*;
-                match &*input_state {
-                    Connected(_, sender, _, _, connected_ids) => {
-                        if !connected_ids.iter().any(|id| *id == output_port_id) {
+                match *input_state {
+                    Connected(_, ref sender, _, _, ref mut connected_ids) => {
+                        let Some(&last_seen_seq_id) = connected_ids.get(&output_port_id) else {
                             #[cfg(feature = "tracing")]
                             span.in_scope(|| trace!("got message from non-connected output port"));
                             return;
-                        }
+                        };
 
-                        if sender
-                            .send(ZmqInputPortEvent::Message(bytes))
-                            .await
-                            .is_err()
-                        {
+                        let send_ack = {
                             #[cfg(feature = "tracing")]
-                            span.in_scope(|| warn!("receiver for input events has closed"));
-                            return;
-                        }
+                            let span = span.clone();
 
-                        if pub_queue
-                            .send(ZmqTransportEvent::AckMessage(
-                                output_port_id,
-                                input_port_id,
-                                seq_id,
-                            ))
-                            .await
-                            .is_err()
-                        {
-                            #[cfg(feature = "tracing")]
-                            span.in_scope(|| warn!("publish channel is closed"));
-                            return;
-                        }
+                            |ack_id| async move {
+                                if pub_queue
+                                    .send(ZmqTransportEvent::AckMessage(
+                                        output_port_id,
+                                        input_port_id,
+                                        ack_id,
+                                    ))
+                                    .await
+                                    .is_err()
+                                {
+                                    #[cfg(feature = "tracing")]
+                                    span.in_scope(|| warn!("publish channel is closed"));
+                                }
+                                #[cfg(feature = "tracing")]
+                                span.in_scope(|| trace!(?ack_id, "sent msg-ack"));
+                            }
+                        };
 
-                        #[cfg(feature = "tracing")]
-                        span.in_scope(|| trace!("sent msg-ack"));
+                        use std::cmp::Ordering::*;
+                        match msg_seq_id.cmp(&last_seen_seq_id) {
+                            // seq_id for msg is greater than last seen seq_id by one
+                            Greater if (msg_seq_id - last_seen_seq_id == 1) => {
+                                if sender
+                                    .send(ZmqInputPortEvent::Message(bytes))
+                                    .await
+                                    .is_err()
+                                {
+                                    #[cfg(feature = "tracing")]
+                                    span.in_scope(|| warn!("receiver for input events has closed"));
+                                    return;
+                                }
+                                send_ack(msg_seq_id).await;
+                                let _ = connected_ids.insert(output_port_id, msg_seq_id);
+                            }
+                            Equal => {
+                                send_ack(last_seen_seq_id).await;
+                            }
+                            // either the seq_id is greater than  the last seen seq_id by more than
+                            // one, or somehow less than the last seen seq_id:
+                            _ => {
+                                send_ack(last_seen_seq_id).await;
+                            }
+                        }
                     }
 
                     Open(..) | Closed => {
@@ -285,13 +309,11 @@ pub fn start_input_worker(
                     return;
                 };
 
-                let Some(idx) = connected_ids.iter().position(|&id| id == output_port_id) else {
+                if connected_ids.remove(&output_port_id).is_none() {
                     #[cfg(feature = "tracing")]
                     span.in_scope(|| trace!("output port doesn't match any connected port"));
                     return;
-                };
-
-                connected_ids.swap_remove(idx);
+                }
 
                 if !connected_ids.is_empty() {
                     return;
