@@ -137,7 +137,7 @@ async fn handle_zmq_msg(
                 use ZmqInputPortState::*;
                 match &*input {
                     Closed => return Err(PortError::Invalid(input_port_id.into())),
-                    Open(sender) | Connected(.., sender, _) => sender.clone(),
+                    Open(.., sender) | Connected(.., sender, _) => sender.clone(),
                 }
             };
 
@@ -171,7 +171,7 @@ async fn handle_zmq_msg(
                 use ZmqInputPortState::*;
                 match &*input {
                     Closed => return Err(PortError::Invalid(input_port_id.into())),
-                    Open(sender) | Connected(_, _, _, sender, _) => sender.clone(),
+                    Open(.., sender) | Connected(.., sender, _) => sender.clone(),
                 }
             };
 

@@ -175,13 +175,13 @@ impl Transport for ZmqTransport {
                 let Some(input_state) = inputs.get(&input) else {
                     return Err(PortError::Invalid(input.into()));
                 };
-
                 let input_state = input_state.read().await;
-                let ZmqInputPortState::Connected(sender, _, _, _, _) = &*input_state else {
-                    return Err(PortError::Disconnected);
-                };
 
-                sender.clone()
+                use ZmqInputPortState::*;
+                match *input_state {
+                    Open(ref sender, _) | Connected(ref sender, ..) => sender.clone(),
+                    Closed => return Err(PortError::Disconnected),
+                }
             };
 
             let (close_send, mut close_recv) = channel(1);

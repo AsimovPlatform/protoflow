@@ -29,14 +29,19 @@ pub enum ZmqInputPortEvent {
 
 #[derive(Debug, Clone)]
 pub enum ZmqInputPortState {
-    Open(Sender<ZmqTransportEvent>),
+    Open(
+        // channel for requests from public close
+        Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
+        // channel used internally for events from socket
+        Sender<ZmqTransportEvent>,
+    ),
     Connected(
         // channel for requests from public close
         Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
-        // channel for the public recv
+        // channels to send-to and receive-from the public `recv` method
         Sender<ZmqInputPortEvent>,
         Arc<Mutex<Receiver<ZmqInputPortEvent>>>,
-        // internal  channel for events
+        // channel used internally for events from socket
         Sender<ZmqTransportEvent>,
         // vec of the connected port ids
         Vec<OutputPortID>,
@@ -65,7 +70,7 @@ impl ZmqInputPortState {
     pub fn state(&self) -> PortState {
         use ZmqInputPortState::*;
         match self {
-            Open(_) => PortState::Open,
+            Open(..) => PortState::Open,
             Connected(..) => PortState::Connected,
             Closed => PortState::Closed,
         }
@@ -95,7 +100,7 @@ pub fn start_input_worker(
         if inputs.contains_key(&input_port_id) {
             return Err(PortError::Invalid(input_port_id.into()));
         }
-        let state = ZmqInputPortState::Open(to_worker_send.clone());
+        let state = ZmqInputPortState::Open(req_send.clone(), to_worker_send.clone());
         #[cfg(feature = "tracing")]
         span.in_scope(|| trace!("saving new state: {}", state));
         inputs.insert(input_port_id, RwLock::new(state));
@@ -148,8 +153,8 @@ pub fn start_input_worker(
 
                 use ZmqInputPortState::*;
                 match &*input_state {
-                    Open(_) => (),
-                    Connected(_, _, _, _, connected_ids) => {
+                    Open(..) => (),
+                    Connected(.., connected_ids) => {
                         if connected_ids.iter().any(|&id| id == output_port_id) {
                             #[cfg(feature = "tracing")]
                             span.in_scope(|| trace!("output port is already connected"));
@@ -160,7 +165,7 @@ pub fn start_input_worker(
                 };
 
                 let add_connection = |input_state: &mut ZmqInputPortState| match input_state {
-                    Open(to_worker_send) => {
+                    Open(req_send, to_worker_send) => {
                         let (msgs_send, msgs_recv) = channel(1);
                         let msgs_recv = Arc::new(Mutex::new(msgs_recv));
                         *input_state = Connected(
@@ -247,7 +252,7 @@ pub fn start_input_worker(
                         span.in_scope(|| trace!("sent msg-ack"));
                     }
 
-                    Open(_) | Closed => {
+                    Open(..) | Closed => {
                         #[cfg(feature = "tracing")]
                         span.in_scope(|| warn!("port is not connected: {}", input_state));
                     }
@@ -332,8 +337,16 @@ pub fn start_input_worker(
                 let mut input_state = input_state.write().await;
 
                 use ZmqInputPortState::*;
-                let Connected(_, ref port_events, _, _, _) = *input_state else {
+
+                if let Closed = *input_state {
                     return;
+                }
+
+                if let Connected(_, ref port_events, ..) = *input_state {
+                    if let Err(err) = port_events.try_send(ZmqInputPortEvent::Closed) {
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| warn!("did not send InputPortEvent::Closed: {}", err));
+                    }
                 };
 
                 if pub_queue
@@ -344,11 +357,6 @@ pub fn start_input_worker(
                     #[cfg(feature = "tracing")]
                     span.in_scope(|| error!("can't publish CloseInput event"));
                     // don't exit, continue to close the port
-                }
-
-                if let Err(err) = port_events.try_send(ZmqInputPortEvent::Closed) {
-                    #[cfg(feature = "tracing")]
-                    span.in_scope(|| warn!("did not send InputPortEvent::Closed: {}", err));
                 }
 
                 *input_state = ZmqInputPortState::Closed;
