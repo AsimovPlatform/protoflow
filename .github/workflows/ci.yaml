@@ -12,7 +12,7 @@ permissions:
 jobs:
   check-formatting:
     name: Check formatting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
         include:
           - name: Linux
             target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-24.04
           # - name: macOS
           #   target: x86_64-apple-darwin
           #   os: macos-latest
@@ -81,7 +81,7 @@ jobs:
           cargo +${{ steps.install-rust.outputs.name }} test --target ${{ matrix.target }} --workspace --test "*" --no-fail-fast
   review-pr:
     name: Review PR
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ always() }}
     needs:
       - check-formatting
