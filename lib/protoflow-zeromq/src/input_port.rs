@@ -272,7 +272,9 @@ pub fn start_input_worker(
                 let mut input_state = input_state.write().await;
 
                 use ZmqInputPortState::*;
-                let Connected(_, ref sender, _, _, ref mut connected_ids) = *input_state else {
+                let Connected(ref req_send, ref sender, _, ref event_sender, ref mut connected_ids) =
+                    *input_state
+                else {
                     #[cfg(feature = "tracing")]
                     span.in_scope(|| trace!("input port wasn't connected"));
                     return;
@@ -301,6 +303,8 @@ pub fn start_input_worker(
                 // TODO: Should last connection closing close the input port too?
                 // It does in the MPSC transport.
                 //*input_state = ZmqInputPortState::Closed;
+
+                *input_state = Open(req_send.clone(), event_sender.clone())
             }
 
             // ignore, ideally we never receive these here:
