@@ -5,7 +5,7 @@ use crate::{
     BlockInstantiation, System,
 };
 use enum_iterator::Sequence;
-use protoflow_core::{types::Any, Block};
+use protoflow_core::{types::Any, Block, ComparableAny};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Sequence)]
@@ -228,7 +228,7 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
             Replicate => Box::new(super::Replicate::<Any>::with_system(system)),
-            Sort => Box::new(super::Sort::<Any>::with_system(system)),
+            Sort => Box::new(super::Sort::<ComparableAny>::with_system(system)),
             Split => Box::new(super::Split::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),

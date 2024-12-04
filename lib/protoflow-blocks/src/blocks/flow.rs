@@ -8,7 +8,7 @@ pub mod flow {
         BlockConnections, BlockInstantiation, System,
     };
 
-    use protoflow_core::{Block, Message};
+    use protoflow_core::{Block, ComparableAny, Message};
 
     pub trait FlowBlocks {
         fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T>;
@@ -109,8 +109,7 @@ pub mod flow {
                     system.output(),
                 )),
                 Sort { .. } => Box::new(super::Sort::new(
-                    system.input_any(),
-                    system.input(),
+                    system.input::<ComparableAny>(),
                     system.output(),
                 )),
                 Split { .. } => Box::new(super::Split::new(

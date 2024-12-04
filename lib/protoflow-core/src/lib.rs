@@ -25,6 +25,9 @@ pub use block_error::*;
 mod block_runtime;
 pub use block_runtime::*;
 
+mod comparable_any;
+pub use comparable_any::*;
+
 mod function_block;
 pub use function_block::*;
 

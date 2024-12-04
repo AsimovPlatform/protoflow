@@ -1,11 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 
+use core::cmp::Ordering;
+
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
     prelude::Vec, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
+use tracing::error;
 
 /// Sorts a single input message stream in ascending order.
 ///
@@ -13,7 +16,7 @@ use simple_mermaid::mermaid;
 #[doc = mermaid!("../../../doc/flow/sort.mmd")]
 ///
 /// # Sequence Diagram
-#[doc = mermaid!("../../../doc/flow/concat.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/flow/sort.seq.mmd" framed)]
 ///
 /// # Examples
 ///
@@ -42,9 +45,6 @@ pub struct Sort<T: Message = Any> {
     #[input]
     pub input: InputPort<T>,
 
-    #[input]
-    pub stop: InputPort<T>,
-
     /// The output message stream.
     #[output]
     pub output: OutputPort<T>,
@@ -55,10 +55,9 @@ pub struct Sort<T: Message = Any> {
 }
 
 impl<T: Message> Sort<T> {
-    pub fn new(input: InputPort<T>, stop: InputPort<T>, output: OutputPort<T>) -> Self {
+    pub fn new(input: InputPort<T>, output: OutputPort<T>) -> Self {
         Self {
             input,
-            stop,
             output,
             messages: Vec::new(),
         }
@@ -72,25 +71,31 @@ impl<T: Message> Sort<T> {
 impl<T: Message + 'static> Sort<T> {
     pub fn with_system(system: &System) -> Self {
         use crate::SystemBuilding;
-        Self::new(system.input(), system.input(), system.output())
+        Self::new(system.input(), system.output())
     }
 }
 
-impl<T: Message> Block for Sort<T> {
+impl<T: Message + PartialOrd> Block for Sort<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        // if let Some(x) = self.stop.recv()? {
-        //     while let Some(message) = self.input.recv()? {
-        //         if message == x {
-        //             self.messages.sort_by(|x, y| x.partial_cmp(y).unwrap());
-        //             for x in self.messages.iter() {
-        //                 self.output.send(x)?;
-        //             }
-        //             self.messages.clear();
-        //         } else {
-        //             self.messages.push(message);
-        //         }
-        //     }
-        // }
+        while let Some(message) = self.input.recv()? {
+            self.messages.push(message);
+        }
+
+        self.messages.sort_by(|x, y| {
+            if let Some(ordering) = x.partial_cmp(y) {
+                ordering
+            } else {
+                error!("Incomparable values: {:?} and {:?}", x, y);
+                Ordering::Equal
+            }
+        });
+
+        for x in self.messages.iter() {
+            self.output.send(x)?;
+        }
+
+        self.messages.clear();
+
         Ok(())
     }
 }
@@ -104,7 +109,7 @@ impl<T: Message> StdioSystem for Sort<T> {
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
-            let sort = s.block(Sort::new(s.input(), s.input(), s.output()));
+            let sort = s.block(Sort::new(s.input(), s.output()));
             s.connect(&stdin.output, &sort.input);
         }))
     }
@@ -119,33 +124,25 @@ mod tests {
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(Sort::<i32>::new(s.input(), s.input(), s.output()));
+            let _ = s.block(Sort::<i32>::new(s.input(), s.output()));
         });
     }
-}
-
-#[cfg(test)]
-mod split_tests {
-    use bytes::Bytes;
-    use tracing::error;
-
-    use crate::{Const, SysBlocks};
 
     #[test]
     #[ignore = "requires stdin"]
-    fn run_split_stdout_and_file() {
+    fn run_sort_stdout() {
         use super::*;
+        use crate::SysBlocks;
         use protoflow_core::SystemBuilding;
+        use tracing::error;
+
         if let Err(e) = System::run(|s| {
             let stdin = s.read_stdin();
-            let split = s.block(Sort::new(s.input(), s.input(), s.output()));
-            s.connect(&stdin.output, &split.input);
-
-            let constant = s.block(Const::<Bytes>::with_params(s.output(), Bytes::from("\n")));
-            s.connect(&constant.output, &split.stop);
+            let sort = s.block(Sort::new(s.input(), s.output()));
+            s.connect(&stdin.output, &sort.input);
 
             let stdout_1 = s.write_stdout();
-            s.connect(&split.output, &stdout_1.input);
+            s.connect(&sort.output, &stdout_1.input);
         }) {
             error!("{}", e)
         }
