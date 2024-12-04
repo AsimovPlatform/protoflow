@@ -101,7 +101,8 @@ impl Block for RandomInt {
         let mut rng = if let Some(seed) = self.seed {
             StdRng::seed_from_u64(seed)
         } else {
-            StdRng::from_rng(rand::thread_rng())
+            let mut thread_rng = rand::rng();
+            StdRng::from_rng(&mut thread_rng)
         };
 
         let min = self.min.unwrap_or(i64::MIN);
@@ -114,7 +115,7 @@ impl Block for RandomInt {
             )));
         }
 
-        let random_value = rng.gen_range(min..max);
+        let random_value = rng.random_range(min..max);
 
         self.output.send(&random_value)?;
 
