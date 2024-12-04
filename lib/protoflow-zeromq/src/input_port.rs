@@ -15,7 +15,7 @@ use tokio::sync::{
 #[cfg(feature = "tracing")]
 use tracing::{error, info, trace, trace_span, warn};
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ZmqInputPortRequest {
     Close,
 }
@@ -27,7 +27,7 @@ pub enum ZmqInputPortEvent {
     Closed,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ZmqInputPortState {
     Open(
         // channel for requests from public close
@@ -124,7 +124,6 @@ pub fn start_input_worker(
     async fn handle_socket_event(
         event: ZmqTransportEvent,
         inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
-        req_send: &Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
         pub_queue: &Sender<ZmqTransportEvent>,
         input_port_id: InputPortID,
     ) {
@@ -139,9 +138,11 @@ pub fn start_input_worker(
 
         use ZmqTransportEvent::*;
         match event {
-            Connect(output_port_id, input_port_id) => {
+            Connect(output_port_id, target_id) => {
                 #[cfg(feature = "tracing")]
                 let span = trace_span!(parent: &span, "Connect", ?output_port_id);
+
+                debug_assert_eq!(input_port_id, target_id);
 
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
@@ -203,9 +204,11 @@ pub fn start_input_worker(
                 #[cfg(feature = "tracing")]
                 span.in_scope(|| info!("Connected new port: {}", input_state));
             }
-            Message(output_port_id, _, seq_id, bytes) => {
+            Message(output_port_id, target_id, seq_id, bytes) => {
                 #[cfg(feature = "tracing")]
                 let span = trace_span!(parent: &span, "Message", ?output_port_id, ?seq_id);
+
+                debug_assert_eq!(input_port_id, target_id);
 
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
@@ -258,9 +261,11 @@ pub fn start_input_worker(
                     }
                 }
             }
-            CloseOutput(output_port_id, input_port_id) => {
+            CloseOutput(output_port_id, target_id) => {
                 #[cfg(feature = "tracing")]
                 let span = trace_span!(parent: &span, "CloseOutput", ?output_port_id);
+
+                debug_assert_eq!(input_port_id, target_id);
 
                 let inputs = inputs.read().await;
                 let Some(input_state) = inputs.get(&input_port_id) else {
@@ -390,12 +395,29 @@ pub fn start_input_worker(
         loop {
             tokio::select! {
                 Some(event) = to_worker_recv.recv() => {
-                    handle_socket_event(event, &inputs, &req_send, &pub_queue, input_port_id).await;
+                    handle_socket_event(event, &inputs, &pub_queue, input_port_id).await;
                 }
                 Some((request, response_chan)) = req_recv.recv() => {
                     handle_input_request(request, response_chan, &inputs, &pub_queue, &sub_queue, input_port_id).await;
                 }
+                else => break,
             };
+        }
+
+        #[cfg(feature = "tracing")]
+        {
+            let state = match inputs.read().await.get(&input_port_id) {
+                Some(input) => Some(input.read().await.clone()),
+                None => None,
+            };
+            span.in_scope(|| {
+                trace!(
+                    events_closed = to_worker_recv.is_closed(),
+                    requests_closed = req_recv.is_closed(),
+                    ?state,
+                    "exited input worker loop"
+                )
+            });
         }
     });
 
