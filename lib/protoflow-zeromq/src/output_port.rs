@@ -87,12 +87,14 @@ pub async fn output_port_event_sender(
     outputs: &RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>,
     id: OutputPortID,
 ) -> Option<Sender<ZmqTransportEvent>> {
-    if let Some(output_state) = outputs.read().await.get(&id) {
-        let output_state = output_state.read().await;
-        output_state.event_sender().await
-    } else {
-        None
-    }
+    outputs
+        .read()
+        .await
+        .get(&id)?
+        .read()
+        .await
+        .event_sender()
+        .await
 }
 
 pub fn start_output_worker(

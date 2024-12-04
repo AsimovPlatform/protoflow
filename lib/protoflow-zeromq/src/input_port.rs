@@ -98,12 +98,14 @@ pub async fn input_port_event_sender(
     inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
     id: InputPortID,
 ) -> Option<Sender<ZmqTransportEvent>> {
-    if let Some(input_state) = inputs.read().await.get(&id) {
-        let input_state = input_state.read().await;
-        input_state.event_sender().await
-    } else {
-        None
-    }
+    inputs
+        .read()
+        .await
+        .get(&id)?
+        .read()
+        .await
+        .event_sender()
+        .await
 }
 
 pub fn start_input_worker(
