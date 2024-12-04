@@ -19,6 +19,9 @@ pub enum ZmqOutputPortRequest {
     Send(Bytes),
 }
 
+const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(500);
+const DEFAULT_MAX_RETRIES: u64 = 10;
+
 #[derive(Clone, Debug)]
 pub enum ZmqOutputPortState {
     Open(
@@ -247,57 +250,88 @@ pub fn start_output_worker(
                     break 'send;
                 }
                 ZmqOutputPortRequest::Send(bytes) => {
-                    if pub_queue
-                        .send(ZmqTransportEvent::Message(
-                            output_port_id,
-                            input_port_id,
-                            seq_id,
-                            bytes,
-                        ))
-                        .await
-                        .is_err()
-                    {
-                        respond(Err(PortError::SendFailed)).await;
-                        continue 'send;
-                    }
+                    let msg = ZmqTransportEvent::Message(
+                        output_port_id,
+                        input_port_id,
+                        seq_id,
+                        bytes.clone(),
+                    );
 
-                    'recv: loop {
-                        let Some(event) = to_worker_recv.recv().await else {
-                            #[cfg(feature = "tracing")]
-                            span.in_scope(|| error!("all senders to worker have dropped"));
-
-                            respond(Err(PortError::Invalid(output_port_id.into()))).await;
-                            break 'send;
-                        };
+                    let mut attempts = 0;
+                    'retry: loop {
+                        attempts += 1;
 
                         #[cfg(feature = "tracing")]
-                        span.in_scope(|| trace!(?event, "received event"));
+                        let span = trace_span!(parent: &span, "retry_loop", ?attempts);
 
-                        use ZmqTransportEvent::*;
-                        match event {
-                            AckMessage(_, _, ack_id) => {
-                                if ack_id == seq_id {
-                                    #[cfg(feature = "tracing")]
-                                    span.in_scope(|| trace!(?ack_id, "msg-ack matches"));
-                                    respond(Ok(())).await;
-                                    break 'recv;
-                                } else {
-                                    #[cfg(feature = "tracing")]
-                                    span.in_scope(|| {
-                                        trace!(?ack_id, "got msg-ack for different sequence")
-                                    });
+                        if attempts >= DEFAULT_MAX_RETRIES {
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| trace!("reached max send attempts"));
+                            respond(Err(PortError::Disconnected)).await;
+                            break 'send;
+                        }
+
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| trace!("attempting to send message"));
+
+                        if pub_queue.send(msg.clone()).await.is_err() {
+                            // the socket for publishing has closed, we won't be able to send any
+                            // messages
+                            respond(Err(PortError::Disconnected)).await;
+                            break 'send;
+                        }
+
+                        'recv: loop {
+                            #[cfg(feature = "tracing")]
+                            let span = trace_span!(parent: &span, "recv_loop");
+
+                            let timeout = tokio::time::sleep(DEFAULT_TIMEOUT);
+
+                            let event = tokio::select! {
+                                // after DEFAULT_TIMEOUT duration has passed since the last
+                                // received event from the socket, retry
+                                _ = timeout => continue 'retry,
+                                event_opt = to_worker_recv.recv() => match event_opt {
+                                    Some(event) => event,
+                                    None => {
+                                        #[cfg(feature = "tracing")]
+                                        span.in_scope(|| error!("all senders to worker have dropped"));
+                                        respond(Err(PortError::Invalid(output_port_id.into()))).await;
+                                        break 'send;
+                                    }
                                 }
-                            }
-                            CloseInput(_) => {
-                                // report that the input port was closed
-                                respond(Err(PortError::Disconnected)).await;
-                                break 'send;
-                            }
+                            };
 
-                            // ignore others, we shouldn't receive any new conn-acks
-                            // nor should we be receiving input port events
-                            AckConnection(..) | Connect(..) | Message(..) | CloseOutput(..) => {
-                                continue 'recv
+                            #[cfg(feature = "tracing")]
+                            span.in_scope(|| trace!(?event, "received event"));
+
+                            use ZmqTransportEvent::*;
+                            match event {
+                                AckMessage(_, _, ack_id) => {
+                                    if ack_id == seq_id {
+                                        #[cfg(feature = "tracing")]
+                                        span.in_scope(|| trace!(?ack_id, "msg-ack matches"));
+                                        respond(Ok(())).await;
+                                        break 'retry;
+                                    } else {
+                                        #[cfg(feature = "tracing")]
+                                        span.in_scope(|| {
+                                            trace!(?ack_id, "got msg-ack for different sequence")
+                                        });
+                                        continue 'recv;
+                                    }
+                                }
+                                CloseInput(_) => {
+                                    // report that the input port was closed
+                                    respond(Err(PortError::Disconnected)).await;
+                                    break 'send;
+                                }
+
+                                // ignore others, we shouldn't receive any new conn-acks
+                                // nor should we be receiving input port events
+                                AckConnection(..) | Connect(..) | Message(..) | CloseOutput(..) => {
+                                    continue 'recv
+                                }
                             }
                         }
                     }
