@@ -76,6 +76,14 @@ impl ZmqInputPortState {
             Closed => PortState::Closed,
         }
     }
+
+    pub async fn event_sender(&self) -> Option<Sender<ZmqTransportEvent>> {
+        use ZmqInputPortState::*;
+        match self {
+            Open(_, sender) | Connected(.., sender, _) => Some(sender.clone()),
+            Closed => None,
+        }
+    }
 }
 
 fn input_topics(id: InputPortID) -> Vec<String> {
@@ -84,6 +92,18 @@ fn input_topics(id: InputPortID) -> Vec<String> {
         format!("{}:msg", id),
         format!("{}:closeOut", id),
     ]
+}
+
+pub async fn input_port_event_sender(
+    inputs: &RwLock<BTreeMap<InputPortID, RwLock<ZmqInputPortState>>>,
+    id: InputPortID,
+) -> Option<Sender<ZmqTransportEvent>> {
+    if let Some(input_state) = inputs.read().await.get(&id) {
+        let input_state = input_state.read().await;
+        input_state.event_sender().await
+    } else {
+        None
+    }
 }
 
 pub fn start_input_worker(

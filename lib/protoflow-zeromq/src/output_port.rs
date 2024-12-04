@@ -2,7 +2,7 @@
 
 use crate::{subscribe_topics, unsubscribe_topics, ZmqTransport, ZmqTransportEvent};
 use protoflow_core::{
-    prelude::{fmt, format, vec, Bytes, String, ToString, Vec},
+    prelude::{fmt, format, vec, BTreeMap, Bytes, String, ToString, Vec},
     InputPortID, OutputPortID, PortError, PortState,
 };
 use tokio::sync::{
@@ -19,7 +19,7 @@ pub enum ZmqOutputPortRequest {
     Send(Bytes),
 }
 
-const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(500);
+const DEFAULT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(200);
 const DEFAULT_MAX_RETRIES: u64 = 10;
 
 #[derive(Clone, Debug)]
@@ -65,6 +65,14 @@ impl ZmqOutputPortState {
             Closed => PortState::Closed,
         }
     }
+
+    pub async fn event_sender(&self) -> Option<Sender<ZmqTransportEvent>> {
+        use ZmqOutputPortState::*;
+        match self {
+            Open(.., sender) | Connected(.., sender, _) => Some(sender.clone()),
+            Closed => None,
+        }
+    }
 }
 
 fn output_topics(source: OutputPortID, target: InputPortID) -> Vec<String> {
@@ -73,6 +81,18 @@ fn output_topics(source: OutputPortID, target: InputPortID) -> Vec<String> {
         format!("{}:ackMsg:{}:", target, source),
         format!("{}:closeIn", target),
     ]
+}
+
+pub async fn output_port_event_sender(
+    outputs: &RwLock<BTreeMap<OutputPortID, RwLock<ZmqOutputPortState>>>,
+    id: OutputPortID,
+) -> Option<Sender<ZmqTransportEvent>> {
+    if let Some(output_state) = outputs.read().await.get(&id) {
+        let output_state = output_state.read().await;
+        output_state.event_sender().await
+    } else {
+        None
+    }
 }
 
 pub fn start_output_worker(

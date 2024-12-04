@@ -1,6 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{ZmqInputPortState, ZmqOutputPortState, ZmqTransport, ZmqTransportEvent};
+use crate::{
+    input_port_event_sender, output_port_event_sender, ZmqInputPortState, ZmqOutputPortState,
+    ZmqTransport, ZmqTransportEvent,
+};
 use protoflow_core::{
     prelude::{BTreeMap, String, Vec},
     InputPortID, OutputPortID, PortError,
@@ -18,17 +21,44 @@ pub enum ZmqSubscriptionRequest {
 }
 
 #[cfg(feature = "tracing")]
-use tracing::{error, trace, trace_span};
+use tracing::{debug, error, trace, trace_span, warn};
 
-pub fn start_pub_socket_worker(psock: zeromq::PubSocket, pub_queue: Receiver<ZmqTransportEvent>) {
+pub fn start_pub_socket_worker(
+    transport: &ZmqTransport,
+    psock: zeromq::PubSocket,
+    pub_queue: Receiver<ZmqTransportEvent>,
+) {
     #[cfg(feature = "tracing")]
     let span = trace_span!("ZmqTransport::pub_socket");
+    let outputs = transport.outputs.clone();
+    let inputs = transport.inputs.clone();
     let mut psock = psock;
     let mut pub_queue = pub_queue;
     tokio::task::spawn(async move {
         while let Some(event) = pub_queue.recv().await {
             #[cfg(feature = "tracing")]
             span.in_scope(|| trace!(?event, "sending event to socket"));
+
+            use ZmqTransportEvent::*;
+            let shortcut_sender = match event {
+                Connect(_, id) | Message(_, id, _, _) | CloseOutput(_, id) => {
+                    input_port_event_sender(&inputs, id).await
+                }
+                AckConnection(id, _) | AckMessage(id, ..) => {
+                    output_port_event_sender(&outputs, id).await
+                }
+                CloseInput(..) => None,
+            };
+
+            if let Some(sender) = shortcut_sender {
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| debug!("attempting to shortcut send directly to target port"));
+                if sender.send(event.clone()).await.is_ok() {
+                    continue;
+                }
+                #[cfg(feature = "tracing")]
+                span.in_scope(|| warn!("failed to send message with shortcut, sending to socket"));
+            }
 
             if let Err(err) = psock.send(event.into()).await {
                 #[cfg(feature = "tracing")]
@@ -126,89 +156,21 @@ async fn handle_zmq_msg(
     use ZmqTransportEvent::*;
     match event {
         // input ports
-        Connect(_, input_port_id) => {
-            let sender = {
-                let inputs = inputs.read().await;
-                let Some(input) = inputs.get(&input_port_id) else {
-                    return Err(PortError::Invalid(input_port_id.into()));
-                };
-                let input = input.read().await;
-
-                use ZmqInputPortState::*;
-                match &*input {
-                    Closed => return Err(PortError::Invalid(input_port_id.into())),
-                    Open(.., sender) | Connected(.., sender, _) => sender.clone(),
-                }
-            };
-
-            sender.send(event).await.map_err(|_| PortError::Closed)
-        }
-        Message(_, input_port_id, _, _) => {
-            let sender = {
-                let inputs = inputs.read().await;
-                let Some(input) = inputs.get(&input_port_id) else {
-                    return Err(PortError::Invalid(input_port_id.into()));
-                };
-
-                let input = input.read().await;
-                let ZmqInputPortState::Connected(_, _, _, sender, _) = &*input else {
-                    return Err(PortError::Invalid(input_port_id.into()));
-                };
-
-                sender.clone()
-            };
-
-            sender.send(event).await.map_err(|_| PortError::Closed)
-        }
-        CloseOutput(_, input_port_id) => {
-            let sender = {
-                let inputs = inputs.read().await;
-                let Some(input) = inputs.get(&input_port_id) else {
-                    return Err(PortError::Invalid(input_port_id.into()));
-                };
-                let input = input.read().await;
-
-                use ZmqInputPortState::*;
-                match &*input {
-                    Closed => return Err(PortError::Invalid(input_port_id.into())),
-                    Open(.., sender) | Connected(.., sender, _) => sender.clone(),
-                }
-            };
+        Connect(_, input_port_id)
+        | Message(_, input_port_id, _, _)
+        | CloseOutput(_, input_port_id) => {
+            let sender = input_port_event_sender(inputs, input_port_id)
+                .await
+                .ok_or_else(|| PortError::Invalid(input_port_id.into()))?;
 
             sender.send(event).await.map_err(|_| PortError::Closed)
         }
 
         // output ports
-        AckConnection(output_port_id, _) => {
-            let sender = {
-                let outputs = outputs.read().await;
-                let Some(output) = outputs.get(&output_port_id) else {
-                    return Err(PortError::Invalid(output_port_id.into()));
-                };
-                let output = output.read().await;
-
-                let ZmqOutputPortState::Open(.., sender) = &*output else {
-                    return Err(PortError::Invalid(output_port_id.into()));
-                };
-
-                sender.clone()
-            };
-
-            sender.send(event).await.map_err(|_| PortError::Closed)
-        }
-        AckMessage(output_port_id, _, _) => {
-            let sender = {
-                let outputs = outputs.read().await;
-                let Some(output) = outputs.get(&output_port_id) else {
-                    return Err(PortError::Invalid(output_port_id.into()));
-                };
-                let output = output.read().await;
-                let ZmqOutputPortState::Connected(_, sender, _) = &*output else {
-                    return Err(PortError::Invalid(output_port_id.into()));
-                };
-
-                sender.clone()
-            };
+        AckConnection(output_port_id, _) | AckMessage(output_port_id, _, _) => {
+            let sender = output_port_event_sender(outputs, output_port_id)
+                .await
+                .ok_or_else(|| PortError::Invalid(output_port_id.into()))?;
 
             sender.send(event).await.map_err(|_| PortError::Closed)
         }

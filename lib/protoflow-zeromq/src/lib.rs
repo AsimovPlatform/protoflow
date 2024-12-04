@@ -100,7 +100,7 @@ impl ZmqTransport {
             inputs,
         };
 
-        start_pub_socket_worker(psock, pub_queue_recv);
+        start_pub_socket_worker(&transport, psock, pub_queue_recv);
         start_sub_socket_worker(&transport, ssock, sub_queue_recv);
 
         transport
