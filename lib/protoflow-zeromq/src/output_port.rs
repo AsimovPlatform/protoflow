@@ -13,13 +13,13 @@ use tokio::sync::{
 #[cfg(feature = "tracing")]
 use tracing::{debug, error, info, trace, trace_span, warn};
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ZmqOutputPortRequest {
     Close,
     Send(Bytes),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ZmqOutputPortState {
     Open(
         Sender<(InputPortID, Sender<Result<(), PortError>>)>,
@@ -284,6 +284,16 @@ pub fn start_output_worker(
         let mut output_state = output_state.write().await;
         debug_assert!(matches!(*output_state, ZmqOutputPortState::Connected(..)));
         *output_state = ZmqOutputPortState::Closed;
+
+        #[cfg(feature = "tracing")]
+        span.in_scope(|| {
+            trace!(
+                events_closed = to_worker_recv.is_closed(),
+                requests_closed = msg_req_recv.is_closed(),
+                state = ?*output_state,
+                "exited output worker loop"
+            )
+        });
 
         if unsubscribe_topics(&topics, &sub_queue).await.is_err() {
             #[cfg(feature = "tracing")]
