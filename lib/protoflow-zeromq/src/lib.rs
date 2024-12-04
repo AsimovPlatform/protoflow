@@ -180,7 +180,7 @@ impl Transport for ZmqTransport {
                 use ZmqInputPortState::*;
                 match *input_state {
                     Open(ref sender, _) | Connected(ref sender, ..) => sender.clone(),
-                    Closed => return Err(PortError::Disconnected),
+                    Closed => return Ok(false), // already closed
                 }
             };
 
@@ -201,26 +201,30 @@ impl Transport for ZmqTransport {
 
     fn close_output(&self, output: OutputPortID) -> PortResult<bool> {
         self.tokio.block_on(async {
-            let sender = {
+            let mut close_recv = {
                 let outputs = self.outputs.read().await;
                 let Some(output_state) = outputs.get(&output) else {
                     return Err(PortError::Invalid(output.into()));
                 };
 
                 let output_state = output_state.read().await;
-                let ZmqOutputPortState::Connected(sender, _, _) = &*output_state else {
-                    return Err(PortError::Disconnected);
+                let (close_send, close_recv) = channel(1);
+
+                use ZmqOutputPortState::*;
+                match *output_state {
+                    Open(_, ref sender, _) => sender
+                        .send(close_send)
+                        .await
+                        .map_err(|e| PortError::Other(e.to_string()))?,
+                    Connected(ref sender, ..) => sender
+                        .send((ZmqOutputPortRequest::Close, close_send))
+                        .await
+                        .map_err(|e| PortError::Other(e.to_string()))?,
+                    Closed => return Ok(false), // already closed
                 };
 
-                sender.clone()
+                close_recv
             };
-
-            let (close_send, mut close_recv) = channel(1);
-
-            sender
-                .send((ZmqOutputPortRequest::Close, close_send))
-                .await
-                .map_err(|e| PortError::Other(e.to_string()))?;
 
             close_recv
                 .recv()
@@ -242,7 +246,7 @@ impl Transport for ZmqTransport {
                 };
 
                 let output_state = output_state.read().await;
-                let ZmqOutputPortState::Open(ref sender, _) = *output_state else {
+                let ZmqOutputPortState::Open(ref sender, _, _) = *output_state else {
                     return Err(PortError::Invalid(source.into()));
                 };
 

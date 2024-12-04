@@ -22,13 +22,17 @@ pub enum ZmqOutputPortRequest {
 #[derive(Clone, Debug)]
 pub enum ZmqOutputPortState {
     Open(
+        // channel for connection requests from public `connect` method
         Sender<(InputPortID, Sender<Result<(), PortError>>)>,
+        // channel for close requests from the public `close` method
+        Sender<Sender<Result<(), PortError>>>,
+        // channel used internally for events from socket
         Sender<ZmqTransportEvent>,
     ),
     Connected(
-        // channel for public send, contained channel is for the ack back
+        // channel for public `send` and `close` methods, contained channel is for the ack back
         Sender<(ZmqOutputPortRequest, Sender<Result<(), PortError>>)>,
-        // internal channel for events
+        // channel used internally for events from socket
         Sender<ZmqTransportEvent>,
         // id of the connected input port
         InputPortID,
@@ -76,6 +80,7 @@ pub fn start_output_worker(
     let span = trace_span!("ZmqTransport::output_port_worker", ?output_port_id);
 
     let (conn_send, mut conn_recv) = channel(1);
+    let (close_send, mut close_recv) = channel(1);
     let (to_worker_send, mut to_worker_recv) = channel(1);
 
     {
@@ -83,7 +88,7 @@ pub fn start_output_worker(
         if outputs.contains_key(&output_port_id) {
             return Err(PortError::Invalid(output_port_id.into()));
         }
-        let state = ZmqOutputPortState::Open(conn_send, to_worker_send.clone());
+        let state = ZmqOutputPortState::Open(conn_send, close_send, to_worker_send.clone());
         #[cfg(feature = "tracing")]
         span.in_scope(|| trace!("saving new state: {}", state));
         outputs.insert(output_port_id, RwLock::new(state));
@@ -97,11 +102,38 @@ pub fn start_output_worker(
     span.in_scope(|| trace!("spawning"));
 
     tokio::task::spawn(async move {
-        let Some((input_port_id, conn_confirm)) = conn_recv.recv().await else {
-            // all senders have dropped, i.e. there's no connection request coming
-            #[cfg(feature = "tracing")]
-            debug!(parent: &span, "no connection request");
-            return;
+        let (input_port_id, conn_confirm) = tokio::select! {
+            Some((input_port_id, conn_confirm)) = conn_recv.recv() => (input_port_id, conn_confirm),
+            Some(close_confirm) = close_recv.recv() => {
+                let response = {
+                    if let Some(output_state) = outputs.read().await.get(&output_port_id) {
+                        let mut output_state = output_state.write().await;
+                        debug_assert!(matches!(*output_state, ZmqOutputPortState::Open(..)));
+                        *output_state = ZmqOutputPortState::Closed;
+                        Ok(())
+                    } else {
+                        #[cfg(feature = "tracing")]
+                        span.in_scope(|| error!("port state not found"));
+                        Err(PortError::Invalid(output_port_id.into()))
+                    }
+                };
+
+                let _ = close_confirm.try_send(response);
+                return;
+            }
+            else => {
+                // all senders have dropped, i.e. there's no connection request coming
+
+                if let Some(output_state) = outputs.read().await.get(&output_port_id) {
+                    let mut output_state = output_state.write().await;
+                    debug_assert!(matches!(*output_state, ZmqOutputPortState::Open(..)));
+                    *output_state = ZmqOutputPortState::Closed;
+                }
+
+                #[cfg(feature = "tracing")]
+                debug!(parent: &span, "no connection or close request");
+                return;
+            }
         };
 
         #[cfg(feature = "tracing")]

@@ -30,7 +30,7 @@ pub enum ZmqInputPortEvent {
 #[derive(Clone, Debug)]
 pub enum ZmqInputPortState {
     Open(
-        // channel for requests from public close
+        // channel for close requests from the public `close` method
         Sender<(ZmqInputPortRequest, Sender<Result<(), PortError>>)>,
         // channel used internally for events from socket
         Sender<ZmqTransportEvent>,

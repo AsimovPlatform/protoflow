@@ -187,7 +187,7 @@ async fn handle_zmq_msg(
                 };
                 let output = output.read().await;
 
-                let ZmqOutputPortState::Open(_, sender) = &*output else {
+                let ZmqOutputPortState::Open(.., sender) = &*output else {
                     return Err(PortError::Invalid(output_port_id.into()));
                 };
 
