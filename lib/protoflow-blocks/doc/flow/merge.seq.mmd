@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant BlockA2 as Another block
+    participant Merge.input as Merge.input port
+    participant Merge.input2 as Merge.input port
+    participant Merge as Merge block
+    participant Merge.output as Merge.output port
+    participant BlockB as Another block
+
+    BlockA-->>Merge: Connect
+    BlockA2-->>Merge: Connect
+    Merge-->>BlockB: Connect
+
+    loop Merge process
+        BlockA->>Merge: Message
+        Merge->>BlockB: Message
+        BlockA2->>Merge: Message
+        Merge->>BlockB: Message
+    end
+    BlockA-->>Merge: Disconnect
+    BlockA2-->>Merge: Disconnect
+    Merge-->>Merge.input: Close
+    Merge-->>Merge.input2: Close
+    Merge-->>Merge.output: Close
+    Merge-->>BlockB: Disconnect

@@ -57,7 +57,7 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                         .unwrap()
                 }
 
-                "Concat" | "Replicate" | "Split" | "Sort" => {
+                "Concat" | "Merge" | "Replicate" | "Sort" | "Split" => {
                     FlowBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Flow)
                         .unwrap()
