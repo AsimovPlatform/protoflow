@@ -366,33 +366,47 @@ mod tests {
     use super::*;
 
     use protoflow_core::{runtimes::StdRuntime, System};
+    use std::time::Duration;
 
     use futures_util::future::TryFutureExt;
     use zeromq::{PubSocket, SocketRecv, SocketSend, SubSocket};
 
     async fn start_zmqtransport_server() {
-        // bind a *SUB* socket to the *PUB* address so that the transport can *PUB* to it
-        let mut pub_srv = SubSocket::new();
-        pub_srv.bind(DEFAULT_PUB_SOCKET).await.unwrap();
-
-        // bind a *PUB* socket to the *SUB* address so that the transport can *SUB* to it
-        let mut sub_srv = PubSocket::new();
-        sub_srv.bind(DEFAULT_SUB_SOCKET).await.unwrap();
-
-        // subscribe to all messages
-        pub_srv.subscribe("").await.unwrap();
-
-        // resend anything received on the *SUB* socket to the *PUB* socket
-        tokio::task::spawn(async move {
-            let mut pub_srv = pub_srv;
-            loop {
-                pub_srv
-                    .recv()
-                    .and_then(|msg| sub_srv.send(msg))
-                    .await
-                    .unwrap();
+        // retry for a second
+        for _ in 0..20 {
+            // bind a *SUB* socket to the *PUB* address so that the transport can *PUB* to it
+            let mut pub_srv = SubSocket::new();
+            if pub_srv.bind(DEFAULT_PUB_SOCKET).await.is_err() {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                continue;
             }
-        });
+
+            // bind a *PUB* socket to the *SUB* address so that the transport can *SUB* to it
+            let mut sub_srv = PubSocket::new();
+            if sub_srv.bind(DEFAULT_SUB_SOCKET).await.is_err() {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                continue;
+            }
+
+            // subscribe to all messages
+            pub_srv.subscribe("").await.unwrap();
+
+            // resend anything received on the *SUB* socket to the *PUB* socket
+            tokio::task::spawn(async move {
+                let mut pub_srv = pub_srv;
+                loop {
+                    pub_srv
+                        .recv()
+                        .and_then(|msg| sub_srv.send(msg))
+                        .await
+                        .unwrap();
+                }
+            });
+
+            return;
+        }
+
+        panic!("unable to start server for tests, are the ports 10000 and 10001 available?");
     }
 
     #[test]
@@ -407,7 +421,7 @@ mod tests {
 
     #[test]
     fn run_transport() {
-        tracing_subscriber::fmt::init();
+        let _ = tracing_subscriber::fmt::try_init();
 
         let rt = tokio::runtime::Runtime::new().unwrap();
         let _guard = rt.enter();

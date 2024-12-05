@@ -22,7 +22,7 @@ pub enum ZmqInputPortRequest {
 }
 
 /// ZmqInputPortEvent represents events that we receive from the background worker of the port.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ZmqInputPortEvent {
     Message(Bytes),
     Closed,

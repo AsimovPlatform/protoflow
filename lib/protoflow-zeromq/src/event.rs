@@ -9,7 +9,7 @@ use zeromq::ZmqMessage;
 pub type SequenceID = u64;
 
 /// ZmqTransportEvent represents the data that goes over the wire from one port to another.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ZmqTransportEvent {
     Connect(OutputPortID, InputPortID),
     AckConnection(OutputPortID, InputPortID),
