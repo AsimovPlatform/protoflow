@@ -58,6 +58,11 @@ jobs:
           toolchain: 1.81.0
           components: rustfmt
           targets: ${{ matrix.target }}
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "29.1"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build library
         id: check-lib
         if: ${{ always() }}
