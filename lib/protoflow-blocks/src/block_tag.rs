@@ -5,7 +5,7 @@ use crate::{
     BlockInstantiation, System,
 };
 use enum_iterator::Sequence;
-use protoflow_core::{types::Any, Block};
+use protoflow_core::{types::Any, Block, ComparableAny};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Sequence)]
@@ -18,6 +18,11 @@ pub enum BlockTag {
     Drop,
     Random,
     // FlowBlocks
+    Concat,
+    Merge,
+    Replicate,
+    Sort,
+    Split,
     // HashBlocks
     #[cfg(any(
         feature = "hash-blake3",
@@ -73,6 +78,7 @@ impl BlockTag {
         use BlockTag::*;
         match self {
             Buffer => "Buffer",
+            Concat => "Concat",
             Const => "Const",
             Count => "Count",
             Delay => "Delay",
@@ -91,6 +97,7 @@ impl BlockTag {
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
+            Merge => "Merge",
             #[cfg(feature = "std")]
             ReadDir => "ReadDir",
             #[cfg(feature = "std")]
@@ -101,6 +108,9 @@ impl BlockTag {
             ReadSocket => "ReadSocket",
             #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
+            Replicate => "Replicate",
+            Sort => "Sort",
+            Split => "Split",
             #[cfg(feature = "std")]
             WriteFile => "WriteFile",
             #[cfg(feature = "std")]
@@ -124,6 +134,7 @@ impl FromStr for BlockTag {
         use BlockTag::*;
         Ok(match input {
             "Buffer" => Buffer,
+            "Concat" => Concat,
             "Const" => Const,
             "Count" => Count,
             "Delay" => Delay,
@@ -142,6 +153,7 @@ impl FromStr for BlockTag {
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
+            "Merge" => Merge,
             #[cfg(feature = "std")]
             "ReadDir" => ReadDir,
             #[cfg(feature = "std")]
@@ -152,6 +164,9 @@ impl FromStr for BlockTag {
             "ReadSocket" => ReadSocket,
             #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
+            "Replicate" => Replicate,
+            "Sort" => Sort,
+            "Split" => Split,
             #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
             #[cfg(feature = "std")]
@@ -186,6 +201,7 @@ impl BlockInstantiation for BlockTag {
         use BlockTag::*;
         match self {
             Buffer => Box::new(super::Buffer::<Any>::with_system(system)),
+            Concat => Box::new(super::Concat::<Any>::with_system(system)),
             Const => Box::new(super::Const::<String>::with_system(system, String::new())),
             Count => Box::new(super::Count::<Any>::with_system(system)),
             Delay => Box::new(super::Delay::<Any>::with_system(system, None)),
@@ -204,6 +220,7 @@ impl BlockInstantiation for BlockTag {
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
+            Merge => Box::new(super::Merge::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             ReadDir => Box::new(super::ReadDir::with_system(system)),
             #[cfg(feature = "std")]
@@ -214,6 +231,9 @@ impl BlockInstantiation for BlockTag {
             ReadSocket => Box::new(super::ReadSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
+            Replicate => Box::new(super::Replicate::<Any>::with_system(system)),
+            Sort => Box::new(super::Sort::<ComparableAny>::with_system(system)),
+            Split => Box::new(super::Split::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
             #[cfg(feature = "std")]
