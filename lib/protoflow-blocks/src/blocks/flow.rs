@@ -12,6 +12,7 @@ pub mod flow {
 
     pub trait FlowBlocks {
         fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T>;
+        fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T>;
         fn replicate<T: Message + Into<T> + 'static>(&mut self) -> Replicate<T>;
         fn sort<T: Message + Into<T> + PartialOrd + 'static>(&mut self) -> Sort<T>;
         fn split<T: Message + Into<T> + 'static>(&mut self) -> Split<T>;
@@ -21,6 +22,7 @@ pub mod flow {
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum FlowBlockTag {
         Concat,
+        Merge,
         Replicate,
         Sort,
         Split,
@@ -30,6 +32,11 @@ pub mod flow {
     #[derive(Clone, Debug)]
     pub enum FlowBlockConfig {
         Concat {
+            input_1: InputPortName,
+            input_2: InputPortName,
+            output: OutputPortName,
+        },
+        Merge {
             input_1: InputPortName,
             input_2: InputPortName,
             output: OutputPortName,
@@ -56,6 +63,7 @@ pub mod flow {
             use FlowBlockConfig::*;
             Cow::Borrowed(match self {
                 Concat { .. } => "Concat",
+                Merge { .. } => "Merge",
                 Replicate { .. } => "Replicate",
                 Sort { .. } => "Sort",
                 Split { .. } => "Split",
@@ -68,6 +76,9 @@ pub mod flow {
             use FlowBlockConfig::*;
             match self {
                 Concat { output, .. } => {
+                    vec![("output", Some(output.clone()))]
+                }
+                Merge { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
                 Replicate {
@@ -103,6 +114,11 @@ pub mod flow {
                     system.input_any(),
                     system.output(),
                 )),
+                Merge { .. } => Box::new(super::Merge::new(
+                    system.input_any(),
+                    system.input_any(),
+                    system.output(),
+                )),
                 Replicate { .. } => Box::new(super::Replicate::new(
                     system.input_any(),
                     system.output(),
@@ -123,6 +139,9 @@ pub mod flow {
 
     mod concat;
     pub use concat::*;
+
+    mod merge;
+    pub use merge::*;
 
     mod replicate;
     pub use replicate::*;

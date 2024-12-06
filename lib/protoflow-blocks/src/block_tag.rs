@@ -19,6 +19,7 @@ pub enum BlockTag {
     Random,
     // FlowBlocks
     Concat,
+    Merge,
     Replicate,
     Sort,
     Split,
@@ -96,6 +97,7 @@ impl BlockTag {
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
+            Merge => "Merge",
             #[cfg(feature = "std")]
             ReadDir => "ReadDir",
             #[cfg(feature = "std")]
@@ -151,6 +153,7 @@ impl FromStr for BlockTag {
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
+            "Merge" => Merge,
             #[cfg(feature = "std")]
             "ReadDir" => ReadDir,
             #[cfg(feature = "std")]
@@ -217,6 +220,7 @@ impl BlockInstantiation for BlockTag {
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
+            Merge => Box::new(super::Merge::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             ReadDir => Box::new(super::ReadDir::with_system(system)),
             #[cfg(feature = "std")]

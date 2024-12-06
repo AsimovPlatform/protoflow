@@ -7,8 +7,8 @@ use crate::{
     types::{DelayType, Encoding},
     AllBlocks, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
     DecodeHex, DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks,
-    HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin,
-    Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile, WriteSocket,
+    HashBlocks, IoBlocks, MathBlocks, Merge, Random, ReadDir, ReadEnv, ReadFile, ReadSocket,
+    ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile, WriteSocket,
     WriteStderr, WriteStdout,
 };
 use protoflow_core::{
@@ -167,6 +167,10 @@ impl CoreBlocks for System {
 impl FlowBlocks for System {
     fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T> {
         self.0.block(Concat::<T>::with_system(self))
+    }
+
+    fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T> {
+        self.0.block(Merge::<T>::with_system(self))
     }
 
     fn replicate<T: Message + Into<T> + 'static>(&mut self) -> Replicate<T> {

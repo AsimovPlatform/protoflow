@@ -114,7 +114,7 @@ The built-in blocks provided by Protoflow are listed below:
 |:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
 | [`Buffer`]        | Stores all messages it receives.                                                                                               |
 | [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
-| [`Concat`]        | Merges multiple input message streams into a single output stream.                        |
+| [`Concat`]        | Merges multiple input message streams into a single output stream.                                                             |
 | [`Const`]         | Sends a constant value.                                                                                                        |
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
 | [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
@@ -128,6 +128,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
 | [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
 | [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
+| [`Merge`]         | Combines multiple input message streams into a single output stream by interleaving messages as they arrive.                   |
 | [`Random`]        | Generates and sends a random value.                                                                                            |
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
 | [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
@@ -487,6 +488,32 @@ block-beta
 protoflow execute Hash algorithm=blake3
 ```
 
+#### [`Merge`]
+
+Combines multiple input message streams into a single output stream by interleaving messages as they arrive.
+
+```mermaid
+block-beta
+    columns 7
+    space:1 Source1 space:5
+    space:3 Merge space:1 Sink space:1
+    space:1 Source2 space:5
+    Source1-- "input" -->Merge
+    Source2-- "input" -->Merge
+    Merge-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Merge block
+    class Source1 hidden
+    class Source2 hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Merge
+```
+
 #### [`Random`]
 
 A block for generating and sending a random value.
@@ -840,6 +867,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
+[`Merge`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Merge.html
 [`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html
 [`ReadEnv`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadEnv.html
