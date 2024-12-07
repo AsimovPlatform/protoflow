@@ -467,3 +467,153 @@ pub fn start_input_worker(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::time::Duration;
+
+    #[test]
+    fn redelivery_is_idempotent() {
+        let _ = tracing_subscriber::fmt::try_init();
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let _guard = rt.enter();
+
+        let (pub_queue, mut pub_queue_recv) = channel(1);
+        let (sub_queue, mut sub_queue_recv) = channel(1);
+
+        let inputs = Arc::new(RwLock::new(BTreeMap::new()));
+        let outputs = Arc::new(RwLock::new(BTreeMap::new()));
+
+        let output_id = OutputPortID::try_from(1).unwrap();
+        let input_id = InputPortID::try_from(-1).unwrap();
+
+        let transport = ZmqTransport {
+            tokio: rt.handle().clone(),
+            pub_queue,
+            sub_queue,
+            inputs: inputs.clone(),
+            outputs: outputs.clone(),
+        };
+
+        // start a fake socket worker that just drops all messages
+        let sub_queue = tokio::task::spawn(async move {
+            while sub_queue_recv.recv().await.is_some() {}
+            Some(())
+        });
+
+        start_input_worker(&transport, input_id).unwrap();
+
+        let (recv_send, recv_recv) = channel(1);
+        let recv_recv = Arc::new(Mutex::new(recv_recv));
+
+        // manually connect the port
+        let (req_sender, event_sender) = rt.block_on(async {
+            let inputs = inputs.read().await;
+            let mut input_state = inputs.get(&input_id).unwrap().write().await;
+
+            let ZmqInputPortState::Open(ref req_sender, ref event_sender) = *input_state else {
+                panic!("");
+            };
+            let req_sender = req_sender.clone();
+            let event_sender = event_sender.clone();
+
+            let mut connected_ids = BTreeMap::new();
+            connected_ids.insert(output_id, 0);
+
+            *input_state = ZmqInputPortState::Connected(
+                req_sender.clone(),
+                recv_send,
+                recv_recv.clone(),
+                event_sender.clone(),
+                connected_ids,
+            );
+
+            (req_sender.clone(), event_sender.clone())
+        });
+
+        let timeout = Duration::from_secs(1);
+
+        // send a message from the `output_id` to the worker
+        rt.block_on(tokio::time::timeout(
+            timeout,
+            event_sender.send(ZmqTransportEvent::Message(
+                output_id,
+                input_id,
+                1,
+                Bytes::new(),
+            )),
+        ))
+        .unwrap()
+        .unwrap();
+
+        // verify that the worker tries to publish a msg-ack
+        assert_eq!(
+            Some(ZmqTransportEvent::AckMessage(output_id, input_id, 1)),
+            rt.block_on(pub_queue_recv.recv())
+        );
+
+        // verify that the worker forwards a new message
+        assert_eq!(
+            Ok(Some(ZmqInputPortEvent::Message(Bytes::new()))),
+            rt.block_on(tokio::time::timeout(timeout, async {
+                recv_recv.lock().await.recv().await
+            }))
+        );
+
+        // send a new message with the same sequence id to the worker
+        rt.block_on(tokio::time::timeout(
+            timeout,
+            event_sender.send(ZmqTransportEvent::Message(
+                output_id,
+                input_id,
+                1,
+                Bytes::new(),
+            )),
+        ))
+        .unwrap()
+        .unwrap();
+
+        // verify that the worker tries to publish a msg-ack
+        assert_eq!(
+            Ok(Some(ZmqTransportEvent::AckMessage(output_id, input_id, 1))),
+            rt.block_on(tokio::time::timeout(timeout, pub_queue_recv.recv()))
+        );
+
+        // verify that the worker *DOESN'T* forward the message
+        assert!(rt
+            .block_on(tokio::time::timeout(timeout, async {
+                recv_recv.lock().await.recv().await
+            }))
+            .is_err());
+
+        let (close_send, mut close_recv) = channel(1);
+
+        // send a close request the worker
+        rt.block_on(tokio::time::timeout(timeout, async {
+            req_sender
+                .send((ZmqInputPortRequest::Close, close_send))
+                .await
+                .unwrap();
+            close_recv.recv().await.unwrap()
+        }))
+        .unwrap()
+        .unwrap();
+
+        // drop remaining references to the channels that the worker is waiting on
+        drop(event_sender);
+        drop(req_sender);
+        drop(transport);
+
+        // verify that the fake socket worker also exits, implies that the worker has exited as the
+        // channel sender references must be dropped for the fake worker to exit.
+        assert_eq!(
+            Some(()),
+            rt.block_on(tokio::time::timeout(timeout, sub_queue))
+                .unwrap()
+                .unwrap()
+        );
+    }
+}
