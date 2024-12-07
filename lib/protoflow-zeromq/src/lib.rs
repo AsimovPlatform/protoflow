@@ -458,4 +458,59 @@ mod tests {
         output.join().expect("thread failed").unwrap();
         input.join().expect("thread failed").unwrap();
     }
+
+    #[test]
+    fn multiple_outputs_to_one_input() {
+        let _ = tracing_subscriber::fmt::try_init();
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let _guard = rt.enter();
+
+        rt.block_on(start_zmqtransport_server());
+
+        let transport = ZmqTransport::default();
+        let runtime = StdRuntime::new(transport).unwrap();
+        let system = System::new(&runtime);
+
+        let mut output1 = system.output();
+        let mut output2 = system.output();
+
+        let mut input = system.input();
+
+        assert!(system.connect(&output1, &input));
+        assert!(system.connect(&output2, &input));
+
+        output1.send(&"Hello from one!".to_string()).unwrap();
+        assert_eq!(Some("Hello from one!".to_string()), input.recv().unwrap());
+
+        output2.send(&"Hello from two!".to_string()).unwrap();
+        assert_eq!(Some("Hello from two!".to_string()), input.recv().unwrap());
+
+        output1.send(&"Hello from one again!".to_string()).unwrap();
+        assert_eq!(
+            Some("Hello from one again!".to_string()),
+            input.recv().unwrap()
+        );
+
+        assert!(input.close().unwrap());
+        assert_eq!(
+            Err(PortError::Disconnected),
+            output1.send(&"Hello from one!".to_string())
+        );
+        assert_eq!(
+            Err(PortError::Disconnected),
+            output2.send(&"Hello from two!".to_string())
+        );
+
+        assert_eq!(Err(PortError::Disconnected), input.try_recv());
+
+        assert!(
+            !output1.close().unwrap(),
+            "closing output should return Ok(false) because input was already closed"
+        );
+        assert!(
+            !output2.close().unwrap(),
+            "closing output should return Ok(false) because input was already closed"
+        );
+    }
 }
