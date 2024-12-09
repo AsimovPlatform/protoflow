@@ -83,8 +83,9 @@ impl Block for Div {
             };
 
             result = Some(res);
-            self.output.send(&res)?;
         }
+
+        self.output.send(&result.unwrap_or(1.0))?;
 
         Ok(())
     }

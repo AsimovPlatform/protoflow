@@ -77,8 +77,9 @@ impl Block for Sub {
             };
 
             result = Some(res);
-            self.output.send(&res)?;
         }
+
+        self.output.send(&result.unwrap_or(0.0))?;
 
         Ok(())
     }

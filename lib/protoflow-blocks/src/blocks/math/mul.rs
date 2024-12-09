@@ -69,16 +69,17 @@ impl Mul {
 
 impl Block for Mul {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let mut product = None;
+        let mut result = None;
         while let Some(input) = self.input.recv()? {
-            let res = match product {
+            let res = match result {
                 None => input,
-                Some(current_product) => current_product * input,
+                Some(current_result) => current_result * input,
             };
 
-            product = Some(res);
-            self.output.send(&res)?;
+            result = Some(res);
         }
+
+        self.output.send(&result.unwrap_or(1.0))?;
 
         Ok(())
     }
