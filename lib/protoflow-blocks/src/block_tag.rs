@@ -19,10 +19,17 @@ pub enum BlockTag {
     Random,
     // FlowBlocks
     // HashBlocks
-    #[cfg(feature = "hash")]
+    #[cfg(any(
+        feature = "hash-blake3",
+        feature = "hash-md5",
+        feature = "hash-sha1",
+        feature = "hash-sha2"
+    ))]
     Hash,
     // IoBlocks
     Decode,
+    DecodeHex,
+    DecodeJson,
     Encode,
     EncodeHex,
     EncodeJson,
@@ -35,14 +42,22 @@ pub enum BlockTag {
     #[cfg(feature = "std")]
     ReadFile,
     #[cfg(feature = "std")]
+    ReadSocket,
+    #[cfg(feature = "std")]
     ReadStdin,
     #[cfg(feature = "std")]
     WriteFile,
+    #[cfg(feature = "std")]
+    WriteSocket,
     #[cfg(feature = "std")]
     WriteStderr,
     #[cfg(feature = "std")]
     WriteStdout,
     // TextBlocks
+    ConcatStrings,
+    DecodeCsv,
+    EncodeCsv,
+    SplitString,
 }
 
 impl BlockTag {
@@ -63,9 +78,16 @@ impl BlockTag {
             Delay => "Delay",
             Drop => "Drop",
             Random => "Random",
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash => "Hash",
             Decode => "Decode",
+            DecodeHex => "DecodeHex",
+            DecodeJson => "DecodeJSON",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
@@ -76,13 +98,21 @@ impl BlockTag {
             #[cfg(feature = "std")]
             ReadFile => "ReadFile",
             #[cfg(feature = "std")]
+            ReadSocket => "ReadSocket",
+            #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
             #[cfg(feature = "std")]
             WriteFile => "WriteFile",
             #[cfg(feature = "std")]
+            WriteSocket => "WriteSocket",
+            #[cfg(feature = "std")]
             WriteStderr => "WriteStderr",
             #[cfg(feature = "std")]
             WriteStdout => "WriteStdout",
+            ConcatStrings => "ConcatStrings",
+            DecodeCsv => "DecodeCSV",
+            EncodeCsv => "EncodeCSV",
+            SplitString => "SplitString",
         }
     }
 }
@@ -99,9 +129,16 @@ impl FromStr for BlockTag {
             "Delay" => Delay,
             "Drop" => Drop,
             "Random" => Random,
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             "Hash" => Hash,
             "Decode" => Decode,
+            "DecodeHex" => DecodeHex,
+            "DecodeJSON" => DecodeJson,
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
@@ -112,13 +149,21 @@ impl FromStr for BlockTag {
             #[cfg(feature = "std")]
             "ReadFile" => ReadFile,
             #[cfg(feature = "std")]
+            "ReadSocket" => ReadSocket,
+            #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
             #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
             #[cfg(feature = "std")]
+            "WriteSocket" => WriteSocket,
+            #[cfg(feature = "std")]
             "WriteStderr" => WriteStderr,
             #[cfg(feature = "std")]
             "WriteStdout" => WriteStdout,
+            "ConcatStrings" => ConcatStrings,
+            "DecodeCSV" => DecodeCsv,
+            "EncodeCSV" => EncodeCsv,
+            "SplitString" => SplitString,
             _ => return Err(()),
         })
     }
@@ -146,9 +191,16 @@ impl BlockInstantiation for BlockTag {
             Delay => Box::new(super::Delay::<Any>::with_system(system, None)),
             Drop => Box::new(super::Drop::<Any>::with_system(system)),
             Random => Box::new(super::Random::<u64>::with_system(system, None)),
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash => Box::new(super::Hash::with_system(system, None)),
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
+            DecodeHex => Box::new(super::DecodeHex::with_system(system)),
+            DecodeJson => Box::new(super::DecodeJson::with_system(system)),
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
@@ -159,13 +211,21 @@ impl BlockInstantiation for BlockTag {
             #[cfg(feature = "std")]
             ReadFile => Box::new(super::ReadFile::with_system(system)),
             #[cfg(feature = "std")]
+            ReadSocket => Box::new(super::ReadSocket::with_system(system, None)),
+            #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
             #[cfg(feature = "std")]
+            WriteSocket => Box::new(super::WriteSocket::with_system(system, None)),
+            #[cfg(feature = "std")]
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),
             #[cfg(feature = "std")]
             WriteStdout => Box::new(super::WriteStdout::with_system(system)),
+            ConcatStrings => Box::new(super::ConcatStrings::with_system(system, None)),
+            DecodeCsv => Box::new(super::DecodeCsv::with_system(system)),
+            EncodeCsv => Box::new(super::EncodeCsv::with_system(system)),
+            SplitString => Box::new(super::SplitString::with_system(system, None)),
         }
     }
 }

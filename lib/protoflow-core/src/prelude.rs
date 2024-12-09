@@ -39,7 +39,7 @@ pub use core::{
     time::Duration,
 };
 
-pub use bytes::Bytes;
+pub use bytes::{Bytes, BytesMut};
 
 pub type Instant = Duration;
 

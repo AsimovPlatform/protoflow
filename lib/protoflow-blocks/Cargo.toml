@@ -17,7 +17,12 @@ publish.workspace = true
 [features]
 default = ["all", "std"]
 all = ["hash", "rand", "serde", "sysml", "tracing"]
-hash = ["dep:blake3"]
+hash = ["hash-blake3", "hash-md5", "hash-sha1", "hash-sha2"]
+hash-blake3 = ["dep:blake3"]
+hash-md5 = ["dep:md-5"]
+hash-sha1 = ["dep:sha1"]
+hash-sha2 = ["dep:sha2"]
+
 rand = ["protoflow-core/rand"]
 std = [
     "blake3?/std",
@@ -45,6 +50,7 @@ cfg_aliases.workspace = true
 blake3 = { version = "1.5", default-features = false, optional = true }
 duration-str = { version = "0.11", default-features = false }
 enum-iterator = "2.1"
+md-5 = { version = "0.10.6", default-features = false, optional = true }
 protoflow-core.workspace = true
 protoflow-derive.workspace = true
 tokio = { version = "1.40.0", default-features = false, optional = true }
@@ -53,11 +59,14 @@ serde = { version = "1.0", default-features = false, features = [
     "derive",
 ], optional = true }
 serde_yml = { version = "0.0.12", optional = true }
+sha1 = { version = "0.10.6", default-features = false, optional = true }
+sha2 = { version = "0.10.8", default-features = false, optional = true }
 simple-mermaid = "0.1"
 stability = "0.2"
 struson = "0.5"
 sysml-model = { version = "=0.2.3", default-features = false, optional = true }
 ubyte = { version = "0.10", default-features = false }
+csv = "1.3.1"
 
 [dev-dependencies]
 bytes = "1.8.0"

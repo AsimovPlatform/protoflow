@@ -2,10 +2,18 @@
 
 use super::prelude::{Box, Cow, Named, String, Vec};
 use crate::{
-    BlockConnections, BlockInstantiation, CoreBlockConfig, FlowBlockConfig, HashBlockConfig,
-    IoBlockConfig, MathBlockConfig, SysBlockConfig, System, TextBlockConfig,
+    BlockConnections, BlockInstantiation, CoreBlockConfig, FlowBlockConfig, IoBlockConfig,
+    MathBlockConfig, SysBlockConfig, System, TextBlockConfig,
 };
 use protoflow_core::Block;
+
+#[cfg(any(
+    feature = "hash-blake3",
+    feature = "hash-md5",
+    feature = "hash-sha1",
+    feature = "hash-sha2"
+))]
+use crate::HashBlockConfig;
 
 pub type InputPortName = String;
 pub type OutputPortName = String;
@@ -16,7 +24,18 @@ pub type OutputPortName = String;
 pub enum BlockConfig {
     Core(CoreBlockConfig),
     Flow(FlowBlockConfig),
-    #[cfg(feature = "hash")]
+    #[cfg(any(
+        feature = "hash-blake3",
+        feature = "hash-md5",
+        feature = "hash-sha1",
+        feature = "hash-sha2"
+    ))]
+    #[cfg(any(
+        feature = "hash-blake3",
+        feature = "hash-md5",
+        feature = "hash-sha1",
+        feature = "hash-sha2"
+    ))]
     Hash(HashBlockConfig),
     Io(IoBlockConfig),
     Math(MathBlockConfig),
@@ -44,22 +63,35 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                         .unwrap()
                 }
 
-                #[cfg(feature = "hash")]
+                #[cfg(any(
+                    feature = "hash-blake3",
+                    feature = "hash-md5",
+                    feature = "hash-sha1",
+                    feature = "hash-sha2"
+                ))]
                 "Hash" => HashBlockConfig::deserialize(value.clone())
                     .map(BlockConfig::Hash)
                     .unwrap(),
 
-                "Decode" | "Encode" | "EncodeHex" | "EncodeJSON" => {
+                "Decode" | "DecodeHex" | "DecodeJSON" | "Encode" | "EncodeHex" | "EncodeJSON" => {
                     IoBlockConfig::deserialize(value.clone())
                         .map(BlockConfig::Io)
                         .unwrap()
                 }
 
                 #[cfg(feature = "std")]
-                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadStdin" | "WriteFile" | "WriteStderr"
-                | "WriteStdout" => SysBlockConfig::deserialize(value.clone())
-                    .map(BlockConfig::Sys)
-                    .unwrap(),
+                "ReadDir" | "ReadEnv" | "ReadFile" | "ReadSocket" | "ReadStdin" | "WriteFile"
+                | "WriteSocket" | "WriteStderr" | "WriteStdout" => {
+                    SysBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Sys)
+                        .unwrap()
+                }
+
+                "ConcatStrings" | "DecodeCSV" | "EncodeCSV" | "SplitString" => {
+                    TextBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Text)
+                        .unwrap()
+                }
 
                 _ => return Err(serde::de::Error::custom("unknown Protoflow block type")),
             }),
@@ -79,7 +111,12 @@ impl Named for BlockConfig {
         match self {
             Core(config) => config.name(),
             Flow(config) => config.name(),
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash(config) => config.name(),
             Io(config) => config.name(),
             Math(config) => config.name(),
@@ -96,7 +133,12 @@ impl BlockConnections for BlockConfig {
         match self {
             Core(config) => config.output_connections(),
             Flow(config) => config.output_connections(),
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash(config) => config.output_connections(),
             Io(config) => config.output_connections(),
             Math(config) => config.output_connections(),
@@ -113,7 +155,12 @@ impl BlockInstantiation for BlockConfig {
         match self {
             Core(config) => config.instantiate(system),
             Flow(config) => config.instantiate(system),
-            #[cfg(feature = "hash")]
+            #[cfg(any(
+                feature = "hash-blake3",
+                feature = "hash-md5",
+                feature = "hash-sha1",
+                feature = "hash-sha2"
+            ))]
             Hash(config) => config.instantiate(system),
             Io(config) => config.instantiate(system),
             Math(config) => config.instantiate(system),
