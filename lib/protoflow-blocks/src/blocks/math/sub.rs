@@ -54,7 +54,7 @@ pub struct Sub<T: Subtractable = f64> {
     /// The input number stream.
     #[input]
     pub input: InputPort<T>,
-    /// The output stream of running totals.
+    /// The output port to send the result on.
     #[output]
     pub output: OutputPort<T>,
 }
