@@ -164,6 +164,32 @@ block-beta
 protoflow execute Buffer
 ```
 
+#### [`Concat`]
+
+Concatenates multiple input message streams into a single output stream.
+
+```mermaid
+block-beta
+    columns 7
+    space:1 Source1 space:5
+    space:3 Concat space:1 Sink space:1
+    space:1 Source2 space:5
+    Source1-- "input" -->Concat
+    Source2-- "input" -->Concat
+    Concat-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Concat block
+    class Source1 hidden
+    class Source2 hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Concat
+```
+
 #### [`ConcatStrings`]
 
 A block for concatenating all string messages it receives, with an optional delimiter string inserted between each message
@@ -647,6 +673,57 @@ block-beta
 
 ```bash
 protoflow execute ReadStdin < input.txt
+```
+
+#### [`Replicate`]
+
+Duplicates a single input message stream into multiple identical output streams.
+
+```mermaid
+block-beta
+    columns 7
+    space:5 Sink1 space:1
+    space:1 Source space:1 Replicate space:3
+    space:5 Sink2 space:1
+        
+    Source-- "input" -->Replicate
+    Replicate-- "output" -->Sink1
+    Replicate-- "output" -->Sink2
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Replicate block
+    class Source1 hidden
+    class Source2 hidden
+    class Sink1 hidden
+    class Sink2 hidden
+```
+
+```bash
+protoflow execute Replicate
+```
+
+#### [`Sort`]
+
+Sorts a single input message stream in ascending order.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Sort space:2 Sink
+    Source-- "input" -->Sort
+    Sort-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Sort block
+    class Source hidden
+    class Sink hidden
+    class Sink2 hidden
+```
+
+```bash
+protoflow execute Sort
 ```
 
 #### [`Split`]
