@@ -19,6 +19,7 @@ pub enum BlockTag {
     Random,
     // FlowBlocks
     Concat,
+    Distinct,
     Merge,
     Replicate,
     Sort,
@@ -94,6 +95,7 @@ impl BlockTag {
             Decode => "Decode",
             DecodeHex => "DecodeHex",
             DecodeJson => "DecodeJSON",
+            Distinct => "Distinct",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
@@ -138,6 +140,7 @@ impl FromStr for BlockTag {
             "Const" => Const,
             "Count" => Count,
             "Delay" => Delay,
+            "Distinct" => Distinct,
             "Drop" => Drop,
             "Random" => Random,
             #[cfg(any(
@@ -217,6 +220,7 @@ impl BlockInstantiation for BlockTag {
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
             DecodeHex => Box::new(super::DecodeHex::with_system(system)),
             DecodeJson => Box::new(super::DecodeJson::with_system(system)),
+            Distinct => Box::new(super::Distinct::<Any>::with_system(system)),
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),

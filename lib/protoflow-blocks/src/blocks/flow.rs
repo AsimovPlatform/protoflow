@@ -12,6 +12,7 @@ pub mod flow {
 
     pub trait FlowBlocks {
         fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T>;
+        fn distinct<T: Message + Into<T> + PartialEq + 'static>(&mut self) -> Distinct<T>;
         fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T>;
         fn replicate<T: Message + Into<T> + 'static>(&mut self) -> Replicate<T>;
         fn sort<T: Message + Into<T> + PartialOrd + 'static>(&mut self) -> Sort<T>;
@@ -22,6 +23,7 @@ pub mod flow {
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum FlowBlockTag {
         Concat,
+        Distinct,
         Merge,
         Replicate,
         Sort,
@@ -36,6 +38,10 @@ pub mod flow {
             input_2: InputPortName,
             output: OutputPortName,
         },
+        Distinct {
+            input: InputPortName,
+            output: OutputPortName,
+        },
         Merge {
             input_1: InputPortName,
             input_2: InputPortName,
@@ -48,7 +54,6 @@ pub mod flow {
         },
         Sort {
             input: InputPortName,
-            stop: InputPortName,
             output: OutputPortName,
         },
         Split {
@@ -63,6 +68,7 @@ pub mod flow {
             use FlowBlockConfig::*;
             Cow::Borrowed(match self {
                 Concat { .. } => "Concat",
+                Distinct { .. } => "Distinct",
                 Merge { .. } => "Merge",
                 Replicate { .. } => "Replicate",
                 Sort { .. } => "Sort",
@@ -76,6 +82,9 @@ pub mod flow {
             use FlowBlockConfig::*;
             match self {
                 Concat { output, .. } => {
+                    vec![("output", Some(output.clone()))]
+                }
+                Distinct { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
                 Merge { output, .. } => {
@@ -114,6 +123,9 @@ pub mod flow {
                     system.input_any(),
                     system.output(),
                 )),
+                Distinct { .. } => {
+                    Box::new(super::Distinct::new(system.input_any(), system.output()))
+                }
                 Merge { .. } => Box::new(super::Merge::new(
                     system.input_any(),
                     system.input_any(),
@@ -139,6 +151,9 @@ pub mod flow {
 
     mod concat;
     pub use concat::*;
+
+    mod distinct;
+    pub use distinct::*;
 
     mod merge;
     pub use merge::*;
