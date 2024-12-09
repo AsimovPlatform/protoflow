@@ -48,7 +48,6 @@ pub mod flow {
         },
         Sort {
             input: InputPortName,
-            stop: InputPortName,
             output: OutputPortName,
         },
         Split {
