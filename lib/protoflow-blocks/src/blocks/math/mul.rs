@@ -3,9 +3,12 @@
 extern crate std;
 
 use crate::{StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, OutputPort};
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
+
+pub trait Multipliable: Message + core::ops::Mul<Output = Self> + num_traits::One {}
+impl<T: Message + core::ops::Mul<Output = T> + num_traits::One> Multipliable for T {}
 
 /// A block that multiplies numbers.
 ///
@@ -47,17 +50,17 @@ use simple_mermaid::mermaid;
 /// ```
 ///
 #[derive(Block, Clone)]
-pub struct Mul {
+pub struct Mul<T: Multipliable = f64> {
     /// The input number stream.
     #[input]
-    pub input: InputPort<f64>,
+    pub input: InputPort<T>,
     /// The output stream of running totals.
     #[output]
-    pub output: OutputPort<f64>,
+    pub output: OutputPort<T>,
 }
 
-impl Mul {
-    pub fn new(input: InputPort<f64>, output: OutputPort<f64>) -> Self {
+impl<T: Multipliable + 'static> Mul<T> {
+    pub fn new(input: InputPort<T>, output: OutputPort<T>) -> Self {
         Self { input, output }
     }
 
@@ -67,26 +70,21 @@ impl Mul {
     }
 }
 
-impl Block for Mul {
+impl<T: Multipliable> Block for Mul<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
-        let mut result = None;
+        let mut product = T::one();
         while let Some(input) = self.input.recv()? {
-            let res = match result {
-                None => input,
-                Some(current_result) => current_result * input,
-            };
-
-            result = Some(res);
+            product = product * input;
         }
 
-        self.output.send(&result.unwrap_or(1.0))?;
+        self.output.send(&product)?;
 
         Ok(())
     }
 }
 
 #[cfg(feature = "std")]
-impl StdioSystem for Mul {
+impl<T: Multipliable> StdioSystem for Mul<T> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{IoBlocks, MathBlocks, SysBlocks, SystemBuilding};
 
@@ -109,14 +107,45 @@ impl StdioSystem for Mul {
 #[cfg(test)]
 mod tests {
 
+    use protoflow_core::{runtimes::StdRuntime, transports::MpscTransport};
+
     use super::Mul;
-    use crate::{System, SystemBuilding};
+    use crate::{System, SystemBuilding, SystemExecution};
 
     #[test]
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(Mul::new(s.input(), s.output()));
+            let _ = s.block(Mul::<f32>::new(s.input(), s.output()));
+            let _ = s.block(Mul::<f64>::new(s.input(), s.output()));
+
+            let _ = s.block(Mul::<u32>::new(s.input(), s.output()));
+            let _ = s.block(Mul::<u64>::new(s.input(), s.output()));
+
+            let _ = s.block(Mul::<i32>::new(s.input(), s.output()));
+            let _ = s.block(Mul::<i64>::new(s.input(), s.output()));
         });
+    }
+
+    #[test]
+    fn run_block() {
+        let mut s = System::new(&StdRuntime::new(MpscTransport::new()).unwrap());
+
+        let mut values = s.output();
+        let mul = s.block(Mul::<u64>::with_system(&s));
+        let result = s.input();
+
+        assert!(s.connect(&values, &mul.input));
+        assert!(s.connect(&mul.output, &result));
+
+        let exec = s.execute().unwrap();
+
+        values.send(&3).unwrap();
+        values.send(&5).unwrap();
+        values.close().unwrap();
+
+        assert_eq!(Ok(Some(15)), result.recv());
+
+        exec.join().unwrap();
     }
 }

@@ -216,10 +216,10 @@ impl BlockInstantiation for BlockTag {
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
-            Add => Box::new(super::Add::with_system(system)),
-            Div => Box::new(super::Div::with_system(system)),
-            Mul => Box::new(super::Mul::with_system(system)),
-            Sub => Box::new(super::Sub::with_system(system)),
+            Add => Box::new(super::Add::<f64>::with_system(system)),
+            Div => Box::new(super::Div::<f64>::with_system(system)),
+            Mul => Box::new(super::Mul::<f64>::with_system(system)),
+            Sub => Box::new(super::Sub::<f64>::with_system(system)),
             #[cfg(feature = "std")]
             ReadDir => Box::new(super::ReadDir::with_system(system)),
             #[cfg(feature = "std")]
