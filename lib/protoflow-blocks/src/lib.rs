@@ -60,6 +60,12 @@ pub fn build_stdio_system(
         "Drop" => Drop::<String>::build_system(config)?,
         "Random" => Random::<u64>::build_system(config)?,
         // FlowBlocks
+        "Concat" => Concat::<String>::build_system(config)?,
+        "Distinct" => Distinct::<String>::build_system(config)?,
+        "Merge" => Merge::<String>::build_system(config)?,
+        "Replicate" => Replicate::<String>::build_system(config)?,
+        "Sort" => Sort::<String>::build_system(config)?,
+        "Split" => Split::<String>::build_system(config)?,
         // HashBlocks
         #[cfg(any(
             feature = "hash-blake3",
