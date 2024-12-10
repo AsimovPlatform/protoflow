@@ -18,6 +18,7 @@ pub enum BlockTag {
     Drop,
     Random,
     // FlowBlocks
+    Batch,
     Concat,
     Distinct,
     Merge,
@@ -78,6 +79,7 @@ impl BlockTag {
     pub fn as_str(&self) -> &'static str {
         use BlockTag::*;
         match self {
+            Batch => "Batch",
             Buffer => "Buffer",
             Concat => "Concat",
             Const => "Const",
@@ -135,6 +137,7 @@ impl FromStr for BlockTag {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         use BlockTag::*;
         Ok(match input {
+            "Batch" => Batch,
             "Buffer" => Buffer,
             "Concat" => Concat,
             "Const" => Const,
@@ -203,6 +206,7 @@ impl BlockInstantiation for BlockTag {
     fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
         use BlockTag::*;
         match self {
+            Batch => Box::new(super::Batch::<Any>::with_system(system, None)),
             Buffer => Box::new(super::Buffer::<Any>::with_system(system)),
             Concat => Box::new(super::Concat::<Any>::with_system(system)),
             Const => Box::new(super::Const::<String>::with_system(system, String::new())),

@@ -11,6 +11,7 @@ pub mod flow {
     use protoflow_core::{Block, ComparableAny, Message};
 
     pub trait FlowBlocks {
+        fn batch<T: Message + Into<T> + 'static>(&mut self, batch_size: usize) -> Batch<T>;
         fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T>;
         fn distinct<T: Message + Into<T> + PartialEq + 'static>(&mut self) -> Distinct<T>;
         fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T>;
@@ -22,6 +23,7 @@ pub mod flow {
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum FlowBlockTag {
+        Batch,
         Concat,
         Distinct,
         Merge,
@@ -33,6 +35,10 @@ pub mod flow {
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Debug)]
     pub enum FlowBlockConfig {
+        Batch {
+            input: InputPortName,
+            output: OutputPortName,
+        },
         Concat {
             input_1: InputPortName,
             input_2: InputPortName,
@@ -67,6 +73,7 @@ pub mod flow {
         fn name(&self) -> Cow<str> {
             use FlowBlockConfig::*;
             Cow::Borrowed(match self {
+                Batch { .. } => "Batch",
                 Concat { .. } => "Concat",
                 Distinct { .. } => "Distinct",
                 Merge { .. } => "Merge",
@@ -81,6 +88,9 @@ pub mod flow {
         fn output_connections(&self) -> Vec<(&'static str, Option<OutputPortName>)> {
             use FlowBlockConfig::*;
             match self {
+                Batch { output, .. } => {
+                    vec![("output", Some(output.clone()))]
+                }
                 Concat { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
@@ -118,6 +128,7 @@ pub mod flow {
             use super::SystemBuilding;
             use FlowBlockConfig::*;
             match self {
+                Batch { .. } => Box::new(super::Batch::new(system.input_any(), system.output())),
                 Concat { .. } => Box::new(super::Concat::new(
                     system.input_any(),
                     system.input_any(),
@@ -148,6 +159,9 @@ pub mod flow {
             }
         }
     }
+
+    mod batch;
+    pub use batch::*;
 
     mod concat;
     pub use concat::*;
