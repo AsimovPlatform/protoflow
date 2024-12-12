@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
+    prelude::{fmt, Arc, Box, Bytes, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
     DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
@@ -131,6 +131,11 @@ impl AllBlocks for System {}
 impl CoreBlocks for System {
     fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
         self.0.block(Buffer::<T>::with_system(self))
+    }
+
+    fn const_bytes<T: Into<Bytes>>(&mut self, value: T) -> Const<Bytes> {
+        self.0
+            .block(Const::<Bytes>::with_system(self, value.into()))
     }
 
     fn const_string(&mut self, value: impl ToString) -> Const<String> {
@@ -306,5 +311,21 @@ impl TextBlocks for System {
     fn split_string(&mut self, delimiter: &str) -> SplitString {
         self.0
             .block(SplitString::with_system(self, Some(delimiter.to_string())))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn const_bytes_accepts_various_types() {
+        let _ = System::build(|s| {
+            let _ = s.const_bytes("Hello world");
+            let _ = s.const_bytes("Hello world".to_string());
+            let _ = s.const_bytes(&b"Hello world"[..]);
+            let _ = s.const_bytes(b"Hello world".to_vec());
+            let _ = s.const_bytes(Bytes::from("Hello world"));
+        });
     }
 }
