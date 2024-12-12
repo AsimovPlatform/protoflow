@@ -9,6 +9,7 @@ use protoflow_derive::Block;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use simple_mermaid::mermaid;
+
 /// A block for generating and sending a random number.
 ///
 /// # Block Diagram
