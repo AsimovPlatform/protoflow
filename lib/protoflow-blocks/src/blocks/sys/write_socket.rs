@@ -14,6 +14,7 @@ use std::{
     net::TcpStream,
     sync::{Arc, Mutex, PoisonError},
 };
+#[cfg(feature = "tracing")]
 use tracing::error;
 
 /// A block that writes a proto object to a TCP socket.
@@ -98,6 +99,7 @@ impl Block for WriteSocket {
 
             if stream_guard.is_none() {
                 *stream_guard = Some(TcpStream::connect(&self.config.connection).map_err(|e| {
+                    #[cfg(feature = "tracing")]
                     error!("Failed to connect to {}: {}", &self.config.connection, e);
                     BlockError::Other(format!(
                         "Failed to connect to {}: {}",
@@ -107,6 +109,7 @@ impl Block for WriteSocket {
             }
 
             let stream = stream_guard.as_mut().ok_or_else(|| {
+                #[cfg(feature = "tracing")]
                 error!("Stream is not connected");
                 BlockError::Other("Stream is not connected".into())
             })?;
@@ -155,6 +158,7 @@ pub mod write_socket_tests {
             });
             s.connect(&stdin.output, &write_socket.input);
         }) {
+            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }
