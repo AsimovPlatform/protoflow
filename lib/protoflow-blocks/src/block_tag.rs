@@ -48,13 +48,13 @@ pub enum BlockTag {
     ReadEnv,
     #[cfg(feature = "std")]
     ReadFile,
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", feature = "serde"))]
     ReadSocket,
     #[cfg(feature = "std")]
     ReadStdin,
     #[cfg(feature = "std")]
     WriteFile,
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", feature = "serde"))]
     WriteSocket,
     #[cfg(feature = "std")]
     WriteStderr,
@@ -108,7 +108,7 @@ impl BlockTag {
             ReadEnv => "ReadEnv",
             #[cfg(feature = "std")]
             ReadFile => "ReadFile",
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             ReadSocket => "ReadSocket",
             #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
@@ -117,7 +117,7 @@ impl BlockTag {
             Split => "Split",
             #[cfg(feature = "std")]
             WriteFile => "WriteFile",
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             WriteSocket => "WriteSocket",
             #[cfg(feature = "std")]
             WriteStderr => "WriteStderr",
@@ -166,7 +166,7 @@ impl FromStr for BlockTag {
             "ReadEnv" => ReadEnv,
             #[cfg(feature = "std")]
             "ReadFile" => ReadFile,
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             "ReadSocket" => ReadSocket,
             #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
@@ -175,7 +175,7 @@ impl FromStr for BlockTag {
             "Split" => Split,
             #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             "WriteSocket" => WriteSocket,
             #[cfg(feature = "std")]
             "WriteStderr" => WriteStderr,
@@ -235,7 +235,7 @@ impl BlockInstantiation for BlockTag {
             ReadEnv => Box::new(super::ReadEnv::<String>::with_system(system)),
             #[cfg(feature = "std")]
             ReadFile => Box::new(super::ReadFile::with_system(system)),
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             ReadSocket => Box::new(super::ReadSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
@@ -244,7 +244,7 @@ impl BlockInstantiation for BlockTag {
             Split => Box::new(super::Split::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             WriteSocket => Box::new(super::WriteSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),

@@ -8,9 +8,11 @@ use crate::{
     AllBlocks, Batch, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
     DecodeHex, DecodeJson, Delay, Distinct, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson,
     FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Merge, Random, ReadDir, ReadEnv, ReadFile,
-    ReadSocket, ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile,
-    WriteSocket, WriteStderr, WriteStdout,
+    ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile, WriteStderr,
+    WriteStdout,
 };
+#[cfg(all(feature = "std", feature = "serde"))]
+use crate::{ReadSocket, WriteSocket};
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
     PortResult, Process, SystemBuilding, SystemExecution,
@@ -287,6 +289,7 @@ impl SysBlocks for System {
         self.0.block(ReadFile::with_system(self))
     }
 
+    #[cfg(feature = "serde")]
     fn read_socket(&mut self) -> ReadSocket {
         self.0.block(ReadSocket::with_system(self, None))
     }
@@ -299,6 +302,7 @@ impl SysBlocks for System {
         self.0.block(WriteFile::with_system(self, None))
     }
 
+    #[cfg(feature = "serde")]
     fn write_socket(&mut self) -> WriteSocket {
         self.0.block(WriteSocket::with_system(self, None))
     }
