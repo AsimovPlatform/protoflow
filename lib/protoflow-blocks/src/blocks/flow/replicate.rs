@@ -76,6 +76,8 @@ impl<T: Message> Block for Replicate<T> {
         runtime.wait_for(&self.output_2)?;
 
         while let Some(message) = self.input.recv()? {
+            #[cfg(feature = "tracing")]
+            tracing::info!("Sending message");
             self.output_1.send(&message)?;
             self.output_2.send(&message)?;
         }

@@ -82,6 +82,8 @@ impl<T: Message + PartialOrd> Block for Sort<T> {
             self.messages.push(message);
         }
 
+        #[cfg(feature = "tracing")]
+        tracing::info!("Sorting messages");
         self.messages.sort_by(|x, y| {
             if let Some(ordering) = x.partial_cmp(y) {
                 ordering
@@ -92,11 +94,9 @@ impl<T: Message + PartialOrd> Block for Sort<T> {
             }
         });
 
-        for x in self.messages.iter() {
-            self.output.send(x)?;
+        for message in self.messages.drain(..) {
+            self.output.send(&message)?;
         }
-
-        self.messages.clear();
 
         Ok(())
     }

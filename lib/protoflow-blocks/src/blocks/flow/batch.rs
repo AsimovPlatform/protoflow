@@ -88,9 +88,13 @@ impl<T: Message + 'static> Batch<T> {
 impl<T: Message> Block for Batch<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
+            #[cfg(feature = "tracing")]
+            tracing::info!("Buffered one message");
             self.messages.push(message);
 
             if self.batch_size == self.messages().len() {
+                #[cfg(feature = "tracing")]
+                tracing::info!("Sending messages");
                 for message in self.messages.drain(..) {
                     self.output.send(&message)?
                 }
@@ -98,6 +102,7 @@ impl<T: Message> Block for Batch<T> {
         }
 
         //send remaining messages
+        tracing::info!("Sending remaining messages");
         for message in self.messages.drain(..) {
             self.output.send(&message)?
         }

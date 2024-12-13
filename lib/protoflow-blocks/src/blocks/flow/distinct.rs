@@ -75,16 +75,18 @@ impl<T: Message + 'static> Distinct<T> {
 impl<T: Message + PartialEq> Block for Distinct<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
+            #[cfg(feature = "tracing")]
+            tracing::info!("Buffered one message");
             if !self.messages.contains(&message) {
                 self.messages.push(message);
             }
         }
 
-        for message in self.messages.iter() {
-            self.output.send(message)?;
+        #[cfg(feature = "tracing")]
+        tracing::info!("Sending messages");
+        for message in self.messages.drain(..) {
+            self.output.send(&message)?;
         }
-
-        self.messages.clear();
 
         Ok(())
     }
