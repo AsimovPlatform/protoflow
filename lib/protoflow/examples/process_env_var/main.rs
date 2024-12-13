@@ -11,11 +11,8 @@ pub fn main() -> BlockResult {
         let split_env = s.split_string(":");
         s.connect(&read_env.output, &split_env.input);
 
-        let transform_paths = s.concat_strings_by("\n");
-        s.connect(&split_env.output, &transform_paths.input);
-
         let line_encoder = s.encode_lines();
-        s.connect(&transform_paths.output, &line_encoder.input);
+        s.connect(&split_env.output, &line_encoder.input);
 
         let write_stdout = s.write_stdout();
         s.connect(&line_encoder.output, &write_stdout.input);
