@@ -113,8 +113,8 @@ The built-in blocks provided by Protoflow are listed below:
 | Block             | Description                                                                                                                    |
 |:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
 | [`Buffer`]        | Stores all messages it receives.                                                                                               |
-| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
 | [`Concat`]        | Concatenates multiple input message streams into a single output stream.                                                       |
+| [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
 | [`Const`]         | Sends a constant value.                                                                                                        |
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
 | [`Decode`]        | Decodes messages from a byte stream.                                                                                           |
