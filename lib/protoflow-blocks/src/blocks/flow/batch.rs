@@ -141,6 +141,7 @@ mod tests {
         use super::*;
         use crate::SysBlocks;
         use protoflow_core::SystemBuilding;
+        #[cfg(feature = "tracing")]
         use tracing::error;
 
         if let Err(e) = System::run(|s| {
@@ -151,6 +152,7 @@ mod tests {
             let stdout_1 = s.write_stdout();
             s.connect(&batch.output, &stdout_1.input);
         }) {
+            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }

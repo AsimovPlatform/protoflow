@@ -8,6 +8,7 @@ use protoflow_core::{
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
+#[cfg(feature = "tracing")]
 use tracing::error;
 
 /// Sorts a single input message stream in ascending order.
@@ -85,6 +86,7 @@ impl<T: Message + PartialOrd> Block for Sort<T> {
             if let Some(ordering) = x.partial_cmp(y) {
                 ordering
             } else {
+                #[cfg(feature = "tracing")]
                 error!("Incomparable values: {:?} and {:?}", x, y);
                 Ordering::Equal
             }
@@ -134,6 +136,7 @@ mod tests {
         use super::*;
         use crate::SysBlocks;
         use protoflow_core::SystemBuilding;
+        #[cfg(feature = "tracing")]
         use tracing::error;
 
         if let Err(e) = System::run(|s| {
@@ -144,6 +147,7 @@ mod tests {
             let stdout_1 = s.write_stdout();
             s.connect(&sort.output, &stdout_1.input);
         }) {
+            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }

@@ -88,6 +88,7 @@ impl<T: Message + Send + 'static> Block for Merge<T> {
         ) -> Result<(), BlockError> {
             while let Ok(Some(message)) = input.recv() {
                 if let Err(err) = output.send(&message) {
+                    #[cfg(feature = "tracing")]
                     tracing::error!("Error sending message: {}", err);
                     return Err(BlockError::Other(format!("Error sending message: {}", err)));
                 }
@@ -108,11 +109,13 @@ impl<T: Message + Send + 'static> Block for Merge<T> {
         };
 
         if let Err(_) = input1_thread.join() {
+            #[cfg(feature = "tracing")]
             tracing::error!("Thread for input1 panicked");
             return Err(BlockError::Other("Thread for input1 panicked".into()));
         }
 
         if let Err(_) = input2_thread.join() {
+            #[cfg(feature = "tracing")]
             tracing::error!("Thread for input2 panicked");
             return Err(BlockError::Other("Thread for input2 panicked".into()));
         }
@@ -148,6 +151,7 @@ impl<T: Message> StdioSystem for Merge<T> {
 mod merge_tests {
     use crate::{FlowBlocks, SysBlocks, System};
     use protoflow_core::{prelude::String, SystemBuilding};
+    #[cfg(feature = "tracing")]
     use tracing::error;
 
     use super::Merge;
@@ -178,6 +182,7 @@ mod merge_tests {
             let stdout_1 = s.write_stdout();
             s.connect(&merge.output, &stdout_1.input);
         }) {
+            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }
