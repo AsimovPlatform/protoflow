@@ -112,6 +112,7 @@ The built-in blocks provided by Protoflow are listed below:
 
 | Block             | Description                                                                                                                    |
 |:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
+| [`Batch`]         | Batches input strem into chunks of a specified size.                                                                           |
 | [`Buffer`]        | Stores all messages it receives.                                                                                               |
 | [`Concat`]        | Concatenates multiple input message streams into a single output stream.                                                       |
 | [`Concat`]        | Concatenates multiple input message streams into a single output stream.                                                       |
@@ -145,6 +146,28 @@ The built-in blocks provided by Protoflow are listed below:
 | [`WriteSocket`]   | Writes bytes to a TCP socket                                                                                                   |
 | [`WriteStderr`]   | Writes bytes to standard error (aka stderr).                                                                                   |
 | [`WriteStdout`]   | Writes bytes to standard output (aka stdout).                                                                                  |
+
+#### [`Batch`]
+
+A block that simply stores all messages it receives.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Batch space:2 Sink
+    Source-- "input" -->Batch
+    Batch-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Batch block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Batch
+```
 
 #### [`Buffer`]
 
@@ -952,6 +975,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`echo_lines`]: lib/protoflow/examples/echo_lines
 [`examples`]: lib/protoflow/examples
 
+[`Batch`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Batch.html
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
 [`Concat`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Concat.html
 [`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html

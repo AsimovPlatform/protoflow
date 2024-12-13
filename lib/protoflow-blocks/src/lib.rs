@@ -53,6 +53,7 @@ pub fn build_stdio_system(
     use prelude::String;
     Ok(match system_name.as_ref() {
         // CoreBlocks
+        "Batch" => Batch::<String>::build_system(config)?,
         "Buffer" => Buffer::<String>::build_system(config)?,
         "Const" => Const::<String>::build_system(config)?,
         "Count" => Count::<String>::build_system(config)?,

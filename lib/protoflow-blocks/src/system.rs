@@ -5,7 +5,7 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
+    AllBlocks, Batch, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
     DecodeHex, DecodeJson, Delay, Distinct, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson,
     FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Merge, Random, ReadDir, ReadEnv, ReadFile,
     ReadSocket, ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile,
@@ -165,6 +165,10 @@ impl CoreBlocks for System {
 }
 
 impl FlowBlocks for System {
+    fn batch<T: Message + Into<T> + 'static>(&mut self, batch_size: usize) -> Batch<T> {
+        self.0
+            .block(Batch::<T>::with_system(self, Some(batch_size)))
+    }
     fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T> {
         self.0.block(Concat::<T>::with_system(self))
     }
