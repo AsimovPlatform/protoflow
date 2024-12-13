@@ -102,6 +102,7 @@ impl<T: Message> Block for Batch<T> {
         }
 
         //send remaining messages
+        #[cfg(feature = "tracing")]
         tracing::info!("Sending remaining messages");
         for message in self.messages.drain(..) {
             self.output.send(&message)?
