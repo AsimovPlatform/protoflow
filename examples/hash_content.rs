@@ -13,9 +13,11 @@ fn main() -> BlockResult {
         let content = s.const_string("Hello, World!");
         let line_encoder = s.encode_lines();
         let hash_content = s.hash_sha2();
+        let encode_hex = s.encode_hex();
         let stdout = s.write_stdout();
         s.connect(&content.output, &line_encoder.input);
         s.connect(&line_encoder.output, &hash_content.input);
-        s.connect(&hash_content.hash, &stdout.input);
+        s.connect(&hash_content.hash, &encode_hex.input);
+        s.connect(&encode_hex.output, &stdout.input);
     })
 }
