@@ -114,6 +114,7 @@ The built-in blocks provided by Protoflow are listed below:
 |:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
 | [`Buffer`]        | Stores all messages it receives.                                                                                               |
 | [`Concat`]        | Concatenates multiple input message streams into a single output stream.                                                       |
+| [`Concat`]        | Concatenates multiple input message streams into a single output stream.                                                       |
 | [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
 | [`Const`]         | Sends a constant value.                                                                                                        |
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
@@ -122,13 +123,14 @@ The built-in blocks provided by Protoflow are listed below:
 | [`DecodeHex`]     | Decodes hexadecimal stream to byte stream.                                                                                     |
 | [`DecodeJSON`]    | Decodes JSON messages from a byte stream.                                                                                      |
 | [`Delay`]         | Passes messages through while delaying them by a fixed or random duration.                                                     |
+| [`Distinct`]      | Removes duplicate values from the input stream.                                                                                |
 | [`Drop`]          | Discards all messages it receives.                                                                                             |
 | [`Encode`]        | Encodes messages to a byte stream.                                                                                             |
 | [`EncodeCSV`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
 | [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
 | [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
 | [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
-| [`Merge`]         | Combines multiple input message streams into a single output stream by interleaving messages as they arrive.                   |
+| [`Merge`]         | Merges multiple input message streams into a single output stream by interleaving messages as they arrive.                   |
 | [`Random`]        | Generates and sends a random value.                                                                                            |
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
 | [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
@@ -279,6 +281,28 @@ block-beta
 
 ```bash
 protoflow execute Decode encoding=text
+```
+
+#### [`Distinct`]
+
+Removes duplicate values from the input stream.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Distinct space:2 Sink
+    Source-- "input" -->Distinct
+    Distinct-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Distinct block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute Distinct
 ```
 
 #### [`DecodeCSV`]
@@ -938,6 +962,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`DecodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeHex.html
 [`DecodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.DecodeJson.html
 [`Delay`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Delay.html
+[`Distinct`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Distinct.html
 [`Drop`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Drop.html
 [`Encode`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Encode.html
 [`EncodeCSV`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeCsv.html

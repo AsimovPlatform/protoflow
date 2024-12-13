@@ -6,10 +6,10 @@ use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
-    DecodeHex, DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks,
-    HashBlocks, IoBlocks, MathBlocks, Merge, Random, ReadDir, ReadEnv, ReadFile, ReadSocket,
-    ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile, WriteSocket,
-    WriteStderr, WriteStdout,
+    DecodeHex, DecodeJson, Delay, Distinct, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson,
+    FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Merge, Random, ReadDir, ReadEnv, ReadFile,
+    ReadSocket, ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile,
+    WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -167,6 +167,10 @@ impl CoreBlocks for System {
 impl FlowBlocks for System {
     fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T> {
         self.0.block(Concat::<T>::with_system(self))
+    }
+
+    fn distinct<T: Message + Into<T> + PartialEq + 'static>(&mut self) -> Distinct<T> {
+        self.0.block(Distinct::<T>::with_system(self))
     }
 
     fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T> {

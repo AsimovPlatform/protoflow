@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Distinct.input as Distinct.input port
+    participant Distinct as Distinct block
+    participant Distinct.output as Distinct.output port
+    participant BlockB as Another block
+
+    BlockA-->>Distinct: Connect
+    Distinct-->>BlockB: Connect
+
+    loop Distinct process
+        BlockA->>Distinct: Message
+        Distinct->>Distinct: Store distinct messages
+    end
+
+    Distinct->>BlockB: Message
+    BlockA-->>Distinct: Disconnect
+    Distinct-->>Distinct.input: Close
+    Distinct-->>Distinct.output: Close
+    Distinct-->>BlockB: Disconnect
