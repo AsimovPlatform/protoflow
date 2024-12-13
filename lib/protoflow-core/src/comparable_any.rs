@@ -12,13 +12,13 @@ pub struct ComparableAny(pub Any);
 
 impl PartialOrd for ComparableAny {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.0.type_url.cmp(&other.0.type_url))
+        Some(self.0.value.cmp(&other.0.value))
     }
 }
 
 impl PartialEq for ComparableAny {
     fn eq(&self, other: &Self) -> bool {
-        self.0.type_url == other.0.type_url
+        self.0.value == other.0.value
     }
 }
 
