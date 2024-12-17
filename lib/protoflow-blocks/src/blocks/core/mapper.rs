@@ -81,10 +81,7 @@ mod tests {
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(Mapper::<u32, u64>::with_params(
-                system.input(),
-                system.output(),
-            ));
+            let _ = s.block(Mapper::<u32, u64>::with_params(s.input(), s.output()));
         });
     }
 }
