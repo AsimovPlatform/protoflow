@@ -37,6 +37,15 @@ pub mod core {
         fn random<T: Message + 'static>(&mut self) -> Random<T>;
 
         fn random_seeded<T: Message + 'static>(&mut self, seed: Option<u64>) -> Random<T>;
+
+        fn random_int(&mut self) -> RandomInt;
+
+        fn random_int_with_params(
+            &mut self,
+            seed: Option<u64>,
+            min: Option<i64>,
+            max: Option<i64>,
+        ) -> RandomInt;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -48,6 +57,7 @@ pub mod core {
         Delay,
         Drop,
         Random,
+        RandomInt,
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -82,6 +92,12 @@ pub mod core {
             output: OutputPortName,
             seed: Option<u64>,
         },
+        RandomInt {
+            output: OutputPortName,
+            seed: Option<u64>,
+            min: Option<i64>,
+            max: Option<i64>,
+        },
     }
 
     impl Named for CoreBlockConfig {
@@ -94,6 +110,7 @@ pub mod core {
                 Delay { .. } => "Delay",
                 Drop { .. } => "Drop",
                 Random { .. } => "Random",
+                RandomInt { .. } => "RandomInt",
             })
         }
     }
@@ -110,6 +127,7 @@ pub mod core {
                 Delay { output, .. } => vec![("output", Some(output.clone()))],
                 Drop { .. } => vec![],
                 Random { output, .. } => vec![("output", Some(output.clone()))],
+                RandomInt { output, .. } => vec![("output", Some(output.clone()))],
             }
         }
     }
@@ -139,6 +157,9 @@ pub mod core {
                     Box::new(super::Random::with_params(system.output::<u64>(), *seed))
                     // TODO: Random::with_system(system, *seed))
                 }
+                RandomInt { seed, min, max, .. } => {
+                    Box::new(super::RandomInt::with_system(system, *seed, *min, *max))
+                }
             }
         }
     }
@@ -160,6 +181,9 @@ pub mod core {
 
     mod random;
     pub use random::*;
+
+    mod random_int;
+    pub use random_int::*;
 }
 
 pub use core::*;
