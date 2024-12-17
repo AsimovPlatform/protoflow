@@ -14,6 +14,16 @@ pub mod core {
     pub trait CoreBlocks {
         fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T>;
 
+        fn clock(&mut self, delay: DelayType) -> Clock;
+
+        fn clock_fixed(&mut self, delay: Duration) -> Clock {
+            self.clock(DelayType::Fixed(delay))
+        }
+
+        fn clock_random(&mut self, delay: Range<Duration>) -> Clock {
+            self.clock(DelayType::Random(delay))
+        }
+
         fn const_string(&mut self, value: impl ToString) -> Const<String>;
 
         fn count<T: Message + 'static>(&mut self) -> Count<T>;
@@ -41,6 +51,7 @@ pub mod core {
     #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
     pub enum CoreBlockTag {
         Buffer,
+        Clock,
         Const,
         Count,
         Delay,
@@ -53,6 +64,11 @@ pub mod core {
     pub enum CoreBlockConfig {
         Buffer {
             input: InputPortName,
+        },
+
+        Clock {
+            output: OutputPortName,
+            delay: DelayType,
         },
 
         Const {
@@ -87,6 +103,7 @@ pub mod core {
             use CoreBlockConfig::*;
             Cow::Borrowed(match self {
                 Buffer { .. } => "Buffer",
+                Clock { .. } => "Clock",
                 Const { .. } => "Const",
                 Count { .. } => "Count",
                 Delay { .. } => "Delay",
@@ -101,6 +118,7 @@ pub mod core {
             use CoreBlockConfig::*;
             match self {
                 Buffer { .. } => vec![],
+                Clock { output, .. } => vec![("output", Some(output.clone()))],
                 Const { output, .. } => vec![("output", Some(output.clone()))],
                 Count { output, count, .. } => {
                     vec![("output", output.clone()), ("count", Some(count.clone()))]
@@ -118,6 +136,7 @@ pub mod core {
             use CoreBlockConfig::*;
             match self {
                 Buffer { .. } => Box::new(super::Buffer::new(system.input_any())), // TODO: Buffer::with_system(system)
+                Clock { delay, .. } => Box::new(super::Clock::with_system(system, delay.clone())),
                 Const { value, .. } => Box::new(super::Const::with_system(system, value.clone())),
                 Count { .. } => Box::new(super::Count::new(
                     system.input_any(),
@@ -143,6 +162,9 @@ pub mod core {
 
     mod buffer;
     pub use buffer::*;
+
+    mod clock;
+    pub use clock::*;
 
     mod r#const;
     pub use r#const::*;

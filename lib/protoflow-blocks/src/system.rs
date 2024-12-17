@@ -5,10 +5,10 @@
 use crate::{
     prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
-    DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
-    SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Clock, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
+    DecodeHex, DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks,
+    HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin,
+    SplitString, SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -131,6 +131,10 @@ impl AllBlocks for System {}
 impl CoreBlocks for System {
     fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
         self.0.block(Buffer::<T>::with_system(self))
+    }
+
+    fn clock(&mut self, delay: DelayType) -> Clock {
+        self.0.block(Clock::with_system(self, delay))
     }
 
     fn const_string(&mut self, value: impl ToString) -> Const<String> {
