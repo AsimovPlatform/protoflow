@@ -5,7 +5,7 @@ use crate::{
     BlockInstantiation, System,
 };
 use enum_iterator::Sequence;
-use protoflow_core::{types::Any, Block};
+use protoflow_core::{types::Any, Block, ComparableAny};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Sequence)]
@@ -18,6 +18,13 @@ pub enum BlockTag {
     Drop,
     Random,
     // FlowBlocks
+    Batch,
+    Concat,
+    Distinct,
+    Merge,
+    Replicate,
+    Sort,
+    Split,
     // HashBlocks
     #[cfg(any(
         feature = "hash-blake3",
@@ -41,13 +48,13 @@ pub enum BlockTag {
     ReadEnv,
     #[cfg(feature = "std")]
     ReadFile,
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", feature = "serde"))]
     ReadSocket,
     #[cfg(feature = "std")]
     ReadStdin,
     #[cfg(feature = "std")]
     WriteFile,
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", feature = "serde"))]
     WriteSocket,
     #[cfg(feature = "std")]
     WriteStderr,
@@ -72,7 +79,9 @@ impl BlockTag {
     pub fn as_str(&self) -> &'static str {
         use BlockTag::*;
         match self {
+            Batch => "Batch",
             Buffer => "Buffer",
+            Concat => "Concat",
             Const => "Const",
             Count => "Count",
             Delay => "Delay",
@@ -88,22 +97,27 @@ impl BlockTag {
             Decode => "Decode",
             DecodeHex => "DecodeHex",
             DecodeJson => "DecodeJSON",
+            Distinct => "Distinct",
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
+            Merge => "Merge",
             #[cfg(feature = "std")]
             ReadDir => "ReadDir",
             #[cfg(feature = "std")]
             ReadEnv => "ReadEnv",
             #[cfg(feature = "std")]
             ReadFile => "ReadFile",
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             ReadSocket => "ReadSocket",
             #[cfg(feature = "std")]
             ReadStdin => "ReadStdin",
+            Replicate => "Replicate",
+            Sort => "Sort",
+            Split => "Split",
             #[cfg(feature = "std")]
             WriteFile => "WriteFile",
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             WriteSocket => "WriteSocket",
             #[cfg(feature = "std")]
             WriteStderr => "WriteStderr",
@@ -123,10 +137,13 @@ impl FromStr for BlockTag {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         use BlockTag::*;
         Ok(match input {
+            "Batch" => Batch,
             "Buffer" => Buffer,
+            "Concat" => Concat,
             "Const" => Const,
             "Count" => Count,
             "Delay" => Delay,
+            "Distinct" => Distinct,
             "Drop" => Drop,
             "Random" => Random,
             #[cfg(any(
@@ -142,19 +159,23 @@ impl FromStr for BlockTag {
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
+            "Merge" => Merge,
             #[cfg(feature = "std")]
             "ReadDir" => ReadDir,
             #[cfg(feature = "std")]
             "ReadEnv" => ReadEnv,
             #[cfg(feature = "std")]
             "ReadFile" => ReadFile,
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             "ReadSocket" => ReadSocket,
             #[cfg(feature = "std")]
             "ReadStdin" => ReadStdin,
+            "Replicate" => Replicate,
+            "Sort" => Sort,
+            "Split" => Split,
             #[cfg(feature = "std")]
             "WriteFile" => WriteFile,
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             "WriteSocket" => WriteSocket,
             #[cfg(feature = "std")]
             "WriteStderr" => WriteStderr,
@@ -185,7 +206,9 @@ impl BlockInstantiation for BlockTag {
     fn instantiate(&self, system: &mut System) -> Box<dyn Block> {
         use BlockTag::*;
         match self {
+            Batch => Box::new(super::Batch::<Any>::with_system(system, None)),
             Buffer => Box::new(super::Buffer::<Any>::with_system(system)),
+            Concat => Box::new(super::Concat::<Any>::with_system(system)),
             Const => Box::new(super::Const::<String>::with_system(system, String::new())),
             Count => Box::new(super::Count::<Any>::with_system(system)),
             Delay => Box::new(super::Delay::<Any>::with_system(system, None)),
@@ -201,22 +224,27 @@ impl BlockInstantiation for BlockTag {
             Decode => Box::new(super::Decode::<String>::with_system(system, None)),
             DecodeHex => Box::new(super::DecodeHex::with_system(system)),
             DecodeJson => Box::new(super::DecodeJson::with_system(system)),
+            Distinct => Box::new(super::Distinct::<Any>::with_system(system)),
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
+            Merge => Box::new(super::Merge::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             ReadDir => Box::new(super::ReadDir::with_system(system)),
             #[cfg(feature = "std")]
             ReadEnv => Box::new(super::ReadEnv::<String>::with_system(system)),
             #[cfg(feature = "std")]
             ReadFile => Box::new(super::ReadFile::with_system(system)),
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             ReadSocket => Box::new(super::ReadSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             ReadStdin => Box::new(super::ReadStdin::with_system(system, None)),
+            Replicate => Box::new(super::Replicate::<Any>::with_system(system)),
+            Sort => Box::new(super::Sort::<ComparableAny>::with_system(system)),
+            Split => Box::new(super::Split::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             WriteFile => Box::new(super::WriteFile::with_system(system, None)),
-            #[cfg(feature = "std")]
+            #[cfg(all(feature = "std", feature = "serde"))]
             WriteSocket => Box::new(super::WriteSocket::with_system(system, None)),
             #[cfg(feature = "std")]
             WriteStderr => Box::new(super::WriteStderr::with_system(system)),

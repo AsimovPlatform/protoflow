@@ -7,6 +7,7 @@ use crate::{
 use protoflow_core::{Block, BlockError, BlockResult, BlockRuntime, InputPort, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
+#[cfg(feature = "tracing")]
 use tracing;
 
 /// A block that decodes a hexadecimal byte stream to byte.
@@ -95,6 +96,7 @@ fn hex_value(byte: u8) -> Result<u8, BlockError> {
         b'A'..=b'F' => Ok(byte - b'A' + 10),
         _ => {
             let err = format!("Invalid hex character: '{}' (0x{:02X})", byte as char, byte);
+            #[cfg(feature = "tracing")]
             tracing::error!(target: "DecodeHex:hex_value", err);
             Err(BlockError::Other(err))
         }

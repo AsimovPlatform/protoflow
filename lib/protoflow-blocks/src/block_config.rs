@@ -57,6 +57,12 @@ impl<'de> serde::Deserialize<'de> for BlockConfig {
                         .unwrap()
                 }
 
+                "Batch" | "Concat" | "Distinct" | "Merge" | "Replicate" | "Sort" | "Split" => {
+                    FlowBlockConfig::deserialize(value.clone())
+                        .map(BlockConfig::Flow)
+                        .unwrap()
+                }
+
                 #[cfg(any(
                     feature = "hash-blake3",
                     feature = "hash-md5",

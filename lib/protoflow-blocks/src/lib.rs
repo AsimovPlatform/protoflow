@@ -53,6 +53,7 @@ pub fn build_stdio_system(
     use prelude::String;
     Ok(match system_name.as_ref() {
         // CoreBlocks
+        "Batch" => Batch::<String>::build_system(config)?,
         "Buffer" => Buffer::<String>::build_system(config)?,
         "Const" => Const::<String>::build_system(config)?,
         "Count" => Count::<String>::build_system(config)?,
@@ -60,6 +61,12 @@ pub fn build_stdio_system(
         "Drop" => Drop::<String>::build_system(config)?,
         "Random" => Random::<u64>::build_system(config)?,
         // FlowBlocks
+        "Concat" => Concat::<String>::build_system(config)?,
+        "Distinct" => Distinct::<String>::build_system(config)?,
+        "Merge" => Merge::<String>::build_system(config)?,
+        "Replicate" => Replicate::<String>::build_system(config)?,
+        "Sort" => Sort::<String>::build_system(config)?,
+        "Split" => Split::<String>::build_system(config)?,
         // HashBlocks
         #[cfg(any(
             feature = "hash-blake3",
@@ -80,9 +87,11 @@ pub fn build_stdio_system(
         "ReadDir" => ReadDir::build_system(config)?,
         "ReadEnv" => ReadEnv::<String>::build_system(config)?,
         "ReadFile" => ReadFile::build_system(config)?,
+        #[cfg(feature = "serde")]
         "ReadSocket" => ReadSocket::build_system(config)?,
         "ReadStdin" => ReadStdin::build_system(config)?,
         "WriteFile" => WriteFile::build_system(config)?,
+        #[cfg(feature = "serde")]
         "WriteSocket" => WriteSocket::build_system(config)?,
         "WriteStderr" => WriteStderr::build_system(config)?,
         "WriteStdout" => WriteStdout::build_system(config)?,

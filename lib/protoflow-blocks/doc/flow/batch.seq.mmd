@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block
+    participant Batch.input as Batch.input port
+    participant Batch as Batch block
+    participant Batch.output as Batch.output port
+    participant BlockB as Another block
+
+    BlockA-->>Batch: Connect
+    Batch-->>BlockB: Connect
+
+    loop Batch process
+        loop loop Until batch size is reached
+            BlockA->>Batch: Message
+            Batch->>Batch: Store Batch messages
+        end
+        loop Send buffered messages
+            Batch->>BlockB: Message
+        end
+    end
+
+    
+    BlockA-->>Batch: Disconnect
+    Batch-->>Batch.input: Close
+    Batch-->>Batch.output: Close
+    Batch-->>BlockB: Disconnect
