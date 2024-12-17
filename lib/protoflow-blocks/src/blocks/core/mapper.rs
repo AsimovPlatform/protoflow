@@ -1,0 +1,90 @@
+// This is free and unencumbered software released into the public domain.
+
+use core::time::Duration;
+
+use crate::{
+    prelude::{vec, String},
+    StdioConfig, StdioError, StdioSystem, System,
+};
+use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort};
+use protoflow_derive::Block;
+use simple_mermaid::mermaid;
+
+/// A block to map a message from one type to another.
+///
+/// # Block Diagram
+// #[doc = mermaid!("../../../doc/core/mapper.mmd")]
+///
+/// # Sequence Diagram
+// #[doc = mermaid!("../../../doc/core/mapper.seq.mmd" framed)]
+///
+/// # Examples
+///
+/// ## Using the block in a system
+///
+/// ```rust
+/// # use protoflow_blocks::*;
+/// # fn main() {
+/// System::build(|s| {
+///     // TODO
+/// });
+/// # }
+/// ```
+///
+#[derive(Block, Clone)]
+pub struct Mapper<Input: Message, Output: Message + From<Input>> {
+    /// The input message stream.
+    #[input]
+    pub input: InputPort<Input>,
+
+    /// The output message stream.
+    #[output]
+    pub output: OutputPort<Output>,
+}
+
+impl<Input: Message, Output: Message + From<Input>> Mapper<Input, Output> {
+    pub fn new(input: InputPort<Input>, output: OutputPort<Output>) -> Self {
+        Self::with_params(input, output)
+    }
+}
+
+impl<Input: Message, Output: Message + From<Input>> Mapper<Input, Output> {
+    pub fn with_params(input: InputPort<Input>, output: OutputPort<Output>) -> Self {
+        Self { input, output }
+    }
+}
+
+impl<Input: Message + 'static, Output: Message + From<Input> + 'static> Mapper<Input, Output> {
+    pub fn with_system(system: &System) -> Self {
+        use crate::SystemBuilding;
+        Self::with_params(system.input(), system.output())
+    }
+}
+
+impl<Input: Message, Output: Message + From<Input>> Block for Mapper<Input, Output> {
+    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+        while let Some(input) = self.input.recv()? {
+            let output: Output = From::from(input);
+            self.output.send(&output)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Mapper;
+    use crate::{System, SystemBuilding};
+
+    #[test]
+    fn instantiate_block() {
+        // Check that the block is constructible:
+        let _ = System::build(|s| {
+            let _ = s.block(Mapper::<u32, u64>::with_params(
+                system.input(),
+                system.output(),
+            ));
+        });
+    }
+}

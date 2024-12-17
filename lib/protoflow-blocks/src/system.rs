@@ -7,8 +7,8 @@ use crate::{
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
     DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
-    SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
+    IoBlocks, Mapper, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin,
+    SplitString, SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
 };
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
@@ -152,6 +152,12 @@ impl CoreBlocks for System {
 
     fn drop<T: Message + 'static>(&mut self) -> Drop<T> {
         self.0.block(Drop::<T>::with_system(self))
+    }
+
+    fn mapper<Input: Message + 'static, Output: Message + From<Input> + 'static>(
+        &mut self,
+    ) -> Mapper<Input, Output> {
+        self.0.block(Mapper::<Input, Output>::with_system(self))
     }
 
     fn random<T: Message + 'static>(&mut self) -> Random<T> {

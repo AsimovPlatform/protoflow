@@ -32,6 +32,10 @@ pub mod core {
 
         fn drop<T: Message + 'static>(&mut self) -> Drop<T>;
 
+        fn mapper<Input: Message + 'static, Output: Message + From<Input> + 'static>(
+            &mut self,
+        ) -> Mapper<Input, Output>;
+
         fn random<T: Message + 'static>(&mut self) -> Random<T>;
 
         fn random_seeded<T: Message + 'static>(&mut self, seed: Option<u64>) -> Random<T>;
@@ -45,6 +49,7 @@ pub mod core {
         Count,
         Delay,
         Drop,
+        Mapper,
         Random,
     }
 
@@ -76,6 +81,11 @@ pub mod core {
             input: InputPortName,
         },
 
+        Mapper {
+            input: InputPortName,
+            output: OutputPortName,
+        },
+
         Random {
             output: OutputPortName,
             seed: Option<u64>,
@@ -91,6 +101,7 @@ pub mod core {
                 Count { .. } => "Count",
                 Delay { .. } => "Delay",
                 Drop { .. } => "Drop",
+                Mapper { .. } => "Mapper",
                 Random { .. } => "Random",
             })
         }
@@ -107,6 +118,7 @@ pub mod core {
                 }
                 Delay { output, .. } => vec![("output", Some(output.clone()))],
                 Drop { .. } => vec![],
+                Mapper { output, .. } => vec![("output", Some(output.clone()))],
                 Random { output, .. } => vec![("output", Some(output.clone()))],
             }
         }
@@ -133,6 +145,10 @@ pub mod core {
                     // TODO: Delay::with_system(system, Some(delay.clone())))
                 }
                 Drop { .. } => Box::new(super::Drop::new(system.input_any())), // TODO: Drop::with_system(system)
+                Mapper { .. } => Box::new(super::Mapper::with_params(
+                    system.input_any(),
+                    system.output_any(),
+                )),
                 Random { seed, .. } => {
                     Box::new(super::Random::with_params(system.output::<u64>(), *seed))
                     // TODO: Random::with_system(system, *seed))
@@ -155,6 +171,9 @@ pub mod core {
 
     mod drop;
     pub use drop::*;
+
+    mod mapper;
+    pub use mapper::*;
 
     mod random;
     pub use random::*;
