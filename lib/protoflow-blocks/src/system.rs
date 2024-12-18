@@ -6,9 +6,9 @@ use crate::{
     prelude::{fmt, Arc, Box, Bytes, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
-    DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks,
-    TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, Gate,
+    HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString,
+    SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 #[cfg(all(feature = "std", feature = "serde"))]
 use crate::{ReadSocket, WriteSocket};
@@ -170,7 +170,11 @@ impl CoreBlocks for System {
     }
 }
 
-impl FlowBlocks for System {}
+impl FlowBlocks for System {
+    fn gate<T: Message + 'static>(&mut self) -> Gate<T> {
+        self.0.block(Gate::<T>::with_system(self))
+    }
+}
 
 #[cfg(not(any(
     feature = "hash-blake3",
