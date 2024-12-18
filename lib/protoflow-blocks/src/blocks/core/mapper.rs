@@ -1,11 +1,6 @@
 // This is free and unencumbered software released into the public domain.
 
-use core::time::Duration;
-
-use crate::{
-    prelude::{vec, String},
-    StdioConfig, StdioError, StdioSystem, System,
-};
+use crate::System;
 use protoflow_core::{Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -62,7 +57,7 @@ impl<Input: Message + 'static, Output: Message + From<Input> + 'static> Mapper<I
 }
 
 impl<Input: Message, Output: Message + From<Input>> Block for Mapper<Input, Output> {
-    fn execute(&mut self, runtime: &dyn BlockRuntime) -> BlockResult {
+    fn execute(&mut self, _: &dyn BlockRuntime) -> BlockResult {
         while let Some(input) = self.input.recv()? {
             let output: Output = From::from(input);
             self.output.send(&output)?;
