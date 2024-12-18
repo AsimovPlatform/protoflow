@@ -7,7 +7,11 @@ use protoflow_core::{
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
-/// A block that simply stores all messages it receives.
+/// A block that stores all messages it receives,
+/// and sends them downstream when triggered.
+///
+/// When triggered, the block will send all messages it received so far,
+/// _WITHOUT_ clearing the internal buffer.
 ///
 /// # Block Diagram
 #[doc = mermaid!("../../../doc/core/buffer.mmd")]
