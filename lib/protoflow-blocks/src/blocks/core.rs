@@ -2,7 +2,7 @@
 
 pub mod core {
     use super::{
-        prelude::{vec, Box, Cow, Named, Vec},
+        prelude::{vec, Box, Bytes, Cow, Named, Vec},
         BlockConnections, BlockInstantiation, InputPortName, OutputPortName, System,
     };
     use crate::{
@@ -23,6 +23,8 @@ pub mod core {
         fn clock_random(&mut self, delay: Range<Duration>) -> Clock {
             self.clock(DelayType::Random(delay))
         }
+
+        fn const_bytes<T: Into<Bytes>>(&mut self, value: T) -> Const<Bytes>;
 
         fn const_string(&mut self, value: impl ToString) -> Const<String>;
 
