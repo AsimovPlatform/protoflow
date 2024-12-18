@@ -1,11 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{
-    prelude::{vec, String},
-    types::DelayType,
-    StdioConfig, StdioError, StdioSystem, System,
-};
-use protoflow_core::{Block, BlockResult, BlockRuntime, Message, OutputPort};
+use crate::{prelude::String, types::DelayType, StdioConfig, StdioError, StdioSystem, System};
+use protoflow_core::{Block, BlockResult, BlockRuntime, OutputPort};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -109,8 +105,6 @@ impl Block for Clock {
 }
 
 fn parse_range(range_str: &String) -> Option<(f64, f64)> {
-    use crate::prelude::Duration;
-
     if let Some(range_str) = range_str.split_once("..") {
         match (range_str.0.parse::<f64>(), range_str.1.parse::<f64>()) {
             (Ok(range0), Ok(range1)) => Some((range0, range1)),
@@ -131,7 +125,7 @@ impl StdioSystem for Clock {
         } else if let Some(delay) = config.get_opt::<String>("random")? {
             if let Some(range) = parse_range(&delay) {
                 DelayType::Random(
-                    (Duration::from_secs_f64(range.0)..Duration::from_secs_f64(range.1)),
+                    Duration::from_secs_f64(range.0)..Duration::from_secs_f64(range.1),
                 )
             } else {
                 return Err(StdioError::InvalidParameter("random"));
