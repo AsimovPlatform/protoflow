@@ -1,7 +1,9 @@
 // This is free and unencumbered software released into the public domain.
 
-use crate::{prelude::VecDeque, StdioConfig, StdioError, StdioSystem, System};
-use protoflow_core::{types::Any, Block, BlockResult, BlockRuntime, InputPort, Message};
+use crate::{prelude::Vec, StdioConfig, StdioError, StdioSystem, System};
+use protoflow_core::{
+    types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -35,47 +37,68 @@ use simple_mermaid::mermaid;
 /// ```
 ///
 #[derive(Block, Clone)]
-pub struct Buffer<T: Message = Any> {
+pub struct Buffer<Input: Message = Any, Trigger: Message = ()> {
     /// The input message stream.
     #[input]
-    pub input: InputPort<T>,
+    pub input: InputPort<Input>,
+
+    /// The trigger port.
+    #[input]
+    pub trigger: InputPort<Trigger>,
+
+    /// The output message stream.
+    #[output]
+    pub output: OutputPort<Input>,
 
     /// The internal state storing the messages received.
     #[state]
-    messages: VecDeque<T>,
+    messages: Vec<Input>,
 }
 
-impl<T: Message> Buffer<T> {
-    pub fn new(input: InputPort<T>) -> Self {
+impl<Input: Message, Trigger: Message> Buffer<Input, Trigger> {
+    pub fn new(
+        input: InputPort<Input>,
+        trigger: InputPort<Trigger>,
+        output: OutputPort<Input>,
+    ) -> Self {
         Self {
             input,
-            messages: VecDeque::new(),
+            trigger,
+            output,
+            messages: Vec::new(),
         }
     }
 
-    pub fn messages(&self) -> &VecDeque<T> {
+    pub fn messages(&self) -> &Vec<Input> {
         &self.messages
     }
 }
 
-impl<T: Message + 'static> Buffer<T> {
+impl<Input: Message + 'static, Trigger: Message + 'static> Buffer<Input, Trigger> {
     pub fn with_system(system: &System) -> Self {
         use crate::SystemBuilding;
-        Self::new(system.input())
+        Self::new(system.input(), system.input(), system.output())
     }
 }
 
-impl<T: Message> Block for Buffer<T> {
-    fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
+impl<Input: Message, Trigger: Message> Block for Buffer<Input, Trigger> {
+    fn execute(&mut self, _: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
-            self.messages.push_back(message);
+            self.messages.push(message);
         }
+
+        while let Some(_) = self.trigger.recv()? {
+            for message in &self.messages {
+                self.output.send(message)?;
+            }
+        }
+
         Ok(())
     }
 }
 
 #[cfg(feature = "std")]
-impl<T: Message> StdioSystem for Buffer<T> {
+impl<Input: Message, Trigger: Message> StdioSystem for Buffer<Input, Trigger> {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, SystemBuilding};
 
@@ -98,7 +121,7 @@ mod tests {
     fn instantiate_block() {
         // Check that the block is constructible:
         let _ = System::build(|s| {
-            let _ = s.block(Buffer::<i32>::new(s.input()));
+            let _ = s.block(Buffer::<i32>::new(s.input(), s.input(), s.output()));
         });
     }
 }

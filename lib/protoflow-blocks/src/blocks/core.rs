@@ -119,7 +119,11 @@ pub mod core {
             use super::SystemBuilding;
             use CoreBlockConfig::*;
             match self {
-                Buffer { .. } => Box::new(super::Buffer::new(system.input_any())), // TODO: Buffer::with_system(system)
+                Buffer { .. } => Box::new(super::Buffer::<_, ()>::new(
+                    system.input_any(),
+                    system.input(),
+                    system.output_any(),
+                )), // TODO: Buffer::with_system(system)
                 Const { value, .. } => Box::new(super::Const::with_system(system, value.clone())),
                 Count { .. } => Box::new(super::Count::new(
                     system.input_any(),
