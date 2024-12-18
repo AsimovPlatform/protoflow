@@ -113,6 +113,7 @@ The built-in blocks provided by Protoflow are listed below:
 | Block             | Description                                                                                                                    |
 |:------------------|:-------------------------------------------------------------------------------------------------------------------------------|
 | [`Buffer`]        | Stores all messages it receives.                                                                                               |
+| [`Clock`]         | Periodically sends current timestamp. |
 | [`ConcatStrings`] | Concatenates the received string messages, with an optional delimiter string inserted between each message.                    |
 | [`Const`]         | Sends a constant value.                                                                                                        |
 | [`Count`]         | Counts the number of messages it receives, while optionally passing them through.                                              |
@@ -157,6 +158,38 @@ block-beta
 
 ```bash
 protoflow execute Buffer
+```
+
+#### [`Clock`]
+
+A block that periodically sends current timestamp.
+
+```mermaid
+block-beta
+    columns 4
+    Clock space:2 Sink
+    Clock-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Clock block
+    class Sink hidden
+```
+
+```bash
+protoflow execute Clock fixed=2
+```
+
+```bash
+protoflow execute Clock fixed=0.5
+```
+
+```bash
+protoflow execute Clock random=1..5
+```
+
+```bash
+protoflow execute Clock random=0.5..1.5
 ```
 
 #### [`ConcatStrings`]
@@ -795,6 +828,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`examples`]: lib/protoflow/examples
 
 [`Buffer`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Buffer.html
+[`Clock`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Clock.html
 [`ConcatStrings`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ConcatStrings.html
 [`Const`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Const.html
 [`Count`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Count.html
