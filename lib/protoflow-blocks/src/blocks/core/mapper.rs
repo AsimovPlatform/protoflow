@@ -8,10 +8,10 @@ use simple_mermaid::mermaid;
 /// A block to map a message from one type to another.
 ///
 /// # Block Diagram
-// #[doc = mermaid!("../../../doc/core/mapper.mmd")]
+#[doc = mermaid!("../../../doc/core/mapper.mmd")]
 ///
 /// # Sequence Diagram
-// #[doc = mermaid!("../../../doc/core/mapper.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/mapper.seq.mmd" framed)]
 ///
 /// # Examples
 ///
