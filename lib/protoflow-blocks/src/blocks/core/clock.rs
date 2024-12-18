@@ -16,10 +16,10 @@ use simple_mermaid::mermaid;
 /// The block does not have any input ports nor state.
 ///
 /// # Block Diagram
-// #[doc = mermaid!("../../../doc/core/clock.mmd")]
+#[doc = mermaid!("../../../doc/core/clock.mmd")]
 ///
 /// # Sequence Diagram
-// #[doc = mermaid!("../../../doc/core/clock.seq.mmd" framed)]
+#[doc = mermaid!("../../../doc/core/clock.seq.mmd" framed)]
 ///
 /// # Examples
 ///
