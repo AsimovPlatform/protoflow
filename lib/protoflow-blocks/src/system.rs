@@ -171,8 +171,10 @@ impl CoreBlocks for System {
 }
 
 impl FlowBlocks for System {
-    fn gate<T: Message + 'static>(&mut self) -> Gate<T> {
-        self.0.block(Gate::<T>::with_system(self))
+    fn gate<Input: Message + 'static, Trigger: Message + 'static>(
+        &mut self,
+    ) -> Gate<Input, Trigger> {
+        self.0.block(Gate::<Input, Trigger>::with_system(self))
     }
 }
 

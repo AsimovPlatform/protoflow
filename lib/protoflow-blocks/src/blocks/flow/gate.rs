@@ -111,7 +111,7 @@ impl<Input: Message, Trigger: Message> StdioSystem for Gate<Input, Trigger> {
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
-            let gate = s.gate();
+            let gate = s.gate::<_, ()>();
             s.connect(&stdin.output, &gate.input);
         }))
     }

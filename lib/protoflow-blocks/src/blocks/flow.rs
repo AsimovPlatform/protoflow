@@ -11,7 +11,9 @@ pub mod flow {
     use protoflow_core::{Block, Message};
 
     pub trait FlowBlocks {
-        fn gate<T: Message + 'static>(&mut self) -> Gate<T>;
+        fn gate<Input: Message + 'static, Trigger: Message + 'static>(
+            &mut self,
+        ) -> Gate<Input, Trigger>;
     }
 
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
