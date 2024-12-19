@@ -28,8 +28,14 @@ use simple_mermaid::mermaid;
 /// # fn main() {
 /// System::build(|s| {
 ///     let stdin = s.read_stdin();
+///     let hello = s.const_string("Hello, World!");
+///     let encode = s.encode_lines();
 ///     let gate = s.gate();
-///     s.connect(&stdin.output, &gate.input);
+///     let stdout = s.write_stdout();
+///     s.connect(&hello.output, &encode.input);
+///     s.connect(&encode.output, &gate.input);
+///     s.connect(&stdin.output, &gate.trigger);
+///     s.connect(&gate.output, &stdout.input);
 /// });
 /// # }
 /// ```
