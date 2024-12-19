@@ -1,15 +1,32 @@
 sequenceDiagram
     autonumber
-    participant BlockA as Another block
+    participant BlockA as Another block (input source)
     participant Buffer.input as Buffer.input port
     participant Buffer as Buffer block
+    participant Buffer.output as Buffer.output port
+    participant BlockB as Another block (downstream sink)
+    participant Buffer.trigger as Buffer.trigger port
+    participant BlockC as Another block (trigger source)
 
-    BlockA-->>Buffer: Connect
+    BlockA-->>Buffer: Connect (input)
+    BlockC-->>Buffer: Connect (trigger)
+    Buffer-->>BlockB: Connect (output)
 
-    loop Buffer process
+    loop Storing messages
         BlockA->>Buffer: Message
-        Buffer->>Buffer: Store message
+        Buffer->>Buffer: Store message internally
     end
 
-    BlockA-->>Buffer: Disconnect
+    BlockC->>Buffer: Trigger
+    loop Releasing messages
+        Buffer->>BlockB: Stored Message
+    end
+
+    BlockA-->>Buffer: Disconnect (input)
     Buffer-->>Buffer.input: Close
+
+    BlockC-->>Buffer: Disconnect (trigger)
+    Buffer-->>Buffer.trigger: Close
+
+    Buffer-->>BlockB: Disconnect (output)
+    Buffer-->>Buffer.output: Close

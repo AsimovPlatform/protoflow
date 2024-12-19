@@ -1,9 +1,16 @@
 block-beta
-    columns 4
-    Source space:2 Buffer
+    columns 7
+    Source space:2 Count space:2 Sink
+    space:7
+    space:7
+    space:3 Pulse space:3
     Source-- "input" -->Buffer
+    Pulse-- "trigger" -->Buffer
+    Buffer-- "output" -->Sink
 
     classDef block height:48px,padding:8px;
     classDef hidden visibility:none;
     class Buffer block
     class Source hidden
+    class Sink hidden
+    class Pulse hidden
