@@ -12,7 +12,9 @@ pub mod core {
     use protoflow_core::{Block, Message};
 
     pub trait CoreBlocks {
-        fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T>;
+        fn buffer<Input: Message + Into<Input> + 'static, Trigger: Message + 'static>(
+            &mut self,
+        ) -> Buffer<Input, Trigger>;
 
         fn const_bytes<T: Into<Bytes>>(&mut self, value: T) -> Const<Bytes>;
 

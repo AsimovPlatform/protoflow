@@ -131,8 +131,10 @@ impl SystemBuilding for System {
 impl AllBlocks for System {}
 
 impl CoreBlocks for System {
-    fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
-        self.0.block(Buffer::<T>::with_system(self))
+    fn buffer<Input: Message + Into<Input> + 'static, Trigger: Message + 'static>(
+        &mut self,
+    ) -> Buffer<Input, Trigger> {
+        self.0.block(Buffer::<Input, Trigger>::with_system(self))
     }
 
     fn const_bytes<T: Into<Bytes>>(&mut self, value: T) -> Const<Bytes> {

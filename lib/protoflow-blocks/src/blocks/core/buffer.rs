@@ -102,7 +102,7 @@ impl<Input: Message, Trigger: Message> Block for Buffer<Input, Trigger> {
 }
 
 #[cfg(feature = "std")]
-impl<Input: Message, Trigger: Message> StdioSystem for Buffer<Input, Trigger> {
+impl StdioSystem for Buffer {
     fn build_system(config: StdioConfig) -> Result<System, StdioError> {
         use crate::{CoreBlocks, SystemBuilding};
 
@@ -110,7 +110,7 @@ impl<Input: Message, Trigger: Message> StdioSystem for Buffer<Input, Trigger> {
 
         Ok(System::build(|s| {
             let stdin = config.read_stdin(s);
-            let buffer = s.buffer();
+            let buffer = s.buffer::<_, ()>();
             s.connect(&stdin.output, &buffer.input);
         }))
     }
