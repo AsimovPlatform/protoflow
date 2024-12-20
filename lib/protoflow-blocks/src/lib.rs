@@ -53,7 +53,7 @@ pub fn build_stdio_system(
     use prelude::String;
     Ok(match system_name.as_ref() {
         // CoreBlocks
-        "Buffer" => Buffer::<String>::build_system(config)?,
+        "Buffer" => Buffer::build_system(config)?,
         "Const" => Const::<String>::build_system(config)?,
         "Count" => Count::<String>::build_system(config)?,
         "Delay" => Delay::<String>::build_system(config)?,
