@@ -126,6 +126,7 @@ The built-in blocks provided by Protoflow are listed below:
 | [`EncodeCSV`]     | Encodes the provided header and rows, given as `prost_types::Value`, into a CSV-formatted byte stream.                         |
 | [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
 | [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
+| [`Gate`]          | Keeps all messages it receives, and sends them downstream when triggered. |
 | [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
 | [`Random`]        | Generates and sends a random value.                                                                                            |
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
@@ -453,6 +454,33 @@ block-beta
 
 ```bash
 protoflow execute EncodeJSON
+```
+
+#### [`Gate`]
+
+A block that keeps all messages it receives, and sends them downstream when triggered.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 Count space:2 Sink
+    space:7
+    space:7
+    space:3 Pulse space:3
+    Source-- "input" -->Gate
+    Pulse-- "trigger" -->Gate
+    Gate-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class Gate block
+    class Source hidden
+    class Sink hidden
+    class Pulse hidden
+```
+
+```bash
+protoflow execute Gate
 ```
 
 #### [`Hash`]

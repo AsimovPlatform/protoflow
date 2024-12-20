@@ -1,0 +1,32 @@
+sequenceDiagram
+    autonumber
+    participant BlockA as Another block (input source)
+    participant Gate.input as Gate.input port
+    participant Gate as Gate block
+    participant Gate.output as Gate.output port
+    participant BlockB as Another block (downstream sink)
+    participant Gate.trigger as Gate.trigger port
+    participant BlockC as Another block (trigger source)
+
+    BlockA-->>Gate: Connect (input)
+    BlockC-->>Gate: Connect (trigger)
+    Gate-->>BlockB: Connect (output)
+
+    loop Storing messages
+        BlockA->>Gate: Message
+        Gate->>Gate: Store message internally
+    end
+
+    BlockC->>Gate: Trigger
+    loop Releasing messages
+        Gate->>BlockB: Stored Message
+    end
+
+    BlockA-->>Gate: Disconnect (input)
+    Gate-->>Gate.input: Close
+
+    BlockC-->>Gate: Disconnect (trigger)
+    Gate-->>Gate.trigger: Close
+
+    Gate-->>BlockB: Disconnect (output)
+    Gate-->>Gate.output: Close
