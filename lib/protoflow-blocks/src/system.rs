@@ -3,13 +3,15 @@
 #![allow(dead_code)]
 
 use crate::{
-    prelude::{fmt, Arc, Box, FromStr, Rc, String, ToString},
+    prelude::{fmt, Arc, Box, Bytes, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
     AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
     DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadSocket, ReadStdin, SplitString,
-    SysBlocks, TextBlocks, WriteFile, WriteSocket, WriteStderr, WriteStdout,
+    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks,
+    TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
+#[cfg(all(feature = "std", feature = "serde"))]
+use crate::{ReadSocket, WriteSocket};
 use protoflow_core::{
     Block, BlockID, BlockResult, BoxedBlockType, InputPort, Message, OutputPort, PortID,
     PortResult, Process, SystemBuilding, SystemExecution,
@@ -141,6 +143,11 @@ impl CoreBlocks for System {
         self.0.block(Buffer::<T>::with_system(self))
     }
 
+    fn const_bytes<T: Into<Bytes>>(&mut self, value: T) -> Const<Bytes> {
+        self.0
+            .block(Const::<Bytes>::with_system(self, value.into()))
+    }
+
     fn const_string(&mut self, value: impl ToString) -> Const<String> {
         self.0
             .block(Const::<String>::with_system(self, value.to_string()))
@@ -266,6 +273,7 @@ impl SysBlocks for System {
         self.0.block(ReadFile::with_system(self))
     }
 
+    #[cfg(feature = "serde")]
     fn read_socket(&mut self) -> ReadSocket {
         self.0.block(ReadSocket::with_system(self, None))
     }
@@ -278,6 +286,7 @@ impl SysBlocks for System {
         self.0.block(WriteFile::with_system(self, None))
     }
 
+    #[cfg(feature = "serde")]
     fn write_socket(&mut self) -> WriteSocket {
         self.0.block(WriteSocket::with_system(self, None))
     }
@@ -314,5 +323,21 @@ impl TextBlocks for System {
     fn split_string(&mut self, delimiter: &str) -> SplitString {
         self.0
             .block(SplitString::with_system(self, Some(delimiter.to_string())))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn const_bytes_accepts_various_types() {
+        let _ = System::build(|s| {
+            let _ = s.const_bytes("Hello world");
+            let _ = s.const_bytes("Hello world".to_string());
+            let _ = s.const_bytes(&b"Hello world"[..]);
+            let _ = s.const_bytes(b"Hello world".to_vec());
+            let _ = s.const_bytes(Bytes::from("Hello world"));
+        });
     }
 }
