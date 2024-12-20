@@ -5,10 +5,10 @@
 use crate::{
     prelude::{fmt, Arc, Box, Bytes, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
-    DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks,
-    TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Buffer, Clock, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
+    DecodeHex, DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks,
+    HashBlocks, IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString,
+    SysBlocks, TextBlocks, WriteFile, WriteStderr, WriteStdout,
 };
 #[cfg(all(feature = "std", feature = "serde"))]
 use crate::{ReadSocket, WriteSocket};
@@ -141,6 +141,10 @@ impl AllBlocks for System {}
 impl CoreBlocks for System {
     fn buffer<T: Message + Into<T> + 'static>(&mut self) -> Buffer<T> {
         self.0.block(Buffer::<T>::with_system(self))
+    }
+
+    fn clock(&mut self, delay: DelayType) -> Clock {
+        self.0.block(Clock::with_system(self, delay))
     }
 
     fn const_bytes<T: Into<Bytes>>(&mut self, value: T) -> Const<Bytes> {
