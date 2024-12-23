@@ -2,6 +2,7 @@
 
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
+    info,
     prelude::{vec, Vec},
     types::Any,
     Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
@@ -88,13 +89,11 @@ impl<T: Message + 'static> Batch<T> {
 impl<T: Message> Block for Batch<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
-            #[cfg(feature = "tracing")]
-            tracing::info!("Buffered one message");
+            info!("Buffered one message");
             self.messages.push(message);
 
             if self.batch_size == self.messages().len() {
-                #[cfg(feature = "tracing")]
-                tracing::info!("Sending messages");
+                info!("Sending messages");
                 for message in self.messages.drain(..) {
                     self.output.send(&message)?
                 }
@@ -102,8 +101,7 @@ impl<T: Message> Block for Batch<T> {
         }
 
         //send remaining messages
-        #[cfg(feature = "tracing")]
-        tracing::info!("Sending remaining messages");
+        info!("Sending remaining messages");
         for message in self.messages.drain(..) {
             self.output.send(&message)?
         }
@@ -130,6 +128,8 @@ impl<T: Message> StdioSystem for Batch<T> {
 
 #[cfg(test)]
 mod tests {
+    use protoflow_core::error;
+
     use super::Batch;
     use crate::{FlowBlocks, System, SystemBuilding};
 
@@ -147,8 +147,6 @@ mod tests {
         use super::*;
         use crate::SysBlocks;
         use protoflow_core::SystemBuilding;
-        #[cfg(feature = "tracing")]
-        use tracing::error;
 
         if let Err(e) = System::run(|s| {
             let stdin = s.read_stdin();
@@ -158,7 +156,6 @@ mod tests {
             let stdout_1 = s.write_stdout();
             s.connect(&batch.output, &stdout_1.input);
         }) {
-            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }

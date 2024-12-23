@@ -2,7 +2,7 @@
 
 use crate::{FlowBlocks, StdioConfig, StdioError, StdioSystem, SysBlocks, System};
 use protoflow_core::{
-    types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+    info, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -76,8 +76,7 @@ impl<T: Message> Block for Replicate<T> {
         runtime.wait_for(&self.output_2)?;
 
         while let Some(message) = self.input.recv()? {
-            #[cfg(feature = "tracing")]
-            tracing::info!("Sending message");
+            info!("Sending message");
             self.output_1.send(&message)?;
             self.output_2.send(&message)?;
         }

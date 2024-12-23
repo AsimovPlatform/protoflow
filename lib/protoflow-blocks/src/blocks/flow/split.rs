@@ -113,9 +113,7 @@ impl<T: Message> StdioSystem for Split<T> {
 #[cfg(test)]
 mod split_tests {
     use crate::{CoreBlocks, FlowBlocks, SysBlocks, System};
-    use protoflow_core::prelude::String;
-    #[cfg(feature = "tracing")]
-    use tracing::error;
+    use protoflow_core::{error, prelude::String};
     extern crate std;
 
     #[test]
@@ -147,7 +145,6 @@ mod split_tests {
             s.connect(&file.output, &write_file.path);
             s.connect(&split.output_2, &write_file.input);
         }) {
-            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }
@@ -168,7 +165,6 @@ mod split_tests {
             let stdout_2 = s.write_stdout();
             s.connect(&split.output_2, &stdout_2.input);
         }) {
-            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }

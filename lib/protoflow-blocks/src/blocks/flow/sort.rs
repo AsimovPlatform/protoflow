@@ -4,12 +4,11 @@ use core::cmp::Ordering;
 
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
-    prelude::Vec, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+    error, info, prelude::Vec, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message,
+    OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
-#[cfg(feature = "tracing")]
-use tracing::error;
 
 /// Sorts a single input message stream in ascending order.
 ///
@@ -82,13 +81,11 @@ impl<T: Message + PartialOrd> Block for Sort<T> {
             self.messages.push(message);
         }
 
-        #[cfg(feature = "tracing")]
-        tracing::info!("Sorting messages");
+        info!("Sorting messages");
         self.messages.sort_by(|x, y| {
             if let Some(ordering) = x.partial_cmp(y) {
                 ordering
             } else {
-                #[cfg(feature = "tracing")]
                 error!("Incomparable values: {:?} and {:?}", x, y);
                 Ordering::Equal
             }
@@ -135,9 +132,7 @@ mod tests {
     fn run_sort_stdout() {
         use super::*;
         use crate::SysBlocks;
-        use protoflow_core::SystemBuilding;
-        #[cfg(feature = "tracing")]
-        use tracing::error;
+        use protoflow_core::{error, SystemBuilding};
 
         if let Err(e) = System::run(|s| {
             let stdin = s.read_stdin();
@@ -147,7 +142,6 @@ mod tests {
             let stdout_1 = s.write_stdout();
             s.connect(&sort.output, &stdout_1.input);
         }) {
-            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }

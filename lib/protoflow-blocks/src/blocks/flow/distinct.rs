@@ -2,7 +2,8 @@
 
 use crate::{StdioConfig, StdioError, StdioSystem, System};
 use protoflow_core::{
-    prelude::Vec, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+    info, prelude::Vec, types::Any, Block, BlockResult, BlockRuntime, InputPort, Message,
+    OutputPort,
 };
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
@@ -75,15 +76,13 @@ impl<T: Message + 'static> Distinct<T> {
 impl<T: Message + PartialEq> Block for Distinct<T> {
     fn execute(&mut self, _runtime: &dyn BlockRuntime) -> BlockResult {
         while let Some(message) = self.input.recv()? {
-            #[cfg(feature = "tracing")]
-            tracing::info!("Buffered one message");
+            info!("Buffered one message");
             if !self.messages.contains(&message) {
                 self.messages.push(message);
             }
         }
 
-        #[cfg(feature = "tracing")]
-        tracing::info!("Sending messages");
+        info!("Sending messages");
         for message in self.messages.drain(..) {
             self.output.send(&message)?;
         }
@@ -125,9 +124,7 @@ mod tests {
     fn run_distinct_stdout() {
         use super::*;
         use crate::SysBlocks;
-        use protoflow_core::SystemBuilding;
-        #[cfg(feature = "tracing")]
-        use tracing::error;
+        use protoflow_core::{error, SystemBuilding};
 
         if let Err(e) = System::run(|s| {
             let stdin = s.read_stdin();
@@ -137,7 +134,6 @@ mod tests {
             let stdout_1 = s.write_stdout();
             s.connect(&distinct.output, &stdout_1.input);
         }) {
-            #[cfg(feature = "tracing")]
             error!("{}", e)
         }
     }

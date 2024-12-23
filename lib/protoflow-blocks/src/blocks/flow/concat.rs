@@ -1,12 +1,14 @@
 // This is free and unencumbered software released into the public domain.
 extern crate std;
 
-use crate::prelude::{Arc, Vec};
-use crate::{FlowBlocks, StdioConfig, StdioError, StdioSystem, SysBlocks, System};
-use protoflow_core::{
-    types::Any, Block, BlockResult, BlockRuntime, InputPort, Message, OutputPort,
+use crate::{
+    prelude::{Arc, Vec},
+    FlowBlocks, StdioConfig, StdioError, StdioSystem, SysBlocks, System,
 };
-use protoflow_core::{BlockError, PortError};
+use protoflow_core::{
+    error, info, types::Any, Block, BlockError, BlockResult, BlockRuntime, InputPort, Message,
+    OutputPort, PortError,
+};
 use protoflow_derive::Block;
 use simple_mermaid::mermaid;
 
@@ -91,8 +93,7 @@ impl<T: Message + Send + 'static> Block for Concat<T> {
             while let Ok(Some(message)) = input.recv() {
                 buffer.push(message);
             }
-            #[cfg(feature = "tracing")]
-            tracing::info!("{} processed {} messages", input_name, buffer.len());
+            info!("{} processed {} messages", input_name, buffer.len());
             Ok(buffer)
         }
 
@@ -110,33 +111,28 @@ impl<T: Message + Send + 'static> Block for Concat<T> {
         // Collect and handle thread results
         let buffer1 = match handle1.join() {
             Ok(result) => result.map_err(|e| {
-                #[cfg(feature = "tracing")]
-                tracing::error!("Error processing input1: {:?}", e);
+                error!("Error processing input1: {:?}", e);
                 BlockError::Other("Failed to process input1".into())
             })?,
             Err(_) => {
-                #[cfg(feature = "tracing")]
-                tracing::error!("Thread for input1 panicked");
+                error!("Thread for input1 panicked");
                 return Err(BlockError::Other("Thread for input1 panicked".into()));
             }
         };
 
         let buffer2 = match handle2.join() {
             Ok(result) => result.map_err(|e| {
-                #[cfg(feature = "tracing")]
-                tracing::error!("Error processing input2: {:?}", e);
+                error!("Error processing input2: {:?}", e);
                 BlockError::Other("Failed to process input2".into())
             })?,
             Err(_) => {
-                #[cfg(feature = "tracing")]
-                tracing::error!("Thread for input2 panicked");
+                error!("Thread for input2 panicked");
                 return Err(BlockError::Other("Thread for input2 panicked".into()));
             }
         };
 
         // Concatenate and send messages to the output sequentially
-        #[cfg(feature = "tracing")]
-        tracing::info!(
+        info!(
             "Concatenating {} messages from input1 with {} messages from input2",
             buffer1.len(),
             buffer2.len()
@@ -144,14 +140,12 @@ impl<T: Message + Send + 'static> Block for Concat<T> {
 
         for message in buffer1.iter().chain(buffer2.iter()) {
             if let Err(err) = self.output.send(message) {
-                #[cfg(feature = "tracing")]
-                tracing::error!("Failed to send message: {:?}", err);
+                error!("Failed to send message: {:?}", err);
                 return Err(err.into());
             }
         }
 
-        #[cfg(feature = "tracing")]
-        tracing::info!("All messages successfully sent to the output.");
+        info!("All messages successfully sent to the output.");
         Ok(())
     }
 }
