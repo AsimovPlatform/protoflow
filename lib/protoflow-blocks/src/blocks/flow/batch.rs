@@ -27,7 +27,7 @@ use simple_mermaid::mermaid;
 /// # fn main() {
 /// System::build(|s| {
 ///     let stdin = s.read_stdin();
-///     let batch = s.batch().batch(2);
+///     let batch = s.batch(2);
 ///     s.connect(&stdin.output, &batch.input);
 /// });
 /// # }
