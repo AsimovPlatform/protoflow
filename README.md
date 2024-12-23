@@ -130,7 +130,8 @@ The built-in blocks provided by Protoflow are listed below:
 | [`EncodeHex`]     | Encodes a byte stream into hexadecimal form.                                                                                   |
 | [`EncodeJSON`]    | Encodes messages into JSON format.                                                                                             |
 | [`Hash`]          | Computes the cryptographic hash of a byte stream.                                                                              |
-| [`Merge`]         | Merges multiple input message streams into a single output stream by interleaving messages as they arrive.                   |
+| [`MapInto`]       | Maps a message from one type to another via Into trait.                                                                        |
+| [`Merge`]         | Merges multiple input message streams into a single output stream by interleaving messages as they arrive.                     |
 | [`Random`]        | Generates and sends a random value.                                                                                            |
 | [`ReadDir`]       | Reads file names from a file system directory.                                                                                 |
 | [`ReadEnv`]       | Reads the value of an environment variable.                                                                                    |
@@ -558,6 +559,28 @@ block-beta
 
 ```bash
 protoflow execute Hash algorithm=blake3
+```
+
+#### [`MapInto`]
+
+Maps a message from one type to another via Into trait.
+
+```mermaid
+block-beta
+    columns 7
+    Source space:2 MapInto space:2 Sink
+    Source-- "input" -->MapInto
+    MapInto-- "output" -->Sink
+
+    classDef block height:48px,padding:8px;
+    classDef hidden visibility:none;
+    class MapInto block
+    class Source hidden
+    class Sink hidden
+```
+
+```bash
+protoflow execute MapInto
 ```
 
 #### [`Merge`]
@@ -992,6 +1015,7 @@ To add a new block type implementation, make sure to examine and amend:
 [`EncodeHex`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeHex.html
 [`EncodeJSON`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.EncodeJson.html
 [`Hash`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Hash.html
+[`MapInto`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.MapInto.html
 [`Merge`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Merge.html
 [`Random`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.Random.html
 [`ReadDir`]: https://docs.rs/protoflow-blocks/latest/protoflow_blocks/struct.ReadDir.html

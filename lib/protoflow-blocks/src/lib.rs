@@ -53,7 +53,6 @@ pub fn build_stdio_system(
     use prelude::String;
     Ok(match system_name.as_ref() {
         // CoreBlocks
-        "Batch" => Batch::<String>::build_system(config)?,
         "Buffer" => Buffer::<String>::build_system(config)?,
         "Const" => Const::<String>::build_system(config)?,
         "Count" => Count::<String>::build_system(config)?,
@@ -61,8 +60,10 @@ pub fn build_stdio_system(
         "Drop" => Drop::<String>::build_system(config)?,
         "Random" => Random::<u64>::build_system(config)?,
         // FlowBlocks
+        "Batch" => Batch::<String>::build_system(config)?,
         "Concat" => Concat::<String>::build_system(config)?,
         "Distinct" => Distinct::<String>::build_system(config)?,
+        "MapInto" => MapInto::<String, String>::build_system(config)?,
         "Merge" => Merge::<String>::build_system(config)?,
         "Replicate" => Replicate::<String>::build_system(config)?,
         "Sort" => Sort::<String>::build_system(config)?,

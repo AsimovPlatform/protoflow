@@ -21,6 +21,7 @@ pub enum BlockTag {
     Batch,
     Concat,
     Distinct,
+    MapInto,
     Merge,
     Replicate,
     Sort,
@@ -101,6 +102,7 @@ impl BlockTag {
             Encode => "Encode",
             EncodeHex => "EncodeHex",
             EncodeJson => "EncodeJSON",
+            MapInto => "MapInto",
             Merge => "Merge",
             #[cfg(feature = "std")]
             ReadDir => "ReadDir",
@@ -159,6 +161,7 @@ impl FromStr for BlockTag {
             "Encode" => Encode,
             "EncodeHex" => EncodeHex,
             "EncodeJSON" => EncodeJson,
+            "MapInto" => MapInto,
             "Merge" => Merge,
             #[cfg(feature = "std")]
             "ReadDir" => ReadDir,
@@ -228,6 +231,7 @@ impl BlockInstantiation for BlockTag {
             Encode => Box::new(super::Encode::<String>::with_system(system, None)),
             EncodeHex => Box::new(super::EncodeHex::with_system(system)),
             EncodeJson => Box::new(super::EncodeJson::with_system(system)),
+            MapInto => Box::new(super::MapInto::<Any, Any>::with_system(system)),
             Merge => Box::new(super::Merge::<Any>::with_system(system)),
             #[cfg(feature = "std")]
             ReadDir => Box::new(super::ReadDir::with_system(system)),

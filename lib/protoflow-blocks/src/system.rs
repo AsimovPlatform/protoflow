@@ -7,9 +7,9 @@ use crate::{
     types::{DelayType, Encoding},
     AllBlocks, Batch, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
     DecodeHex, DecodeJson, Delay, Distinct, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson,
-    FlowBlocks, HashBlocks, IoBlocks, MathBlocks, Merge, Random, ReadDir, ReadEnv, ReadFile,
-    ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile, WriteStderr,
-    WriteStdout,
+    FlowBlocks, HashBlocks, IoBlocks, MapInto, MathBlocks, Merge, Random, ReadDir, ReadEnv,
+    ReadFile, ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile,
+    WriteStderr, WriteStdout,
 };
 #[cfg(all(feature = "std", feature = "serde"))]
 use crate::{ReadSocket, WriteSocket};
@@ -190,6 +190,12 @@ impl FlowBlocks for System {
 
     fn distinct<T: Message + Into<T> + PartialEq + 'static>(&mut self) -> Distinct<T> {
         self.0.block(Distinct::<T>::with_system(self))
+    }
+
+    fn map_into<Input: Message + Into<Output> + 'static, Output: Message + 'static>(
+        &mut self,
+    ) -> MapInto<Input, Output> {
+        self.0.block(MapInto::<Input, Output>::with_system(self))
     }
 
     fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T> {

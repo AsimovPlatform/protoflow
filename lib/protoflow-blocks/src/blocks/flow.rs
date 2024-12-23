@@ -14,6 +14,9 @@ pub mod flow {
         fn batch<T: Message + Into<T> + 'static>(&mut self, batch_size: usize) -> Batch<T>;
         fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T>;
         fn distinct<T: Message + Into<T> + PartialEq + 'static>(&mut self) -> Distinct<T>;
+        fn map_into<Input: Message + Into<Output> + 'static, Output: Message + 'static>(
+            &mut self,
+        ) -> MapInto<Input, Output>;
         fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T>;
         fn replicate<T: Message + Into<T> + 'static>(&mut self) -> Replicate<T>;
         fn sort<T: Message + Into<T> + PartialOrd + 'static>(&mut self) -> Sort<T>;
@@ -26,6 +29,7 @@ pub mod flow {
         Batch,
         Concat,
         Distinct,
+        MapInto,
         Merge,
         Replicate,
         Sort,
@@ -45,6 +49,10 @@ pub mod flow {
             output: OutputPortName,
         },
         Distinct {
+            input: InputPortName,
+            output: OutputPortName,
+        },
+        MapInto {
             input: InputPortName,
             output: OutputPortName,
         },
@@ -76,6 +84,7 @@ pub mod flow {
                 Batch { .. } => "Batch",
                 Concat { .. } => "Concat",
                 Distinct { .. } => "Distinct",
+                MapInto { .. } => "MapInto",
                 Merge { .. } => "Merge",
                 Replicate { .. } => "Replicate",
                 Sort { .. } => "Sort",
@@ -95,6 +104,9 @@ pub mod flow {
                     vec![("output", Some(output.clone()))]
                 }
                 Distinct { output, .. } => {
+                    vec![("output", Some(output.clone()))]
+                }
+                MapInto { output, .. } => {
                     vec![("output", Some(output.clone()))]
                 }
                 Merge { output, .. } => {
@@ -137,6 +149,9 @@ pub mod flow {
                 Distinct { .. } => {
                     Box::new(super::Distinct::new(system.input_any(), system.output()))
                 }
+                MapInto { .. } => {
+                    Box::new(super::MapInto::new(system.input_any(), system.output_any()))
+                }
                 Merge { .. } => Box::new(super::Merge::new(
                     system.input_any(),
                     system.input_any(),
@@ -168,6 +183,9 @@ pub mod flow {
 
     mod distinct;
     pub use distinct::*;
+
+    mod map_into;
+    pub use map_into::*;
 
     mod merge;
     pub use merge::*;
