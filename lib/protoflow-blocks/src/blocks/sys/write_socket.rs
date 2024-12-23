@@ -5,7 +5,9 @@ use crate::{
     prelude::{bytes::Bytes, vec, String},
     StdioConfig, StdioError, StdioSystem, System,
 };
-use protoflow_core::{Block, BlockError, BlockResult, BlockRuntime, InputPort, SystemBuilding};
+use protoflow_core::{
+    error, Block, BlockError, BlockResult, BlockRuntime, InputPort, SystemBuilding,
+};
 use protoflow_derive::Block;
 use serde::{Deserialize, Serialize};
 use simple_mermaid::mermaid;
@@ -14,8 +16,6 @@ use std::{
     net::TcpStream,
     sync::{Arc, Mutex, PoisonError},
 };
-#[cfg(feature = "tracing")]
-use tracing::error;
 
 /// A block that writes a proto object to a TCP socket.
 ///
