@@ -5,10 +5,11 @@
 use crate::{
     prelude::{fmt, Arc, Box, Bytes, FromStr, Rc, String, ToString},
     types::{DelayType, Encoding},
-    AllBlocks, Buffer, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv, DecodeHex,
-    DecodeJson, Delay, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson, FlowBlocks, HashBlocks,
-    IoBlocks, MathBlocks, Random, ReadDir, ReadEnv, ReadFile, ReadStdin, SplitString, SysBlocks,
-    TextBlocks, WriteFile, WriteStderr, WriteStdout,
+    AllBlocks, Batch, Buffer, Concat, ConcatStrings, Const, CoreBlocks, Count, Decode, DecodeCsv,
+    DecodeHex, DecodeJson, Delay, Distinct, Drop, Encode, EncodeCsv, EncodeHex, EncodeJson,
+    FlowBlocks, HashBlocks, IoBlocks, MapInto, MathBlocks, Merge, Random, ReadDir, ReadEnv,
+    ReadFile, ReadStdin, Replicate, Sort, Split, SplitString, SysBlocks, TextBlocks, WriteFile,
+    WriteStderr, WriteStdout,
 };
 #[cfg(all(feature = "std", feature = "serde"))]
 use crate::{ReadSocket, WriteSocket};
@@ -178,7 +179,41 @@ impl CoreBlocks for System {
     }
 }
 
-impl FlowBlocks for System {}
+impl FlowBlocks for System {
+    fn batch<T: Message + Into<T> + 'static>(&mut self, batch_size: usize) -> Batch<T> {
+        self.0
+            .block(Batch::<T>::with_system(self, Some(batch_size)))
+    }
+    fn concat<T: Message + Into<T> + 'static>(&mut self) -> Concat<T> {
+        self.0.block(Concat::<T>::with_system(self))
+    }
+
+    fn distinct<T: Message + Into<T> + PartialEq + 'static>(&mut self) -> Distinct<T> {
+        self.0.block(Distinct::<T>::with_system(self))
+    }
+
+    fn map_into<Input: Message + Into<Output> + 'static, Output: Message + 'static>(
+        &mut self,
+    ) -> MapInto<Input, Output> {
+        self.0.block(MapInto::<Input, Output>::with_system(self))
+    }
+
+    fn merge<T: Message + Into<T> + 'static>(&mut self) -> Merge<T> {
+        self.0.block(Merge::<T>::with_system(self))
+    }
+
+    fn replicate<T: Message + Into<T> + 'static>(&mut self) -> Replicate<T> {
+        self.0.block(Replicate::<T>::with_system(self))
+    }
+
+    fn sort<T: Message + Into<T> + PartialOrd + 'static>(&mut self) -> Sort<T> {
+        self.0.block(Sort::<T>::with_system(self))
+    }
+
+    fn split<T: Message + Into<T> + 'static>(&mut self) -> Split<T> {
+        self.0.block(Split::<T>::with_system(self))
+    }
+}
 
 #[cfg(not(any(
     feature = "hash-blake3",
